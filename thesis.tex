@@ -1,0 +1,67 @@
+
+%--------------------------------------------------------------
+%document header info
+\documentclass[12pt]{report}%{book}
+\pagestyle{plain}
+\usepackage{PennDiss}
+\usepackage{graphicx,times}
+\usepackage{amsmath,amsthm, amssymb, latexsym}
+\usepackage{multirow}
+\usepackage{hyperref}
+\graphicspath{{figs/}}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title{Efficient Human Pose Estimation with Higher-order Image Information}
+
+\author{Benjamin John Sapp}
+
+\copyrightyear{2012}
+
+\supervisor{Ben Taskar}
+\groupchair{Kostas Daniilidis}
+\dept{Computer and Information Science}
+  
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+ \beforepreface
+
+\newpage
+\copyrightpage
+
+\prefacesection{Acknowledgments}
+\input{ack}
+
+\newpage
+\abstractp
+\input{abstract}
+
+\afterpreface
+
+\prefacesection{Preface}
+\input{preface}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\pagenumbering{arabic}
+\pagestyle{plain}
+
+\input{intro}
+\clearpage
+
+\input{conclusion}
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{alpha}
+\bibliography{refs.bib}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
