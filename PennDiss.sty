@@ -1,0 +1,256 @@
+%
+% University of Pennsylvania thesis style
+% Dept. of Computer Information and Science
+%
+% Last edit Tue Nov. 19 12:00:00 2002
+% Last edit by Gang Huang
+% Modification of:
+%
+% penndiss.sty
+% PENNDISS DOCUMENT-STYLE OPTION - released July, 1988
+% for LaTeX version 2.09
+% Author: Haim Levkowitz (modified from the Stanford U. style)
+% University of Pennsylvania PhD thesis style -- option to the report style
+% Note: This file is the .STY file. The file penndiss.DOC serves as
+% documentation.
+% Whenever there are discrepancies between the two file,
+% this is the CORRECT thing. It has been fine-tuned for the precise
+% margin requirement. It ``passed the test'' on Friday, July 29, 1988, when
+% my dissertation, formated with it, was accepted.
+% Haim Levkowitz, July 30, 1988.
+% For an example, see [levkowitz.clr]dissroot.tex
+\makeatletter \oddsidemargin 0.5in \evensidemargin 0.5in
+\marginparwidth 40pt \marginparsep 10pt \topmargin 0pt \headsep
+0in \textheight 8.5in \textwidth 5.9375in \voffset=-.125in
+%\hoffset=.0625in %shifts text 1/16 in to the right
+\flushbottom \brokenpenalty=10000
+\renewcommand{\baselinestretch}{1.5}
+%\renewcommand{\baselinestretch}{1.0}
+%\def\cl@chapter{\@elt{section}\@elt{footnote}}
+%\def\thefigure{\@arabic\c@figure}
+%\def\thetable{\@arabic\c@table}
+%\def\theequation{\arabic{equation}}
+
+% this is wack!!
+ \def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
+ \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
+ \@parmoderr\@floatpenalty\z@
+ \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
+ \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
+ \@tfor \@tempa :=#2\do
+ {\if\@tempa h\advance\@tempcnta \@ne\fi
+ \if\@tempa t\advance\@tempcnta \tw@\fi
+ \if\@tempa b\advance\@tempcnta 4\relax\fi
+ \if\@tempa p\advance\@tempcnta 8\relax\fi
+ }\global\count\@currbox\@tempcnta}\@fltovf\fi
+ \global\setbox\@currbox\vbox\bgroup
+ \def\baselinestretch{1}\@normalsize
+ \boxmaxdepth\z@
+ \hsize\columnwidth \@parboxrestore}
+
+\long\def\@footnotetext#1{\insert\footins{\def\baselinestretch{1}\footnotesize
+\interlinepenalty\interfootnotelinepenalty
+\splittopskip\footnotesep
+\splitmaxdepth \dp\strutbox \floatingpenalty \@MM
+\hsize\columnwidth \@parboxrestore
+\edef\@currentlabel{\csname p@footnote\endcsname\@thefnmark}\@makefntext
+{\rule{\z@}{\footnotesep}\ignorespaces
+#1\strut}}}
+\def\dept#1{\gdef\@dept{#1}}
+\def\superviser#1{\gdef\@superviser{#1}}
+\def\supervis@r{Superviser}
+\def\supervisor#1{\gdef\@superviser{#1}\gdef\supervis@r{Supervisor of Dissertation}}
+\def\groupchair#1{\gdef\@groupchair{#1}\gdef\groupcha@r{Graduate Group Chairperson}}
+\def\submitdate#1{\gdef\@submitdate{#1}}
+\def\copyrightyear#1{\gdef\@copyrightyear{#1}} % \author, \title in report
+\def\@title{}\def\@author{}\def\@dept{electrical and systems enigneering}
+\def\@superviser{}%
+\def\@groupchair{}%
+\def\@submitdate{\ifcase\the\month\or January\or February\or March\or April\or May\or June\or July\or August\or
+September\or October\or November\or December\fi \space \number\the\year}
+%%\ifnum\month=12
+%% \@tempcnta=\year \advance\@tempcnta by 1
+%% \edef\@copyrightyear{\number\the\@tempcnta}
+%%\else
+\def\@copyrightyear{\number\the\year}
+%%\fi
+\newif\ifcopyright \newif\iffigurespage \newif\iftablespage
+%%\copyrighttrue
+\figurespagetrue \tablespagetrue
+
+
+%Define the signature format
+\long\def\signature#1{%
+% \begin{flushleft}
+\begin{center}
+% \begin{minipage}{6in}
+\parindent=0pt
+\shortstack{\vrule width 2.75in height 0.4pt\\#1}
+% \end{minipage}
+\end{center}
+% \end{flushleft}
+}
+
+%Define the signature format
+\long\def\signatureTwo#1#2{%
+% \begin{flushleft}
+\begin{center}
+% \begin{minipage}{6in}
+\parindent=0pt
+\shortstack{\vrule width 2.75in height 0.4pt\\#1} \hspace{0.2in} 
+\shortstack{\vrule width 2.75in height 0.4pt\\#2 \vspace{0.365in}}
+% \end{minipage}
+\end{center}
+% \end{flushleft}
+}
+
+
+
+%Define the signature format
+\long\def\signatureNoLineTwo#1#2{%
+% \begin{flushleft}
+\begin{center}
+% \begin{minipage}{6in}
+\parindent=0pt
+\shortstack{#1} \hspace{0.1in}
+\shortstack{#2}
+% \end{minipage}
+\end{center}
+% \end{flushleft}
+}
+
+%%Define the signature format
+%\long\def\signatureNoLineThree#1#2#3{%
+%% \begin{flushleft}
+%\begin{center}
+%% \begin{minipage}{6in}
+%\parindent=0pt
+%\shortstack{#1} \hspace{0.2in}
+%\shortstack{#2}\hspace{0.2in}
+%\shortstack{#3}
+%% \end{minipage}
+%\end{center}
+%% \end{flushleft}
+%}
+
+
+\def\titlep{%
+\thispagestyle{empty}%
+%\null\vskip.1in%
+
+\begin{center}
+{\Large\uppercase\expandafter{\@title}}
+\vskip.3in%
+{\Large\expandafter{\@author}}
+
+\vskip.2in%
+A DISSERTATION \\
+\vskip.2in%
+in
+\vskip.2in%
+{\Large\expandafter{\@dept}}
+%\vfill
+\vskip.2in
+Presented to the Faculties of the University of Pennsylvania in Partial \\
+Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
+\vskip.2in\@copyrightyear\vskip.6in
+\end{center}
+
+%\begin{multicols}
+%\vfill
+ \signatureTwo{Stella X. Yu, Adjunct Assistant Professor\\ Computer and Information Science \\ \vspace{0.04in}Clare Boothe Luce Assistant  Professor \\ Computer Science, Boston College \\ Supervisor of Dissertation} {Jianbo Shi, Associate Professor \\ Computer and Information Science \\ Supervisor of Dissertation} 
+%\signature{\@superviser\\ \supervis@r}
+%\vfill
+\vskip.3in%
+
+\signature{\@groupchair, Associate Professor\\Computer and Information Science\\ \groupcha@r}
+
+
+\vskip.2in%
+\begin{center}
+  Dissertation Committee
+\end{center}
+\vskip.05in%
+\begin{center}
+\begin{tabular}[c]{@{}cc@{}}
+\shortstack{Kostas Daniilidis, Professor\\  Computer and Information Science} \hspace{0.2in} &
+ \shortstack{Jean Gallier, Professor \\Computer and Information Science}\\
+\end{tabular}
+ \end{center} 
+\vskip.05in%
+\begin{center}
+\begin{tabular}[c]{@{}cc@{}}
+\shortstack{Camillo J. Taylor, Associate Professor\\ Computer and Information Science }  \hspace{0.2in} &
+ \shortstack{James Gee, Associate Professor \\  Radiology}\\  
+\end{tabular}
+\end{center}
+\vskip.05in%
+\begin{center}
+ \shortstack{Alyosha A. Efros, Finmeccanica Associate Professor\\The Robotics Institute and Computer Science, Carnegie Mellon University}
+\end{center}
+}
+
+\newpage
+\def\copyrightpage{%
+\thispagestyle{empty}%
+\null\vfill
+\begin{center}
+\Large FINDING DOTS IN MICROSCOPIC IMAGES\\
+\Large COPYRIGHT\\
+\@copyrightyear\\
+\@author\\
+\end{center}
+\vfill\newpage}
+
+\def\beforepreface{%
+\pagenumbering{roman}%
+\pagestyle{plain}%
+\titlep%
+\ifcopyright\copyrightpage\fi}
+
+\def\prefacesection#1{%
+\pagestyle{plain}%
+\chapter*{#1}
+\addcontentsline{toc}{chapter}{#1}}
+
+\def\abstractp{%
+\begin{center}
+{\uppercase{ABSTRACT}}\\
+{\uppercase\expandafter{\@title}} \\
+{\@author} \\
+{\@superviser}\\
+\end{center}
+}
+
+\def\afterpreface{\newpage
+\tableofcontents
+\newpage
+\iftablespage
+{\addvspace{10pt}
+\let\saveaddvspace=\addvspace
+\def\addvspace##1{}
+\listoftables
+\let\addvspace=\saveaddvspace}
+\newpage
+\fi
+\iffigurespage
+{\addvspace{10pt}
+\let\saveaddvspace=\addvspace
+\def\addvspace##1{}
+\listoffigures
+\let\addvspace=\saveaddvspace}
+\newpage
+\fi
+}
+%\pagenumbering{arabic}
+%\pagestyle{plain}}
+
+%\def\prefacesectionfish{%
+%
+%\pagestyle{plain}%
+%\input{fish}
+%\addcontentsline{toc}{Preface}}
+
+% Start with pagestyle{plain} in case front matter isn't processed \pagestyle{plain} \makeatother
+
+
