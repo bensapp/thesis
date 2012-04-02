@@ -7,61 +7,54 @@
 \usepackage{graphicx,times}
 \usepackage{amsmath,amsthm, amssymb, latexsym}
 \usepackage{multirow}
-\usepackage{hyperref}
+
+%\usepackage[pagebackref=true,colorlinks=true]{hyperref}
+\usepackage[usenames,dvipsnames]{color}
+\definecolor{ccolor}{rgb}{0.25,0.25,0.9}
+\definecolor{lcolor}{rgb}{0.35,0.35,0.35}
+\usepackage[pagebackref=true,linkcolor=ccolor,citecolor=ccolor,colorlinks=true]{hyperref}
+\usepackage[sort,round]{natbib}
+
 \graphicspath{{figs/}}
 \usepackage{algorithm}
 \usepackage{algorithmic}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \begin{document}
+\input{commands}
+\newcommand{\mytitle}{Efficient Human Pose Estimation with Higher-order Image Information}
+\newcommand{\MYTITLE}{EFFICIENT HUMAN POSE ESTIMATION WITH HIGHER-ORDER IMAGE INFORMATION}
 
-\title{Efficient Human Pose Estimation with Higher-order Image Information}
-
+\title{\mytitle}
 \author{Benjamin John Sapp}
 
 \copyrightyear{2012}
 
 \supervisor{Ben Taskar}
-\groupchair{Kostas Daniilidis}
+\groupchair{Jianbo Shi}
 \dept{Computer and Information Science}
   
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   
  \beforepreface
-
 \newpage
 \copyrightpage
-
 \prefacesection{Acknowledgments}
 \input{ack}
-
 \newpage
 \abstractp
 \input{abstract}
-
 \afterpreface
-
 \prefacesection{Preface}
 \input{preface}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newpage
 \pagenumbering{arabic}
 \pagestyle{plain}
 
 \input{intro}
 \clearpage
-
 \input{conclusion}
 \clearpage
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\bibliographystyle{alpha}
-\bibliography{refs.bib}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\bibliographystyle{plainnat}
+\bibliography{refs}
 \end{document}

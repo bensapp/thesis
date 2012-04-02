@@ -1,9 +1,10 @@
-*.swp 
+*.sw? 
 *~
-thesis.aux
-thesis.lof
-thesis.log
-thesis.lot
+*.bak
+thesis.a*
+thesis.b*
+thesis.l*
 thesis.out
 thesis.pdf
 thesis.toc
+natbib.sty

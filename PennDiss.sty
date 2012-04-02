@@ -31,6 +31,9 @@
 %\def\thetable{\@arabic\c@table}
 %\def\theequation{\arabic{equation}}
 
+\newcommand{\upenn}{University of Pennsylvania}
+\newcommand{\cis}{Computer and Information Science}
+
 % this is wack!!
  \def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
  \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
@@ -57,14 +60,14 @@
 {\rule{\z@}{\footnotesep}\ignorespaces
 #1\strut}}}
 \def\dept#1{\gdef\@dept{#1}}
-\def\superviser#1{\gdef\@superviser{#1}}
-\def\supervis@r{Superviser}
-\def\supervisor#1{\gdef\@superviser{#1}\gdef\supervis@r{Supervisor of Dissertation}}
+\def\supervisor#1{\gdef\@supervisor{#1}}
+\def\supervis@r{supervisor}
+\def\supervisor#1{\gdef\@supervisor{#1}\gdef\supervis@r{Supervisor of Dissertation}}
 \def\groupchair#1{\gdef\@groupchair{#1}\gdef\groupcha@r{Graduate Group Chairperson}}
 \def\submitdate#1{\gdef\@submitdate{#1}}
 \def\copyrightyear#1{\gdef\@copyrightyear{#1}} % \author, \title in report
 \def\@title{}\def\@author{}\def\@dept{electrical and systems enigneering}
-\def\@superviser{}%
+\def\@supervisor{}%
 \def\@groupchair{}%
 \def\@submitdate{\ifcase\the\month\or January\or February\or March\or April\or May\or June\or July\or August\or
 September\or October\or November\or December\fi \space \number\the\year}
@@ -151,18 +154,18 @@ in
 {\Large\expandafter{\@dept}}
 %\vfill
 \vskip.2in
-Presented to the Faculties of the University of Pennsylvania in Partial \\
-Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
+Presented to the Faculties of the University of Pennsylvania \\
+in \\ 
+Partial Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
 \vskip.2in\@copyrightyear\vskip.6in
 \end{center}
 
 %\begin{multicols}
 %\vfill
- \signatureTwo{Stella X. Yu, Adjunct Assistant Professor\\ Computer and Information Science \\ \vspace{0.04in}Clare Boothe Luce Assistant  Professor \\ Computer Science, Boston College \\ Supervisor of Dissertation} {Jianbo Shi, Associate Professor \\ Computer and Information Science \\ Supervisor of Dissertation} 
-%\signature{\@superviser\\ \supervis@r}
-%\vfill
-\vskip.3in%
+% \signatureTwo{Stella X. Yu, Adjunct Assistant Professor\\ Computer and Information Science \\ \vspace{0.04in}Clare Boothe Luce Assistant  Professor \\ Computer Science, Boston College \\ Supervisor of Dissertation} {Jianbo Shi, Associate Professor \\ Computer and Information Science \\ Supervisor of Dissertation} 
 
+\signature{\@supervisor, Associate Professor\\Computer and Information Science\\ \groupcha@r}
+\vskip.3in
 \signature{\@groupchair, Associate Professor\\Computer and Information Science\\ \groupcha@r}
 
 
@@ -171,23 +174,34 @@ Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
   Dissertation Committee
 \end{center}
 \vskip.05in%
+
 \begin{center}
-\begin{tabular}[c]{@{}cc@{}}
-\shortstack{Kostas Daniilidis, Professor\\  Computer and Information Science} \hspace{0.2in} &
- \shortstack{Jean Gallier, Professor \\Computer and Information Science}\\
-\end{tabular}
- \end{center} 
-\vskip.05in%
-\begin{center}
-\begin{tabular}[c]{@{}cc@{}}
-\shortstack{Camillo J. Taylor, Associate Professor\\ Computer and Information Science }  \hspace{0.2in} &
- \shortstack{James Gee, Associate Professor \\  Radiology}\\  
+\begin{tabular}{cc}
+\shortstack{Kostas Daniilidis, Professor\\ \cis \\ \upenn} \hspace{0.2in} &
+\shortstack{Jianbo Shi, Associate Professor \\ \cis \\ \upenn }
+\\\\
+\shortstack{Camillo J. Taylor, Associate Professor\\ \cis \\ \upenn}  \hspace{0.2in} &
+\shortstack{David Forsyth, Professor \\  Computer Science \\ University of Illinois}\\  
 \end{tabular}
 \end{center}
-\vskip.05in%
-\begin{center}
- \shortstack{Alyosha A. Efros, Finmeccanica Associate Professor\\The Robotics Institute and Computer Science, Carnegie Mellon University}
-\end{center}
+\vskip.05in
+
+
+%\begin{tabular}[c]{@{}cc@{}}
+%\shortstack{Kostas Daniilidis, Professor\\ \cis \\ \upenn} \hspace{0.2in} &
+% \shortstack{Jianbo Shi, Associate Professor \\ \cis \\ \upenn }\\
+%\end{tabular}
+% \end{center} 
+%\vskip.05in
+%\begin{center}
+%\begin{tabular}[c]{@{}cc@{}}
+%\shortstack{Camillo J. Taylor, Associate Professor\\ \cis \\ \upenn}  \hspace{0.2in} &
+% \shortstack{David Forsyth, Professor \\  Computer Science \\ University of Illinois}\\  
+%\end{tabular}
+%\end{center}
+%\vskip.05in
+%
+
 }
 
 \newpage
@@ -195,7 +209,7 @@ Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
 \thispagestyle{empty}%
 \null\vfill
 \begin{center}
-\Large FINDING DOTS IN MICROSCOPIC IMAGES\\
+\Large \MYTITLE \\
 \Large COPYRIGHT\\
 \@copyrightyear\\
 \@author\\
@@ -218,7 +232,7 @@ Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
 {\uppercase{ABSTRACT}}\\
 {\uppercase\expandafter{\@title}} \\
 {\@author} \\
-{\@superviser}\\
+{\@supervisor}\\
 \end{center}
 }
 
