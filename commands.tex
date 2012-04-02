@@ -1,0 +1,129 @@
+%% specific commands
+
+%kronecker features
+
+\newcommand{\Loss}{\mathcal{L}}
+\newcommand{\LossZO}{\mathcal{L}_{01}}
+\newcommand{\LossM}{\mathcal{L}_{\psi}}
+\newcommand{\LossA}{\mathcal{L}_{\psi}}
+\newcommand{\LossMAX}{\mathcal{L}^{max}_{\psi}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bft}{\mathbf{f}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\ip}[2]{{#1}\cdot{#2}}
+\newcommand{\Rgn}{\mathcal{R}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\Y}{\mathcal{Y}}
+
+\newcommand{\Ind}{\mathbf{1}}
+\newcommand{\argmax}{\mathop{\arg\max}}
+
+\newcommand{\Vones}[1]{\ensuremath{\mathbf{1}_{#1}}}
+\newcommand{\eqdef}{\stackrel{\rm def}{=}}
+
+\newcommand{\out}[1]{}
+\newcommand{\denselist}{\itemsep 0pt\topsep-8pt\partopsep-8pt}
+\newcommand{\mypar}[1]{\noindent{\bf #1}}
+
+\newcommand{\deriv}[2]{ \frac{\partial #1}{\partial #2} }
+\newcommand{\diag}{ \mathbf{diag} }
+
+%% paper-specific definitions:
+\newcommand{\lparts}{l}
+\newcommand{\lpart}{l}
+\newcommand{\Lpart}{L}
+\newcommand{\Lparts}{L}
+\newcommand{\Lspace}{\mathcal{L}}
+\newcommand{\abin}{\mathbf{bin}_{uv}}
+\newcommand{\dregion}{\mathbf{d}_{region}}
+\newcommand{\dcontour}{\mathbf{d}_{contour}}
+\newcommand{\setrank}{\textbf{rank}}
+\newcommand{\cascade}{\mathcal{C}}
+\newcommand{\model}{Local Linear Pictorial Structures}
+\newcommand{\mdl}{LLPS}
+\newcommand{\tree}{\Upsilon}
+
+%\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+%\renewcommand{\algorithmicensure}{\textbf{Output:}}
+%\renewcommand{\algorithmiccomment}[1]{\; // #1}
+
+
+\newcommand{\mmi}{\theta_x^\star(\lpart_i)}
+
+%\renewcommand{\includegraphics}[2]{}
+
+%% usual commands
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+%\newcommand{\todo}[1]{{\bf{TODO: #1}}}
+%\newcommand{\todo}[1]{}
+
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{proposition}[theorem]{Proposition}
+%\newtheorem{corollary}[theorem]{Corollary}
+
+%\newenvironment{proof}[1][Proof]{\begin{trivlist}
+%\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+%\newenvironment{definition}[1][Definition]{\begin{trivlist}
+%\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+%\newenvironment{example}[1][Example]{\begin{trivlist}
+%\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+%\newenvironment{remark}[1][Remark]{\begin{trivlist}
+%\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+%\newcommand{\qed}{\nobreak \ifvmode \relax \else
+%      \ifdim\lastskip<1.5em \hskip-\lastskip
+%      \hskip1.5em plus0em minus0.5em \fi \nobreak
+%      \vrule height0.75em width0.5em depth0.25em\fi}
+
+%\newcommand{\qed}{\hfill \ensuremath{\Box}}
+
+%\newcommand{\qed}{\ensuremath{\Box}}
+
+\newcommand{\boxedequation}[2]{%
+  \[\fbox{
+      \addtolength{\textwidth}{-2\fboxsep}%
+      %\addtolength{\linewidth}{-2\fboxsep}%
+      \addtolength{\linewidth}{-2\fboxrule}%
+      \begin{minipage}{#1\linewidth}%
+      \begin{equation}#2\end{equation}%
+      \end{minipage}%
+    }\]%
+}
+\newcommand{\boxedeqnarray}[1]{%
+  \[\fbox{%
+      %\addtolength{\linewidth}{-2\fboxsep}%
+      %\addtolength{\linewidth}{-2\fboxrule}%
+      \begin{minipage}{0.7\linewidth}%
+      \begin{eqnarray*}#1\end{eqnarray*}%
+      \end{minipage}\nonumber%
+    }\]%
+}
+
+%abbreviations
+% Add a period to the end of an abbreviation unless there's one
+% already, then \xspace.
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+%\def\eg{\emph{e.g.}}
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\emph{et al}\onedot}
+
+%\def\ie{\emph{i.e.}}
+%\makeatother
+
+
+
+%% specific commands
+\newcommand{\trans}[1]{{#1}^{\ensuremath{\mathsf{T}}}}           % transpose
+\newcommand{\st}{\quad\textrm{s.t.}\quad}                        % s.t. for such that
+\newcommand{\mvec}{\textrm{vec}}
+\newcommand{\nchoosek}[2]{\left(\begin{array}{c}#1\\#2\end{array}\right)}  %use binom instead...
