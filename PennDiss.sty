@@ -34,23 +34,28 @@
 \newcommand{\upenn}{University of Pennsylvania}
 \newcommand{\cis}{Computer and Information Science}
 
-% this is wack!!
- \def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
- \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
- \@parmoderr\@floatpenalty\z@
- \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
- \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
- \@tfor \@tempa :=#2\do
- {\if\@tempa h\advance\@tempcnta \@ne\fi
- \if\@tempa t\advance\@tempcnta \tw@\fi
- \if\@tempa b\advance\@tempcnta 4\relax\fi
- \if\@tempa p\advance\@tempcnta 8\relax\fi
- }\global\count\@currbox\@tempcnta}\@fltovf\fi
- \global\setbox\@currbox\vbox\bgroup
- \def\baselinestretch{1}\@normalsize
- \boxmaxdepth\z@
- \hsize\columnwidth \@parboxrestore}
-
+%% this is wack!!
+% \def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
+% \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
+% \@parmoderr\@floatpenalty\z@
+% \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
+% \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
+% \@tfor \@tempa :=#2\do
+% {\if\@tempa h\advance\@tempcnta \@ne\fi
+% \if\@tempa t\advance\@tempcnta \tw@\fi
+% \if\@tempa b\advance\@tempcnta 4\relax\fi
+% \if\@tempa p\advance\@tempcnta 8\relax\fi
+% }\global\count\@currbox\@tempcnta}\@fltovf\fi
+%
+%% not that i understand this, but changing this line allows hyperref colorlinks=true
+%% as discovered in this forum post: http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2006-04/msg00840.html - bensapp
+%% \global\setbox\@currbox\vbox\bgroup
+%\global\setbox\@currbox\color@vbox\normalcolor\vbox\bgroup
+%
+% \def\baselinestretch{1}\@normalsize
+% \boxmaxdepth\z@
+% \hsize\columnwidth \@parboxrestore}
+%
 \long\def\@footnotetext#1{\insert\footins{\def\baselinestretch{1}\footnotesize
 \interlinepenalty\interfootnotelinepenalty
 \splittopskip\footnotesep
@@ -164,7 +169,7 @@ Partial Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
 %\vfill
 % \signatureTwo{Stella X. Yu, Adjunct Assistant Professor\\ Computer and Information Science \\ \vspace{0.04in}Clare Boothe Luce Assistant  Professor \\ Computer Science, Boston College \\ Supervisor of Dissertation} {Jianbo Shi, Associate Professor \\ Computer and Information Science \\ Supervisor of Dissertation} 
 
-\signature{\@supervisor, Associate Professor\\Computer and Information Science\\ \groupcha@r}
+\signature{\@supervisor, Associate Professor\\Computer and Information Science\\ \supervis@r}
 \vskip.3in
 \signature{\@groupchair, Associate Professor\\Computer and Information Science\\ \groupcha@r}
 

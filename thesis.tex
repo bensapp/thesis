@@ -7,15 +7,15 @@
 \usepackage{graphicx,times}
 \usepackage{amsmath,amsthm, amssymb, latexsym}
 \usepackage{multirow}
+\usepackage{xspace}
 
-%\usepackage[pagebackref=true,colorlinks=true]{hyperref}
 \usepackage[usenames,dvipsnames]{color}
-\definecolor{ccolor}{rgb}{0.25,0.25,0.9}
-\definecolor{lcolor}{rgb}{0.35,0.35,0.35}
+\definecolor{ccolor}{rgb}{0.00,0.00,0.9}
+\definecolor{lcolor}{rgb}{0.25,0.25,0.9}
 \usepackage[pagebackref=true,linkcolor=ccolor,citecolor=ccolor,colorlinks=true]{hyperref}
+%\usepackage[pagebackref=true,colorlinks=false]{hyperref}
 \usepackage[sort,round]{natbib}
 
-\graphicspath{{figs/}}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \begin{document}
@@ -50,11 +50,28 @@
 \pagenumbering{arabic}
 \pagestyle{plain}
 
+\part{Introduction}
 \input{intro}
-\clearpage
-\input{conclusion}
-\clearpage
 
+\clearpage
+\part{Models and methods}
+\input{CPS}
+\input{ensembles}
+\input{llps}
+
+\clearpage
+\part{Higher-order image features}
+\input{features}
+
+\clearpage
+\part{Experiments}
+
+\clearpage
+\part{Future work}
+\input{conclusion}
+
+\clearpage
 \bibliographystyle{plainnat}
 \bibliography{refs}
+
 \end{document}

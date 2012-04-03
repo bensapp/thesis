@@ -3,7 +3,7 @@
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.99\linewidth]{figs/overview3d.pdf}
+\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
 \caption{\small \label{fig:overview} Overview. On the left, we show a full model with edges representing all pairwise relationships we want to capture within and between frames.  We approximate this full, intractable loopy model by decomposing it into an ensemble of six models which cover the edge relationships of the full model.  Our joint-centric representation is considerably more flexible in modeling pose variability than rigid limb-based representations~\cite{ferrari08,sapp2010cascades,andriluka09}.}
 \label{fig:overview}
 \end{figure}
@@ -77,7 +77,7 @@ decomposition.
 
 \begin{figure}[tb!]
 \centering
-\includegraphics[width=0.9\linewidth]{figs/dataset_explanation.pdf}
+\includegraphics[width=0.9\linewidth]{figs/empty.jpg}
 \caption{\small \label{fig:dataset} A summary of our new video dataset, VideoPose2.0. 
 \textbf{Left:} A scatter plot of groundtruth joints (green dot = shoulder, blue 
 circle = elbow, red square = wrist). \textbf{Right:} Histogram of lower arm 
@@ -114,7 +114,7 @@ opposed to the rigid parts typically used in pose estimation;
 (arguably a first in this setting) \textbf{(4)} a challenging new video dataset, VideoPose2.0, 
 with a high degree of motion pose variability which shows limitations of 
 state-of-the-art methods.  The VideoPose2.0 dataset, code and videos are available at 
-\url{http://vision.grasp.upenn.edu/video}.
+\textit{http://vision.grasp.upenn.edu/video}.
 
 
 
@@ -197,13 +197,13 @@ coordinate of some part joint (defined in a $80 \times 80$
 discretization of the pixel space) in some frame.  We also use the shortcut notation 
 $y_{\bf t} = \{ y_i \;|\; y_i \text{ is in frame } t \}$
 to index all $P$ joint variables in frame $t$. Given a training set
-$S = \{\ang{x^{(j)},y^{(j)}}\}_{j=1}^n$ of samples from a joint
+$S = \{(x^{(j)},y^{(j)})\}_{j=1}^n$ of samples from a joint
 distribution, the standard supervised learning task is to learn a
 hypothesis $h: X \mapsto Y$ that minimizes the expected loss $\E{S}{
   \cL\left(h(x^{(j)}) , y^{(j)}\right)}$ for some non-negative loss function $\cL
 : Y \times Y \rightarrow \reals^+$. The linear hypothesis class we
 consider is of the form $h(x) = \argmax_y \score{y}$, where the
-scoring function $\score{y} \triangleq \theta^\top \bft(x,y)$ is the
+scoring function $\score{y} \triangleq \w \cdot \f(x,y)$ is the
 inner product of a vector of parameters $\theta$ and a feature
 function $\bft: X \times Y \mapsto \reals^d$ mapping $(x,y)$ pairs to
 $d$ real-valued features. Let $G = (\cV,\cE)$ be our full graphical
@@ -211,8 +211,8 @@ pose model; we further assume that $\bft$ decomposes over the vertices
 $\cV$ and edges $\cE$, so that
 \begin{equation}
   \label{eq:model-score}
-  \score{y} = \sum_{(i,j) \in \mcal{E}}\theta^\top\bft_{ij}(x,y_i,y_j) +
-  \sum_{i \in \mcal{V}}\theta^\top\bft_i(x,y_i).
+  \score{y} = \sum_{(i,j) \in \cE}\\w \cdot \f_{ij}(x,y_i,y_j) +
+  \sum_{i \in \cV}\w \cdot \f_i(x,y_i).
 \end{equation}
 Note that edges $(i,j)$ may connect variables between consecutive
 frames. Let there be $M$ tree sub-models, and $G_m = (\cV, \cE_m)$ be the sub-graph of $G$ corresponding
@@ -228,7 +228,7 @@ parameters across different models $\theta_m$.
 \out{
 \begin{figure}[]
 \centering
-\includegraphics[width=0.9\linewidth]{figs/dd_vs_sub.pdf}
+\includegraphics[width=0.9\linewidth]{figs/empty.jpg}
 \caption{\small \label{fig:dd} Decoding with Dual Decomposition
   (examples). \textbf{Left:} The argmax predictions of each of the
   sub-models in the ensemble; note the disparity in predictions.
@@ -345,7 +345,7 @@ objective for each model separately. Let $\pscoremaxj~=~\max_y~\pscorej{y}$ and 
 {\small
 \begin{align*}
 \min_{\theta_m} \frac{\lambda}{2}||\theta_m||^2 +
-\frac{1}{n}\sum_{j=1}^n \left[ \pscoremaxj + \ind{y^{\star(j)} \neq y^{(j)}} - \pscorej{y^{(j)}}  \right]_+
+\frac{1}{n}\sum_{j=1}^n \left[ \pscoremaxj + \Ind{y^{\star(j)} \neq y^{(j)}} - \pscorej{y^{(j)}}  \right]_+
 \end{align*}}
 where $[\cdot]_+ = \max(0,\cdot)$.
 \out{

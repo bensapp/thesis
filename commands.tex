@@ -32,26 +32,40 @@
 \newcommand{\diag}{ \mathbf{diag} }
 
 %% paper-specific definitions:
-\newcommand{\lparts}{l}
-\newcommand{\lpart}{l}
-\newcommand{\Lpart}{L}
-\newcommand{\Lparts}{L}
-\newcommand{\Lspace}{\mathcal{L}}
-\newcommand{\abin}{\mathbf{bin}_{uv}}
-\newcommand{\dregion}{\mathbf{d}_{region}}
-\newcommand{\dcontour}{\mathbf{d}_{contour}}
-\newcommand{\setrank}{\textbf{rank}}
-\newcommand{\cascade}{\mathcal{C}}
-\newcommand{\model}{Local Linear Pictorial Structures}
-\newcommand{\mdl}{LLPS}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\f}{\mathbf{f}}
+
+\newcommand{\CPS}{CPS\xspace}
+\newcommand{\LLPS}{LLPS\xspace}
+\newcommand{\LLPSlong}{Local Linear Pictorial Structures\xspace}
+
+% some common mathcals
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\cE}{\mathcal{R}}
+\newcommand{\cV}{\mathcal{R}}
+
+\newcommand{\reals}{\mathbb{R}}
+
 \newcommand{\tree}{\Upsilon}
 
-%\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-%\renewcommand{\algorithmicensure}{\textbf{Output:}}
-%\renewcommand{\algorithmiccomment}[1]{\; // #1}
-
-
-\newcommand{\mmi}{\theta_x^\star(\lpart_i)}
+\newcommand{\score}[1]{\theta(x,#1)}         % score function
+\newcommand{\scoremax}[0]{\theta^\star(x)}   % argmax score
+\newcommand{\scorei}[1]{\theta(x^i,#1)}         % score function
+\newcommand{\scoremaxi}[0]{\theta^\star(x^i)}   % argmax score
+\newcommand{\mm}[1]{\theta^\star(x,#1)}   % max marginal score
+\newcommand{\mmi}[1]{\theta^\star(x^i,#1)}   % max marginal score
+\newcommand{\pmm}[1]{\theta_p^\star(x,#1)}   % max marginal score
+\newcommand{\pmmi}[1]{\theta_p^\star(x^i,#1)}   % max marginal score
+\newcommand{\pmmarg}[1]{\theta_p^\star(x,#1)}   % max marginal score
+\newcommand{\pscore}[1]{\theta_p(x,#1)}         % score function
+\newcommand{\pscoremax}[0]{\theta_p^\star(x)}   % argmax score
+\newcommand{\pmmargi}[1]{\theta_p^\star(x^i,#1)}   % max marginal score
+\newcommand{\pscorei}[1]{\theta_p(x^i,#1)}         % score function
+\newcommand{\pscoremaxi}[0]{\theta_p^\star(x^i)}   % argmax score
+\newcommand{\pscorej}[1]{\theta_p(x^j,#1)}         % score function
+\newcommand{\pscoremaxj}[0]{\theta_p^\star(x^j)}   % argmax score
 
 %\renewcommand{\includegraphics}[2]{}
 

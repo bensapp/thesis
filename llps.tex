@@ -13,7 +13,7 @@ self-occlusion and physically different body contours).
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.99\linewidth]{data/model-overview.pdf}
+\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
 \caption{\small \label{fig:overview} \textbf{Left:} Most pictorial structures 
 researchers have put effort into better and larger feature spaces, in which 
 they fit one linear model.  The feature computation is expensive, and we still 
@@ -42,7 +42,7 @@ Figure~\ref{fig:lelbs} for an illustration.
 
 \begin{figure}[b!]
 \centering
-\includegraphics[width=0.99\linewidth]{data/lelbs.jpg}
+\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
 \caption{\small \label{fig:lelbs} A random sampling of 100 left elbows from the 
 Buffy Stickmen pose dataset, removing color and intensity bias, to illustrate 
 the huge variety of appearance due to clutter, motion blur, clothing, body 
@@ -69,7 +69,7 @@ pose {\em and } appearance.  This results in hundreds or thousands of modes in
 contrast to the 20 or fewer used by recent work. This gives us the ability to 
 precisely model pose and appearance using a linear, structured model for each 
 local neighborhood.  Because of this defining characteristic, we call our model 
-\model~(\mdl).
+\LLPSlong~(\LLPS).
 
 We define the extent of each neighborhood in terms of radii in appearance and 
 pose, which decompose at a part level.  As a result, the training example space 
@@ -85,246 +85,121 @@ year, while employing only very simple features. Further, inference is cheap
 and heavily parallelizable, taking only a few seconds per image.
 
 
-\section{Modeling}\label{sec:model}
-As discussed, due to the intractability of jointly tracking multiple objects through time, previous 
-work has made limiting assumptions in both the representation of pose (i.e., 
-the inability to model foreshortening or fine angular granularity), and the 
-interactions between parts, which do not capture rich, image-dependent 
-relationships.  We address each of these issues in a principled framework.
+\section{Model}\label{sec:model}
 
-\subsection{Stretchable models of human pose}  One of the biggest limitations 
-of current models of human pose is the ``cardboard people'' 
-assumption~\cite{cardboard02}: that body parts are rigid patches of fixed size 
-(up to a global scale).  In the Pictorial Structures (PS) framework~\cite{felzps}, the human is represented as a collection of parts with fixed lengths, 
-which along with the position and angle of each joint, completely determines 
-the pose of the person~\footnote{The seminal work of Felzenswalb et 
-al.~\cite{felzps} uses 10 discretized scales per part, 
-but all modern implementations of PS use one fixed scale~\cite{sapp2010cascades,ferrari08,andriluka09}, partly due to its prohibitive 
-increase in the state space.}.  Thus, wrists are always a fixed distance away 
-from elbows in these models. This is a frequently violated assumption in 
-realistic video, due to foreshortening and variation in body type.  In the VideoPose2.0 dataset we  
-introduce (Section~\ref{sec:experiments}), 30\% of lower arms 
-are significantly foreshortened.
+We pose the problem of 2D human pose estimation as a structured prediction task.  Let $x$ represent a given input image, and $y$ represent the location of $P$ parts in image coordinates.  Each variable $y_i$ denotes the pixel coordinates (row, column) of part $i$ in image $x$.  For ``parts'' we choose to model joints and their midpoints (\eg, left wrist, left forearm, left elbow) which allows us fine-grained encoding of foreshortening and rotation, as is done in~\cite{deva2011,sapp2011}.
 
-\mypar{Two joints $>$ one limb:} Rather than model human limbs as a position 
-and orientation, we propose a model {\em directly on the pixel coordinates of 
-each joint}.  Although this choice introduces more variables 
-(one for each joint rather than for each part), the state space for each 
-variable is drastically reduced because we no longer need to reason over a 
-finely discretized set of angles in the state space, and we can now implicitly 
-represent nearly any angle between parts.  In current PS implementations, this is a 
-$24\times$ reduction in the state space of each variable.  In addition to 
-this, because the length of the limb is now determined implicitly by the pixel 
-distance between neighboring joints, the model naturally lends itself to 
-capturing large variability in the part length.  Because of its ability to 
-represent finely discretized limb length, we refer to this model as
-{\em stretchable}, in contrast to the typical rigid, rectangle-based 
-representation.
+The standard Pictorial Structures model~\cite{felzps} is a linear model which decomposes into a sum of unary and pairwise linear terms.  The score for a part configuration specified by $y$ in image $x$ is:
+\begin{align}
+ s(x,y) = \sum_{i=1}^P w_i \cdot f_i(x,y_i) + \sum_{(i,j) \in \mathcal{E}} w_{ij} \cdot f_{ij}(x,y_i,y_j),
+ \label{eqn:ps}
+ \end{align}
+The set $\mathcal{E}$ denotes the edge set of pairs of connected variables in our model.  When this edge set describes a tree, we can use efficient dynamic programming techniques to infer the best scoring configuration of all parts:
+\begin{align}
+y^\star = \argmax_{y \in \mathcal{Y}} \;\;s(x,y).
+\end{align}
+The set $\mathcal{Y}$ denotes the entire set of possible poses, which is exponential in the number of model parts: $|\mathcal{Y}| = |\mathcal{Y}_i|^P$, where $\mathcal{Y}_i$ is the set of possible placements of part $i$ in the image (and is the same for all $i$).
 
-One side-effect of switching from a limb-centric to joint-centric model of 
-pose is that unary attributes of the limb-centric model are now pairwise 
-attributes of a joint-centric model.  Furthermore, pairwise attributes in a 
-limb-centric model correspond to ternary attributes in a joint-centric model, 
-which we do not use.  However, in a standard PS model, pairwise attributes are 
-only image-independent functions of geometry, whereas in our model, pairwise 
-potentials all incorporate image information, giving us overall a more 
-expressive model than standard PS. 
+\subsection{\LLPSlong~(\LLPS)}
+Instead of a single, linear model as in Equation~\ref{eqn:ps}, we model human pose with a collection of linear models which describe different local neighborhoods.  Let us consider $M$ such models, which we index $m = 1 \ldots M$:
+\begin{align}
+s^m(x,y) = \sum_{i=1}^P w^m_i \cdot f_i(x,y_i) + \sum_{(i,j) \in \mathcal{E}} w^m_{ij} \cdot f_{ij}(x,y_i,y_j),
+\end{align}
+Each model shares the same tree structure $\mathcal{E}$ and features $f_i(\cdot),\; f_{ij}(\cdot)$ for the sake of simplicity; it is easy to extend this to a heterogenous collection of models.  The $M$ models' parameters $w^m = [w^m_i;~w^m_{ij}]$ are learned to fit a local neighborhood around each training exemplar, discussed in Section~\ref{sec:learning}.
 
+The full LLPS model introduces an extra variable $y_m \in [1,M]$ into the state of the model to infer, at test time, both the best local model to use, and the best placement of joints given that model:
+\begin{align}
+s(x,y,y_m) &= s^m(x,y) \\
+y^\star &= \argmax_{y_m,\; y \in \mathcal{Y}} s(x,y,y_m) 
+\end{align}
+Thus, given a test example, the test time inference procedure is straightforward (see Figure~\ref{fig:inference}): evaluate all $M$ local models (in practice, up to thousands of them), via max-product inference, saving the score and highest scoring output sequence of each.  Then, we take the highest scoring of the $M$ local models and its output sequence as a prediction of the pose.  This is transparently parallelizable and fits easily into a popular parallelization frameworks, such as MapReduce.
 
-
-\subsection{Structured Ensemble of Stretchable Models}
-Ideally we want a model of human motion which captures important
-relationships between all correlated parts.  This includes parts that
-are connected kinematically (e.g., left elbow, left wrist), parts that
-are left/right symmetric (e.g., left elbow, right elbow), and
-instantiations of the same part in consecutive frames (e.g., left
-elbow at time $t$, left elbow at time $t+1$).  Clearly, modeling all
-these relationships together leads to cyclic dependencies
-within a single frame (due to the three symmetry edges) and
-between consecutive frames (due to the six tracking edges); see Figure~\ref{fig:overview}, left. 
-
-However, in general, it is always possible to express the score of a
-given state assignment in a full, intractable model as the sum of
-scores under a set of tree sub-models that collectively cover every
-edge in the full model. This is the key insight that allows us to
-include all the rich relationships we desire: we {\em decompose} our
-model of all interesting relationships related to parsing human motion
-into an ensemble of submodels, all of which are trees (and therefore
-tractable). Each tree submodel is responsible for tracking a single
-joint through time and additionally models the corresponding set of
-pairwise interactions between joints in a single frame
-(Figure~\ref{fig:overview}, right).
-
-\subsection{Formulation}
-Formally, we pose this problem as a structured prediction task, where
-the input $x$ is a video sequence of $\ell$ images and the output $y$ is a
-sequence of $P\ell$ variables, where $P$ is the number of parts (joint
-locations) included in the model. Each output $y_i$ is the 2-D
-coordinate of some part joint (defined in a $80 \times 80$
-discretization of the pixel space) in some frame.  We also use the shortcut notation 
-$y_{\bf t} = \{ y_i \;|\; y_i \text{ is in frame } t \}$
-to index all $P$ joint variables in frame $t$. Given a training set
-$S = \{\ang{x^{(j)},y^{(j)}}\}_{j=1}^n$ of samples from a joint
-distribution, the standard supervised learning task is to learn a
-hypothesis $h: X \mapsto Y$ that minimizes the expected loss $\E{S}{
-  \cL\left(h(x^{(j)}) , y^{(j)}\right)}$ for some non-negative loss function $\cL
-: Y \times Y \rightarrow \reals^+$. The linear hypothesis class we
-consider is of the form $h(x) = \argmax_y \score{y}$, where the
-scoring function $\score{y} \triangleq \theta^\top \bft(x,y)$ is the
-inner product of a vector of parameters $\theta$ and a feature
-function $\bft: X \times Y \mapsto \reals^d$ mapping $(x,y)$ pairs to
-$d$ real-valued features. Let $G = (\cV,\cE)$ be our full graphical
-pose model; we further assume that $\bft$ decomposes over the vertices
-$\cV$ and edges $\cE$, so that
-\begin{equation}
-  \label{eq:model-score}
-  \score{y} = \sum_{(i,j) \in \mcal{E}}\theta^\top\bft_{ij}(x,y_i,y_j) +
-  \sum_{i \in \mcal{V}}\theta^\top\bft_i(x,y_i).
-\end{equation}
-Note that edges $(i,j)$ may connect variables between consecutive
-frames. Let there be $M$ tree sub-models, and $G_m = (\cV, \cE_m)$ be the sub-graph of $G$ corresponding
-to the $m$'th one as in Figure~\ref{fig:overview}, right.  Then
-we decompose the score $\score{y}$ into the sum of the scores of the
-$M$ constituent sub-models: $\score{y} = \sum_{m=1}^M \pscore{y}$, the
-score of the $m$'th model is as in Equation~\ref{eq:model-score}, restricted to the
-edges $\cE_m$, i.e. $\pscore{y} =
-\sum_{(i,j)\in\cE_m}\theta_m^\top\bft_{ij}(x,y_i,y_j) +
-\sum_{i\in\cV}\theta_m^\top\bft_i(x,y_i)$. Note that we do not couple
-parameters across different models $\theta_m$.
-
-\out{
-\begin{figure}[]
+\begin{figure}[tb!]
 \centering
-\includegraphics[width=0.9\linewidth]{figs/dd_vs_sub.pdf}
-\caption{\small \label{fig:dd} Decoding with Dual Decomposition
-  (examples). \textbf{Left:} The argmax predictions of each of the
-  sub-models in the ensemble; note the disparity in predictions.
-  \textbf{Right:} The prediction after running Dual Decomposition for
-  500 iterations or until convergence (Yellow) compared to the
-  predictions from \cite{sapp2010cascades} (Magenta).}
+\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
+\caption{\small \label{fig:inference} An illustration of the inference process.  Each training example defines a local neighborhood model.  Each model is run in parallel on a test image, and the argmax prediction is taken as a guess. Inset: the graphical model structure.}
 \end{figure}
-}
 
-\subsection{Structured Model Inference}
-We explore several methods for combining the $M$ independent models
-during test time to make a single final decision.  The methods form a
-hierarchy of agreement criteria between the submodels: at one extreme,
-we enforce the constraint that all submodels must agree on the
-maximizing assignment to all variables, and at the other, inference is
-completely decoupled across submodels. Note that there is an inherent
-trade-off between the degree of agreement imposed on the models and the
-computational cost of the corresponding inference.  We present our
-inference methods by order of decreasing agreement below.
+\section{Learning}\label{sec:learning}
 
-\paragraph{Full Agreement via Dual Decomposition.} A natural goal is
-to find the argmax decoding of joint locations throughout the entire
-sequence of frames using our original model in
-Eq.~\ref{eq:model-score}. However, solving the argmax decoding problem
-exactly is prohibitively expensive, due to the high treewidth of this
-cyclic graph. We use the method of Dual Decomposition (DD)
-\cite{bertsekas99,komodakis2007dualdecomp} to solve a linear
-programming relaxation of the decoding problem as follows. Observe
-that the argmax decoding problem of our full model can be decomposed
-into $M$ sub-problems { if those problems are coupled through a global
-  equality constraint}:
+During training, we have access to a training set of images with labeled poses $S = \{(x^{t},y^{t})\}_{t=1}^T$.  As described, we choose to model a local neighborhood in pose and appearance centered around each training example.  This allows us to capture fine variations of appearance from pose, clothing, lighting, etcetera using a single linear model.
+
+We define a neighborhood set function which maps an image and corresponding human pose to a set of indices of ``close'' training samples: $t \in \mathcal{N}((x,y))$ means that training sample $t$ is somehow ``close'' to $(x,y)$ in appearance and pose.  We will also overload notation to say the $\mathcal{N}(t)$ refers to the neighborhood of training sample $t$.  The specifics of $\mathcal{N}(\cdot)$ which formalize the notions of closeness in pose and appearance are detailed in Section~\ref{sec:nbhd}.
+
+The key idea of learning is that we want to fit parameters so that each local model scores higher than other models that are not part of its local neighborhood, on the correct pose configuration.  For submodel $m$ centered about training sample $(x^m,y^m)$, we would like the large-margin constraints:
 \begin{align}
-  \label{eq:dual-decomp}
-&\argmax_{y, y^1,\dots,y^m} \sum_{m=1}^M \pscore{y^m}  \textrm{ s.t. } \:  y^m=y  \quad{}\quad{(DD)}
+s^m(x^t,y^t) \geq 1 + s^{m}(x^t,y), \label{c1}\\
+s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y),\label{c2}\\
+\forall y \in \mathcal{Y}\setminus \{y^t\},~\forall t \in 
+\mathcal{N}(m),~\forall m' \notin \mathcal{N}(m) \nonumber
 \end{align}
-Although the optimization \eqref{eq:dual-decomp} is still intractable because of the integral constraints, optimizing the {\em dual} of \eqref{eq:dual-decomp} is always
-tractable (if we first drop the integrality requirement), but no longer guaranteed to return an optimal integral solution. We solve the dual problem with sub-gradient descent. Once complete agreement between all
-$y^m$ is reached, then inference has converged to the exact solution
-of \eqref{eq:dual-decomp} (although eventual convergence is not
-guaranteed.) In our experiments, if dual decomposition did not
-converge (after 500 iterations in practice, each requiring inference in all $M$ models), we used the maximum scoring primal variables found during
-any descent iteration.
+In words, Equation~\ref{c1} states that the score of the true configuration for 
+local model $m$ must be higher than $m$'s score for any other (wrong) 
+configuration in example $t$.  Equation~\ref{c2} states that the score of the 
+true configuration for $m$ must also be higher than any score a ``stranger'' 
+model $m' \notin \mathcal{N}(m)$ has for any pose configuration in example $t$.  
+Adding slack and regularization on the parameters, we get a convex, 
+large-margin structured loss jointly over all $m$ local models
 
-\out{To
-solve the dual problem with sub-gradient descent, we introduce
-Lagrange multipliers $\nu_{ik}^p$ for every possible state assignment
-$y_i = k$ in every part model. We then alternate between updating the
-dual variables $\nu^p$ and the primal variables $y^p$:
+\begin{align}\label{eqn:full-learn}
+\min_{\{w^m\}, \{\xi_{m,t}\}}& \;\; \sum_{m=1}^M ||w^m||_2^2 + C \sum_{m=1}^M 
+\sum_{t \in \mathcal{N}(m)} \left[ \xi_{m,t} + \sum_{m' \notin \mathcal{N}(m)} 
+\xi'_{m',t} \right] \\
+\text{\bf{subject to:} }
+&s^m(x^t,y^t) \geq 1 + s^{m}(x^t,y) - \xi_{m,t}\\
+&s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y) - \xi'_{m',t}\\
+&\forall y \in \mathcal{Y}\setminus \{y^t\}, \forall m \in [1,M], \forall t \in 
+\mathcal{N}(m), \forall m' \notin \mathcal{N}(m) \nonumber \end{align}
+
+Note that there is in practice significant overlap in neighborhood sets rather than disjoint partitions.  This gives a smoothly varying description of pose space.
+
+\subsection{Decomposable approximate learning}
+The learning objective in Equation~\ref{eqn:full-learn} couples all models together to train them jointly.  While this has attractive properties, it is unwieldy for large training sets.  We now propose a series of modifications to the form of the model and Equation~\ref{eqn:full-learn} to significantly simplify and parallelize training.
+
+\mypar{A simpler pairwise cost:}
+Traditionally, the pairwise cost in PS models has been a simple geometric displacement cost: $f_{ij}(x,y_i,y_j) = d(y_i - y_j - \delta_{ij})$, where $\delta_{ij}$ is the mean pixel displacement vector between parts $i$ and $j$, and $d(\cdot)$ is either a quadratic penalty~\cite{felzps} or a binning function~\cite{deva2006}.  These restricted forms of $d(\cdot)$ allow for fast inference message passing techniques via convolution or distance transforms.  We use instead a uniform {\em box deformation cost} defined by $f_{ij}(x,y_i,y_j) = 0$ when $|y_i - y_j - \delta_ij| < b$, and $-\infty$ otherwise, where $b$ specifies the size of the box in which, given $y_j$, $y_i$ is free to deviate from $\delta_{ij}$ in pixel units.  This yields a new form for our local model 
+\begin{align}\label{eqn:boxdist}
+s^m(x,y) = 
+\begin{cases}
+ \sum_i w^m_i \cdot f_i(x,y_i), & |y_i - y_j - \delta_{ij}| < b,\;\; \forall (i,j) \in \mathcal{E} \\
+ -\infty & \text{otherwise}
+ \end{cases}
+\end{align}
+
+This formulation has attractive properties: (1) It leads to even faster inference than a quadratic stretching cost, using a 2D min transform instead of a distance transform, (2) less parameters to learn in each local neighborhood.
+
+\mypar{Decoupling local models:} Next, we drop the constraints
+$$s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y), \forall m, \forall m'\notin \mathcal{N}(m),\forall t$$ 
+which decouples model $m$'s parameters from all other models $m'$.  Model $m$ no longer has to score the correct configuration $y^t$ higher than other models' beliefs in the correct configuration.  Instead, it only has to score the correct configuration higher than the exponentially many incorrect configurations in its local neighborhood of training images.  This is equivalent to training a single PS model on a subset of the training data, independent of other models trained on other, overlapping subsets of the training data.  The inherent problem with this is that now different local model scores may not be comparable.  We address this with a calibration step described in Section~\ref{sec:calib}.
+
+\mypar{Psuedolikelihood} A final approximation is to assume, for training, that the structured functions $s^m(x,y)$ decompose into independent cliques, and can thus be trained independently.  That is,
+$$ s^m(x,y) = \sum_{i} s^m(x,y_i | y_{\mathcal{E}(i)}) $$ 
+where $\mathcal{E}(i) = \{j \;|\; (i,j) \in \mathcal{E}\}$.  This is a common trick that greatly simplifies structured learning, at the cost of approximation error. 
+Combined with the pairwise cost described in Equation~\ref{eqn:boxdist}, this amounts to
+$$s^m(x,y_i| y_{\mathcal{E}(i)}) = 
+\begin{cases}
+ w^m_i \cdot f_i(x,y_i), & |y_i - y_j - \delta_{ij}| < b,\;\; \forall j \in \mathcal{E}(i) \\
+ -\infty & \text{otherwise}
+\end{cases}
+$$
+which means we can learn parameters $w_i^m$ separately for each part $i$ in 
+each local model $m$.
+
+In summary, by using a box deformation cost, decoupling the local models and using pseudolikelihood, we train part detectors individually.  The structured SVM learning objective for each part $i$ in each model $m$ is now:
+
 \begin{align}
-  y^p & \leftarrow \argmax_y \left( \pscore{y} +  \sum_{i,k} \nu^p_{ik} \ind{y_i=k^p}\right) \\
-  \nu^p_{ik} & \leftarrow \nu_{ik} - \alpha\left(  \ind{y_i^p=k} - \frac{1}{P}\sum_p \ind{y_i^p=k} \right),
+\min_{w_i^m}&~||w_i^m||_2^2 + C \sum_{t} \xi_t\\
+\text{subject to: }
+& w_i^m \cdot f_i(x^t,y_i^t) \geq 1+w_i^m \cdot f_i(x^t,y_i)-\xi_t \nonumber \\
+& w_i^m \cdot f_i(x^t,y_i^t) \geq 1+w_i^m \cdot f_i(x^{t'},y_i)-\xi_t \nonumber 
+\\
+&\forall y_i \in \mathcal{Y}_i\setminus \{y_i^t\}, \forall t \in 
+\mathcal{N}(m), \forall t' \notin \mathcal{N}(m) \nonumber
 \end{align}
-where $\ind{\cdot}$ is the indicator function and $\alpha$ is a rate
-parameter chosen according to the scheme given in
-\cite{komodakis2007dualdecomp}.
-} 
+We can optimize this using an off-the-shelf standard binary SVM solver.  We 
+handle the enormous number of constraints---$O(M \cdot |\mathcal{Y}_i|)$, the 
+number of pixel locations in our dataset---by employing a cutting plane method, 
+which starts from a random sampling of constraints, and iteratively finds 
+violated constraints by mining for false positives, then re-optimizing.
 
-
-\paragraph{Single Frame Agreement.} An alternative to computing the
-MAP decoding of the entire sequence is to find the argmax solution
-while constraining model agreement to only a subset of the variables
-at a time.  If we restrict our attention to the variables in a single
-time frame only, inference is considerably simpler.  For each frame
-$t$, we solve
-\begin{equation}
-\argmax_{y_{\bf{t}}'} \sum_{m=1}^M \max_{y : y_{\bf{t}} = y_{\bf{t}}'} \pscore{y} \quad{}\quad{(SF)}
-\end{equation}
-to obtain the joint configuration for that frame (remember $y_{\bf t}$
-denotes the {\em set} of P joint variables in frame $t$).  In words,
-the inner maximization finds the highest scoring sequence $y$ subject to
-the constraint that the variables in frame $t$ are fixed at positions
-$y_{\bf t}'$.  The outer argmax is over all possibilities of single
-frame configurations $y_{\bf t}'$.  This extends the notion of a
-max-marginal of a variable (see ~\cite{weiss10}) to a max-marginal
-over {\em a set} of variables.  This method requires first computing
-the max-product messages sent to variables in frame $t$, in each of
-the submodels.  Finding the argmax decoding of $y_{\bf t}$ is then
-equivalent to inference in a grid with P variables (in our case $P=6$
-joints).  This can be solved exactly by forming cliques of size 3, for
-which the message passing clique-tree forms a chain.  In each clique,
-there are at most pairwise potentials, and since the state space of
-each part is relatively small ($|Y_p| \leq 500$), the $O(\sum_p
-|Y_p|^3)$ cost of this inference takes less than a second per frame in
-practice, and in our experiments took about as long as performing inference in all $M$ tree submodels (i.e., twice as slow overall).
-
-
-\paragraph{Single Variable Agreement.} 
-
-We can further narrow our subset of interest down to a single variable
-at a time \cite{weisssapp10}.  This is a weaker criteria for model
-agreement, but yields cheaper and simpler inference.  This gives us
-the following inference problem for the $i^{th}$ variable:
-\begin{equation}
-\argmax_{y_i'} \sum_{m=1}^M \max_{y: y_i=y_i'}\pscore{y} \quad{}\quad{(SV)}
-\end{equation}
-This can be solved by computing max-marginals for each model using standard forward-backward message passing, summing the $M$ max-marginal scores, and taking the highest scoring sum.
-Note that this is actually equal to MAP decoding in the full model when  
-all sub-models agree on the argmax, which rarely occurs in practice. However, in \cite{weisssapp10} we showed
-empirically that this decoding is a useful approximation
-of the full MAP decoding prediction. 
-
-We also compared the above methods to predicting each joint using the single model in
-the ensemble that incorporated temporal dependencies for that
-specific part, which we call the $Independent$ decoding scheme.
-
-
-\subsection{Learning} Although we enforce agreement during ensemble inference 
-at {\em test time}, coupling inference during training for more than one 
-variable is prohibitively expensive to use as part of a learning procedure.  
-Thus we learn
-parameters $\theta_m$ using {\em decoupled} inference separately for
-each model. To learn parameters, we optimize a convex hinge-loss
-objective for each model separately. Let $\pscoremaxj~=~\max_y~\pscorej{y}$ and $y^{\star(j)}$ a corresponding maximizer, then the learning problem is 
-{\small
-\begin{align*}
-\min_{\theta_m} \frac{\lambda}{2}||\theta_m||^2 +
-\frac{1}{n}\sum_{j=1}^n \left[ \pscoremaxj + \ind{y^{\star(j)} \neq y^{(j)}} - \pscorej{y^{(j)}}  \right]_+
-\end{align*}}
-where $[\cdot]_+ = \max(0,\cdot)$.
-\out{
-$\theta_m^\star =
-\min_{\theta_m} \frac{\lambda}{2} ||\theta_m||^2 +
-\frac{1}{n}\sum_{i=1}^n H(x^{(i)},y^{(i)},\theta_m)$, where $H$ is the hinge loss function, 
-$H(x^{(i)},y^{(i)},\theta_m) = \left[ \pscorei{y^{i}} - \max_y \pscorei{y} - \ind{y\ne y^{(i)}} \right]_+$.
-}
-We optimize
-this problem via stochastic sub-gradient descent, and we choose
-$\lambda$ and the number of training epochs using a held-out
-development set to minimize error.
-
-
-
+	
