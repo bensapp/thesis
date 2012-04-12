@@ -1,45 +1,28 @@
-Please refer to~\citet{sapp2010cascades}.
+\chapter{Introduction}
 
-\chapter{Human pose estimation}
+``Geman quote''
 
-\chapter{Structured prediction}
+why i love what i do:
+One of the most compelling problems of computer vision is general object 
+recognition.  The ability for computers or robots to do this is blah
 
-\chapter{Pictorial structures: Pose estimation meets structured prediction}
-We first summarize the basic pictorial structure model and then
-describe the inference and learning in the cascaded pictorial structures.
-%\subsection{Basic PS Model}
-Classical pictorial structures are a class of graphical models where the nodes of the graph represents object parts, and edges between parts encode pairwise geometric relationships.  For modeling human pose, the standard PS model decomposes as a tree structure into unary potentials (also referred to as appearance terms) and pairwise terms between pairs of physically connected parts.  Figure~\ref{fig:ps} shows a PS model for 6 upper body parts, with lower arms connected to upper arms, and upper arms and head connected to torso.  In previous work~\cite{devacrf,felz05,ferrari08,posesearch,andriluka09}, the pairwise terms do not depend on data and are hence referred to as a spatial or structural prior.
-%\begin{figure}[]
-%\begin{center}
-%\centerline{\includegraphics[width=0.75\columnwidth]{data/model_parameters2.pdf}}
-%\caption{Basic upper-body model with part state $l$ and part support rectangle of size $(w,h)$.}
-%\label{fig:ps}
-%\end{center}
-%% \vskip -0.5in
-%\end{figure}
-The state of part $i$, denoted as $y_i \in \mathcal{Y}_i$, encodes the joint 
-location of the part in image coordinates and the direction of the limb as a 
-unit vector: $y_i = [y_{ix} \; y_{iy} \; y_{iu} \; y_{iv}]^T$. The state of the 
-model is the collection of states of $M$ parts: $p(ys = ys) = p(y_1 = y_1, 
-\ldots, y_M = y_M)$.  The size of the state space for each part, 
-$|\mathcal{Y}_i|$, the number of possible locations in the image times the 
-number of pre-defined discretized angles. For example, standard PS 
-implementations typically model the state space of each part in a roughly $100 
-\times 100$ grid for $y_{ix} \times y_{iy}$, with 24 different possible values 
-of angles, yielding $|\mathcal{Y}_i| = 100 \times 100 \times 24 = 240,000$. The 
-standard PS formulation (see~\cite{felz05}) is usually written in a 
-log-quadratic form:
-\begin{align}
-p( ys | x) &\propto \prod_{ij} \exp(-\frac{1}{2}||\Sigma_{ij}^{-1/2}(T_{ij}(y_i) - y_j - \mu_{ij})||_2^2)  \times \prod_{i=1}^M \exp(\mu_i^T\phi_i(y_i,x))
-\label{eqn:standard_ps}
-\end{align}
-The parameters of the model are $\mu_i,\mu_{ij}$ and $\Sigma_{ij}$, and $\phi_i(y_i,x)$ are features of the (image) data $x$ at location/angle $y_i$.  The affine mapping $T_{ij}$ transforms the part coordinates into a relative reference frame.  The PS model can be interpreted as a set of springs at rest in default positions $\mu_{ij}$, and stretched according to tightness $\Sigma^{-1}_{ij}$ and displacement $\phi_{ij}(ys) = T_{ij}(y_i) - y_j$.  The unary terms pull the springs toward locations $y_i$ with higher scores $\mu_i^T\phi_i(y_i,x)$ which are more likely to be a location for part $i$.
+why pose?
+it's super hard: Human pose estimation inherits all the difficulties of object 
+recognition
+it shows off computation
 
-This form of the pairwise potentials allows inference to be performed faster than $O(|\mathcal{Y}_i|^2)$:  MAP estimates $\argmax_{ys} p(ys | x)$ can be computed efficiently using a generalized distance transform for max-product message passing in $O(|\mathcal{Y}_i|)$ time.  Marginals of the distribution, $p(y_i | x)$, can be computed efficiently using FFT convolution for sum-product message passing in $O(|\mathcal{Y}_i| \log |\mathcal{Y}_i|)$~\cite{felz05}.
+philosopical question - humans can do it, babies,  dogs can do it - why can't a 
+computer
 
-While fast to compute and intuitive from a spring-model perspective, this model has two significant limitations.  One, the pairwise costs are unimodal Gaussians, which cannot capture the true multimodal interactions between pairs of body parts.  Two, the pairwise terms are only a function of the geometry of the state configuration, and are oblivious to the image cues, for example, appearance similarity or contour continuity of the a pair of parts.
+\section{Problem Statement}
 
-\section{Inference tricks (DT, conv)}
-\section{Issues}
+defn: 2D means two dimensional
+\subsection{Related problems}
 
-\chapter{Thesis contributions}
+\section{Inherent difficulties}
+\subsection{perceptual}
+\subsection{computational}
+
+\section{PREVIEW OF MY WORK}
+
+

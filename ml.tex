@@ -1,0 +1,194 @@
+\chapter{Machine learning classification}
+
+In this section we lay out the basic definitions and tools necessary for 
+data-driven modeling of {\em classification problems}.  In the most general 
+setting, the goal is to learn a mapping, or classifier $h$ from a hypothesis 
+class $\cH$ from a set of input variables $x$ to a set of discrete output 
+variables $y$.   
+
+We concern ourselves with a specific setting: $x$ lies in a (possibly 
+high-dimensional) vector space (most commonly in this work, the input image 
+pixels) and the target lies in a discrete $n$-dimensional space: 
+$$y \in \{0,1,\ldots,k\}^n.$$  
+
+We will refer to the set $\{0,1,\ldots,k\}$ as the set of labels, {\em label 
+set}, or {\em state space} for a dimension of $y$.  Each dimension of $y$ will 
+be referred to as $y_i$.  For example, in a simple image classification task to 
+determine whether an image has a dog in it, $x$ could be an image's pixels, and 
+$y \in \{dog, not~dog\} \cong \{0,1\} $, an instance of {\em binary 
+classification}. In this case, $k = 2$ and $n 
+= 1$.  In {\em multiclass classification}, $k>2$ and $n = 1$, \eg, predicting 
+the handwritten digits $0,\dots,9$ or the weather $\{sunny, cloudy, rainy\} 
+\cong \{0,1,2\}$.  Finally, in {\em structured prediction}, the output $y$ is a 
+vector: $n>1$.
+
+In this section we will describe each in turn building up, specifying the 
+following necessary components for classification problems.
+
+\begin{itemize}
+\item An {\bf inference procedure} to determine the most likely label for a 
+fixed test example $x$: \begin{equation}
+h(x) \triangleq \argmax_{y \in \cY} h(x,y).
+\end{equation}
+\item The {\bf hypothesis class $\cH$} from which to obtain our classifier $h$.
+\item  A {\bf learning loss function} $\cL(\cdot)$ which assesses the quality 
+of any particular classifier $h \in \cH$.
+\item A {\bf learning algorithm} to find the minimizer of $\cL$: 
+\begin{equation}
+h = \argmin_{h' \in \cH} \cL(h').
+\end{equation}
+\end{itemize}
+
+\begin{table}[tb!]
+\centering
+\begin{tabular}{| c | c | }
+\hline
+symbol & definition \\
+\hline
+\hline
+$x \in \cX = \reals^d$ & input variables\\
+$y \in \cY =\{0,1,\ldots,k\}^n$ & output variables \\
+$h(x,y): \cX \times \cY \mapsto \cY$ & classifier \\
+\hline
+\end{tabular}
+\caption[Machine learning notation]{Machine learning notation.}
+\label{tab:notation}
+\end{table}
+
+
+
+\section{Linear classifiers}
+There are many possible parametric and non-parametric choices of hypothesis 
+classes $\cH$ to consider.  One of the easiest to represent, learn and analyze 
+is the hypothesis class of {\em generalized linear models}:
+\begin{equation}
+h(x,y) = \sum_{i=1}^d w_i f(x,y)\ = \w \cdot \f(x,y) 
+\end{equation}
+where $\w \in \reals^d$ is a vector of linear parameters of our model and 
+$\f(x,y) \in \reals^d$ is a vector of features that depend on the input and 
+output variables.  Thus the model is simply a weighted sum of features to 
+obtain a real valued score, and $\cH = \reals^d$.
+
+
+\section{Structured models}
+
+The inference problem is to determine the highest scoring possibility out of 
+all possible outputs in $\cY$: \begin{equation} h(x) = \argmax_{y \in \cY} 
+h(x,y).  \end{equation}  When $\cY$ is low-dimensional, brute-force search is 
+easy enough: evaluate $h(x,y)$ for all possible $y$, and return the highest 
+scoring.
+
+For binary classification, this requires only a single dot product in $d$-dimensions
+\begin{align}
+h(x) &= \Ind\left( h(x,1) > h(x,0)\right) \\
+&= \Ind\left( \w \cdot \f(x,1) > \w \cdot \f(x,0) \right) \\
+&= sign\left( \w \cdot \left(f(x,1) - f(x,0)\right) \right) \\ 
+&= sign\left( \w \cdot \tilde{f}(x) \right)  
+\end{align}
+\todo{view of this as a hyperplane...and it's good to keep this intuition even for more complex settings than binary}
+
+In a multiclass problem with $k$ possible labels for $y$, we require in general $k$ $d$-dimensional dot products.
+
+However, in the most general setting, $\cY$ is exponential in 
+$k$: $|\cY| = k^n$, and we can't hope to enumerate all possible outputs in 
+$\cY$ to find the highest-scoring.  Without any further modeling assumptions, 
+there is not much we can do here.  In order to handle problems of these times, 
+we impose assumptions about the {\em structure} of the output space.  
+
+For example, imagine we are tracking the location of a robot on a map with 500 
+locations over 100 time steps.  We have noisy sensor readings $x$ for every 
+time step.  The output $y$ is a sequence of locations the robot visited in all 
+100 time steps, one out of $\cY = 100^{500} = 10^{1000}$ possibilities.  By 
+comparison, the estimated number of atoms in the universe is only $10^{80}$.  
+
+The key insight to be made is the following: if we know where the robot is at 
+time $t$, this is tremendously useful for determining the robots next location 
+at time $t+1$ .  In addition, knowing where the robot was at $t-1$ also helps 
+localize it at $t+1$ since we can now estimate velocity given two locations, 
+but not as much.  Going further into the past, there is probably very little 
+information to help localize where the robot is at time $t+1$ if we are told 
+where it was many steps ago, say, $t-10$.  In general, we can make the 
+simplifying assumption that {\em given the recent past, the future is 
+independent of the distant past}.
+
+In other structured problems, it also makes sense to make {\em independence 
+assumptions} about which dimensions of $y$ are assumed dependent on each other and their interactions should be directly modeled. 
+In handwriting recognition, adjacent letters in a document 
+depend very little on letters far away in the document which correspond to different words.
+In human pose estimation, knowing the location of the left shoulder is only a weak indicator of where the right wrist should be. In scene labeling, we can assume the label of the upper right image region does not depend on far away regions in the image~\citep{cour05}.
+
+You may object that some of the assumptions made in the above examples are 
+somewhat extreme.  However, they are typically seen as forgivable thanks to the 
+great decrease in computational complexity they provide in the inference 
+problem.  For any problem in which dimensions of $y$ can be grouped into 
+overlapping dependent sets of dimensions $\{c\}$, then the linear predictor $\w 
+\cdot \f(x,y)$ can be {\em decomposed} into a sum over overlapping factors.
+\begin{equation}
+\w \cdot \f(x,y) = \sum_{c \in \cC} \w_c \cdot \f_c(x,y_c) = \sum_{c \in \cC} \phi_c
+\end{equation}
+where we use the shorthand for cliques $\phi_c \defn \w_c \cdot \f(x,y_c)$.
+
+As a simple example of this, consider our robot problem where we make the 
+common assumption that the position of the robot at time $t+1$ only depends on 
+the immediate past $t$.  Then the linear structured model for this problem can 
+be written
+\begin{equation*}
+\w \cdot \f(x,y) = \sum_{t=1}^{99} \w_{t,t+1} \cdot \f(x,y_{t,t+1}) = \sum_{t=1}^{99} \phi_{t,t+1} 
+\end{equation*}
+Observe now how computing the maximum score of the classifier also decomposes for this simple problem:
+\begin{align}
+&\max_{y \in \cY} \w \cdot \f(x,y)\\ &= \max_{y_1,\ldots,y_{100}} \sum_{t=1}^{99} \phi_{t,t+1} \\
+%&= \max_{y_{100}} \left( \phi_{99,100} + \max_{y_{99}} \left( \phi_{98,99} + \ldots \max_{y_3} \left(\phi_{3,4} + \max_{y_2} \left( \phi_{2,3} + \max_{y_1} \phi_{1,2} \right) \right) \ldots \right) \right) \\
+&= \max_{y_{100}} \left[ \phi_{99,100} + \max_{y_{99}} \left[ \phi_{98,99} + \ldots \max_{y_3} \left[\phi_{3,4} + \max_{y_2} \left[ \phi_{2,3} + \max_{y_1} \phi_{1,2} \right] \right] \ldots \right] \right] 
+%&= \max_{y_{100}} \phi_{99,100} + \max_{y_{99}} \phi_{98,99} + \ldots \max_{y_3} \phi_{3,4} + \max_{y_2} \phi_{2,3} + \max_{y_1} \phi_{1,2} 
+\label{eq:nesting} \end{align} 
+In~\equref{nesting}, we see that the max over each dimension of $y$ can be
+nested and needs only reason over individual factors at a time.  In our robot problem,
+each factor is only $500^2 = 2500$ numbers to consider and there are 99 factors. The total number of work done is $O(n \cdot k^2) \approx 250,000$ in
+this case, an astronomical improvement over the complete space of $10^{1000}$.
+
+This nice property can be generalized to any linear model that decomposes into 
+factors.  We can encode the sets of factors and their overlap relations in 
+general using a {\em factor graph}~\citep{koller-book}.  The number of 
+different settings and representations for structured models is vast and varied 
+and outside the scope of this work. 
+
+\subsection{Pairwise structured prediction}\label{sec:pairwise-model} For our purposes, we focus on structured problems with at most {\em pairwise structure}, where $|c| \leq 2\;\; \forall c \in \cC$.  This simplification does not result in loss of generality, as factors involving 3 or more variables can always be converted into pairwise or unary factors with an expanded label set consisting of the Cartesian product of each variable's state space. For example, a factor involving the variables $y_1,y_2$ and $y_3$ with state space $\{1,\ldots,k\}^3$ can be converted into a single variable $y_{123} \in \{1,\ldots,k^3\}$.
+
+We can represent a pairwise structured model as a graph $G = (\cV_G,\cE_G)$ where each variable $y_i$ corresponds to a vertex in the graph's vertex set $\cV_G$, and each edge in $\cE_G$ corresponds to two variables $y_i,y_j$ being involved in a pairwise factor $\phi_{ij}$.  We can then decompose our classifier into the special form
+\begin{align}
+\w \cdot \f(x,y) &= \sum_{i \in \cV_G} \w_i \cdot \f(x,y_i) + \sum_{i,j \in \cE_G} \w_{ij} \cdot \f(x,y_{ij}) \\
+& = \sum_{i \in \cV_G} \phi_i + \sum_{i,j \in \cE_G} \phi_{ij}.
+\end{align} 
+There is a huge amount of literature dedicated to this form of model, originally stemming from the physics literature.  When given a probabilistic interpretation as we will see in~\secref{probinterp}, this type of model is known as a {\em pairwise Markov Random Field} (MRF).  Coming from this literature which uses this form of model to model \todo{WTF am I saying}, we refer to the different terms as {\em potentials}.  Terms of the form $\phi_i = \w_i \cdot \f_i$ we will refer to as {\em unary potentials}; $\phi_{ij} = \w_{ij} \cdot \f_{ij}$ are {\em pairwise potentials}.
+
+When blah forms a tree, we can always exploit the structure for exact efficient inference.  Using the same trick we used in the specific example of the robot localization problem~\equref{nesting}, when the graph structure (synonomously, pairwise variable interactions) form a tree, we can perform inference by nesting the $\max$ operator over pairs of variables at a time, as well as storing the $\argmax$ maximizer of each $\max$ operation.  For completeness, the algorithm is in \algref{max-inference}, commonly referred to as max-sum {\em message passing, belief propagation}, or {\em viterbi decoding}.  The algorithm results in inference that is $O(nk^2)$ computation rather than $k^n$.
+
+\input{inference-alg}
+
+\subsection{Probabilistic interpretation}\label{sec:probinterp}
+
+\section{Inference}
+\subsection{max-sum}
+\subsection{max-marginals}
+\subsection{probabilistic marginals}
+\section{Supervised learning}
+In the supervised learning setting, we have access to a training set
+$S = \{(x^{(j)},y^{(j)})\}_{j=1}^m$ of training examples, assumed to be sampled 
+independently, identically distributed (i.i.d.) from some true joint 
+distribution $(x,y) \sim P(X,Y)$. The standard supervised learning task is to 
+learn a hypothesis $h: \cX \times \cY \mapsto \cY$ that minimizes the average 0/1-error on the training set: 
+\begin{align}
+\cL_{01}(h,S) = \hat{\E}_{S}\left[
+  \ell\left(h(X),Y\right)\right] = \frac{1}{m}\sum_{j=1}^m \Ind\left(h(x^{(j)}) = y^{(j)}\right)
+\end{align}.
+
+
+for some loss function $\ell: Y \times Y \rightarrow \reals^+$. The linear hypothesis class we
+consider is of the form $h(x) = \argmax_y \score{y}$, where the
+scoring function $\score{y} \triangleq \w \cdot \f(x,y)$ is the
+inner product of a vector of parameters $\theta$ and a feature
+function $\bft: X \times Y \mapsto \reals^d$ mapping $(x,y)$ pairs to
+$d$ real-valued features. 
+
+

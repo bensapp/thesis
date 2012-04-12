@@ -8,13 +8,18 @@
 \usepackage{amsmath,amsthm, amssymb, latexsym}
 \usepackage{multirow}
 \usepackage{xspace}
+\usepackage{verse}
 
 \usepackage[usenames,dvipsnames]{color}
-\definecolor{ccolor}{rgb}{0.00,0.00,0.9}
-\definecolor{lcolor}{rgb}{0.25,0.25,0.9}
-\usepackage[pagebackref=true,linkcolor=ccolor,citecolor=ccolor,colorlinks=true]{hyperref}
+\definecolor{ccolor}{rgb}{0.00,0.90,0.00}
+\definecolor{lcolor}{rgb}{0.4,0.4,0.4}
+\usepackage[pagebackref=true,linkcolor=lcolor,citecolor=ccolor,colorlinks=true]{hyperref}
 %\usepackage[pagebackref=true,colorlinks=false]{hyperref}
 \usepackage[sort,round]{natbib}
+
+\setlength{\abovedisplayskip}{.2pt plus0pt minus0pt}
+\setlength{\belowdisplayskip}{.2pt plus0pt minus0pt}
+
 
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -42,16 +47,19 @@
 \abstractp
 \input{abstract}
 \afterpreface
-\prefacesection{Preface}
-\input{preface}
+% \prefacesection{Preface}
+% \input{preface}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 \pagenumbering{arabic}
 \pagestyle{plain}
 
-\part{Introduction}
 \input{intro}
+\part{Preliminaries}
+\input{ml}
+\input{ps}
+
 
 \clearpage
 \part{Models and methods}
@@ -67,7 +75,8 @@
 \part{Experiments}
 
 \clearpage
-\part{Future work}
+\part{Discussions and Conclusions}
+\input{future}
 \input{conclusion}
 
 \clearpage

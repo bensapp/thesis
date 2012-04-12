@@ -8,7 +8,7 @@
 \newcommand{\LossA}{\mathcal{L}_{\psi}}
 \newcommand{\LossMAX}{\mathcal{L}^{max}_{\psi}}
 \newcommand{\X}{\mathcal{X}}
-\newcommand{\E}{\mathbf{E}}
+\newcommand{\E}{\mathbb{E}}
 \newcommand{\bw}{\mathbf{w}}
 \newcommand{\bft}{\mathbf{f}}
 \newcommand{\bx}{\mathbf{x}}
@@ -20,6 +20,7 @@
 
 \newcommand{\Ind}{\mathbf{1}}
 \newcommand{\argmax}{\mathop{\arg\max}}
+\newcommand{\argmin}{\mathop{\arg\min}}
 
 \newcommand{\Vones}[1]{\ensuremath{\mathbf{1}_{#1}}}
 \newcommand{\eqdef}{\stackrel{\rm def}{=}}
@@ -35,20 +36,37 @@
 \newcommand{\w}{\mathbf{w}}
 \newcommand{\f}{\mathbf{f}}
 
+\newcommand{\naive}{naive\xspace}
 \newcommand{\CPS}{CPS\xspace}
 \newcommand{\LLPS}{LLPS\xspace}
 \newcommand{\LLPSlong}{Local Linear Pictorial Structures\xspace}
 
 % some common mathcals
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cD}{\mathcal{D}}
 \newcommand{\cL}{\mathcal{L}}
+\newcommand{\cX}{\mathcal{X}}
 \newcommand{\cY}{\mathcal{Y}}
 \newcommand{\cR}{\mathcal{R}}
-\newcommand{\cE}{\mathcal{R}}
-\newcommand{\cV}{\mathcal{R}}
+\newcommand{\cE}{\mathcal{E}}
+\newcommand{\cV}{\mathcal{V}}
 
 \newcommand{\reals}{\mathbb{R}}
+\newcommand{\defn}{\triangleq}
 
 \newcommand{\tree}{\Upsilon}
+\newcommand{\attrib}[1]{ \nopagebreak{\raggedleft\footnotesize #1\par}}
+\newcommand{\myquotation}[2]{{\em #1}\\\attrib{#2}}
+
+\newcommand{\secref}[1]{\hyperref[sec:#1]{\textsection\ref{sec:#1}}}
+\newcommand{\equref}[1]{\hyperref[eq:#1]{Equation~\ref{eq:#1}}}
+\newcommand{\algref}[1]{\hyperref[alg:#1]{Algorithm~\ref{alg:#1}}}
+\newcommand{\thmref}[1]{\hyperref[thm:#1]{Theorem~\ref{thm:#1}}}
+\newcommand{\lemref}[1]{\hyperref[lem:#1]{Lemma~\ref{lem:#1}}}
+\newcommand{\tabref}[1]{\hyperref[tab:#1]{Table~\ref{tab:#1}}}
+\newcommand{\figref}[1]{\hyperref[fig:#1]{Figure~\ref{fig:#1}}}
+
 
 \newcommand{\score}[1]{\theta(x,#1)}         % score function
 \newcommand{\scoremax}[0]{\theta^\star(x)}   % argmax score
@@ -70,7 +88,7 @@
 %\renewcommand{\includegraphics}[2]{}
 
 %% usual commands
-\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\todo}[1]{\textcolor{red}{\\{\bf TODO:} #1 \\}}
 %\newcommand{\todo}[1]{{\bf{TODO: #1}}}
 %\newcommand{\todo}[1]{}
 
@@ -135,6 +153,8 @@
 %\makeatother
 
 
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} 
+\renewcommand{\algorithmicensure}{\textbf{Ouput:}}
 
 %% specific commands
 \newcommand{\trans}[1]{{#1}^{\ensuremath{\mathsf{T}}}}           % transpose

@@ -1,4 +1,4 @@
-\chapter{Cascaded Pictorial Structures}
+\chapter{Cascaded Pictorial Structures}\label{sec:CPS}
 
 Pictorial structure models~\cite{fischler1973ps} are a popular method for human body pose estimation~\cite{felz05,fergus2005sparse,devacrf,ferrari08,andriluka09}.
 The model is a Conditional Random Field over pose variables that characterizes 
@@ -105,9 +105,9 @@ this condition $\theta_x(ys) > t_x(\theta,\alpha)$ is sufficient to ensure that 
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.75\textwidth]{figs/empty.jpg}
-\caption{Upper right: Detector-based pruning by thresholding (for the lower 
-right arm) yields many hypotheses far way from the true one. Lower row: The 
-CPS, however, exploits global information to perform better pruning.}
+\caption[SHORT TITLE]{Upper right: Detector-based pruning by thresholding (for 
+the lower right arm) yields many hypotheses far way from the true one. Lower 
+row: The CPS, however, exploits global information to perform better pruning.}
 \label{fig:cascade_pruning}
 \end{center}
 \end{figure}
