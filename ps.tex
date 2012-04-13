@@ -1,20 +1,24 @@
 \chapter{Pictorial structures: Pose estimation meets structured prediction} 
 \label{ps}
 Classical pictorial structure models (PS models) are a class of structured 
-models specifically proposed to represent 2-D objects with parts which can articulate in a kinematically plausible way.  The model was first 
-proposed by \citet{fischler1973ps}, and has been hugely popular in computer 
-vision since computational innovations by \citet{felz05}.
+models specifically proposed to represent 2D objects with parts which can 
+articulate in a kinematically plausible way.  The model was first proposed by 
+\citet{fischler1973ps}, and has been hugely popular in computer vision since 
+computational innovations by \citet{felz05}.
 
 Pictorial structures take the form of a pairwise structured model as described 
 in \secref{pairwise-model}:
 \begin{equation}
 h(x,y) = \sum_{i \in \cV_G} \phi_i(x,y_i) + \sum_{ij \in \cE_G} 
 \label{eq:standard-ps}
-\phi_{ij}(x,y_i,y_j)
+\phi_{ij}(y_i,y_j)
 \end{equation}
- Here the variables correspond to the major body parts.  For upper-body pose 
-estimation, $y$ typically corresponds to [head, torso, left-upper-arm, 
-left-lower-arm, right-upper-arm, right-lower-arm], and $y_i \in 
+with the important exception that {\em the unary terms $\phi_{ij}(y_i,y_j)$ are 
+image-independent}---they are not a function of $x$.
+
+In the PS model, the variables correspond to the major body parts.  For 
+upper-body pose estimation, $y$ typically corresponds to [head, torso, 
+left-upper-arm, left-lower-arm, right-upper-arm, right-lower-arm], and $y_i \in 
 [1,\ldots,80\times 80 \times 24]$ represents a typical $80 \times 80$ 
 discretized grid of spatial locations, and $24$ discretized angles for each 
 part.  Thus one way to think about the representation for each part is a unit 
@@ -230,22 +234,39 @@ would be 100 times slower.
 Second, there is very little signal in real world scenarios from which to infer 
 foreshortening.  In~\citet{felz05} the system operated on foreground 
 sillhouettes, making background clutter a non-issue.  When severely distorted, 
-there is very little visual signal to pick out the arm from background and 
-foreground clutter.  We address these issues in \secref{stretchable}.
+it is extremely difficult to determine, even to the human eye, what is a foreshortened arm and what is simply background clutter. \todo{figure}.  This problem can be ameliorated when parsing human pose in video, in which we can track joints as the arm undergoes a foreshortening over a sequence of frames.  We address these issues in \secref{stretchable}.
 
-\subsection{Restricted pairwise potentials}
+\subsection{Unimodal potentials}
 
-In order to achieve fast inference, modeling sacrifices have been made.
+In order to achieve fast inference, modeling sacrifices have been made.  The 
+linear time max-sum inference for PS described in \secref{dt} via distance 
+transforms is supported only if the pairwise potentials are a unimodal function 
+of geometric displacement.  This is quite a strong assumption, especially for 
+representing the angle between, \eg, upper and lower arms.  Figure blah blha 
+blah \todo{figure}. 
 
-\mypar{Unimodality} The linear time max inference for PS described in 
-\secref{dt} via distance transforms is supported only if the pairwise 
-potentials are a unimodal function of geometric displacement.  This is quite a 
-strong assumption, especially for representing the angle between, \eg, upper 
-and lower arms, as shown in \figref{multi-modal-angles}. 
+Furthermore, even the unary potentials are typically unimodal, in the sense 
+that they are modeled as individual linear classifiers on an edge 
+representation, of the form $\w_i \cdot \f_i(x,y)$.  As a consequence, all the 
+variations of part appearance due to pose, deformation, body type, lighting, 
+foreshortening and clothing are being fit with a single linear model, resulting 
+in a harsh quantization of the rich space of poses.  The reasons for this are 
+not only computational (the weights can be re-interpreted as a 2D linear 
+filter, and $O(n \log n)$ convolution can be used to evalute them), but also 
+statistical: using a more complex model requires more training data for 
+accurate estimation.  This issue is the motivation for the model proposed 
+in~\secref{llps}.
 
-\mypar{Image independence} Not only must the pairwise potential be unimodal, it 
-is also {\em not a function of the image}.  We  \todo{MAKE THIS A BIG POINT}
+\subsection{Image-independent interactions}  Maybe the most unsatisfying 
+property of the pictorial structure model is its effective blindness to image 
+content when determining how to ``piece patches together'' in a geometrically 
+plausible way to obtain the best scoring pose.  
+
+
 We address these issues beginning in \secref{CPS} for pairwise potentials, and 
 \secref{llps} for pairwise {\em and} unary potentials.
+
+
+
 
 
