@@ -21,6 +21,7 @@
 \newcommand{\Ind}{\mathbf{1}}
 \newcommand{\argmax}{\mathop{\arg\max}}
 \newcommand{\argmin}{\mathop{\arg\min}}
+\newcommand{\minimize}{\mathop{\mathbf{minimize}}}
 
 \newcommand{\Vones}[1]{\ensuremath{\mathbf{1}_{#1}}}
 \newcommand{\eqdef}{\stackrel{\rm def}{=}}
@@ -36,10 +37,13 @@
 \newcommand{\w}{\mathbf{w}}
 \newcommand{\f}{\mathbf{f}}
 
-\newcommand{\naive}{naive\xspace}
+\def\naive{na\"{\i}ve\xspace}
+\def\Naive{Na\"{\i}ve\xspace}
+
 \newcommand{\CPS}{CPS\xspace}
 \newcommand{\LLPS}{LLPS\xspace}
 \newcommand{\LLPSlong}{Local Linear Pictorial Structures\xspace}
+
 
 % some common mathcals
 \newcommand{\cH}{\mathcal{H}}
@@ -66,6 +70,7 @@
 \newcommand{\lemref}[1]{\hyperref[lem:#1]{Lemma~\ref{lem:#1}}}
 \newcommand{\tabref}[1]{\hyperref[tab:#1]{Table~\ref{tab:#1}}}
 \newcommand{\figref}[1]{\hyperref[fig:#1]{Figure~\ref{fig:#1}}}
+\newcommand{\figreff}[2]{\hyperref[fig:#1]{Figure~\ref{fig:#1}#2}}
 
 
 \newcommand{\score}[1]{\theta(x,#1)}         % score function

@@ -1,5 +1,5 @@
 \chapter{Pictorial structures: Pose estimation meets structured prediction} 
-\label{ps}
+\label{sec:ps}
 Classical pictorial structure models (PS models) are a class of structured 
 models specifically proposed to represent 2D objects with parts which can 
 articulate in a kinematically plausible way.  The model was first proposed by 
@@ -260,13 +260,12 @@ in~\secref{llps}.
 \subsection{Image-independent interactions}  Maybe the most unsatisfying 
 property of the pictorial structure model is its effective blindness to image 
 content when determining how to ``piece patches together'' in a geometrically 
-plausible way to obtain the best scoring pose.  
-
-
-We address these issues beginning in \secref{CPS} for pairwise potentials, and 
-\secref{llps} for pairwise {\em and} unary potentials.
-
-
-
-
-
+plausible way to obtain the best scoring pose, due to the image-independent 
+pairwise terms $\phi_{ij}(y_i,y_j)$.  This is a necessity in order to achieve
+sub-quadratic inference, as discussed in \secref{dt}.  This means we are unable 
+to encode in the pairwise term the likelihood that a pair of part hypotheses go 
+together because they {\em look like} they go together; only that they go 
+together because they fit together geometrically.  Thus we are unable to 
+express color, shape or region compatibility for a pair of parts in our model.  
+Overcoming this limitation is a major contribution of this thesis, addressed 
+in~\secref{CPS} and \secref{stretchable}.

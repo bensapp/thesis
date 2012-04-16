@@ -1,4 +1,4 @@
-\chapter{Machine learning classification}
+\chapter{Structured Prediction}
 
 In this section we lay out the basic definitions and tools necessary for 
 data-driven modeling of {\em classification problems}.  In the most general 
@@ -20,10 +20,10 @@ classification}. In this case, $k = 2$ and $n
 = 1$.  In {\em multiclass classification}, $k>2$ and $n = 1$, \eg, predicting 
 the handwritten digits $0,\dots,9$ or the weather $\{sunny, cloudy, rainy\} 
 \cong \{0,1,2\}$.  Finally, in {\em structured prediction}, the output $y$ is a 
-vector: $n>1$.
+vector: $n > 1$.
 
-In this section we will describe each in turn building up, specifying the 
-following necessary components for classification problems.
+We will discuss four major components necessary for learning and using machine 
+learning classifiers in this chapter.
 
 \begin{itemize}
 \item An {\bf inference procedure} to determine the most likely label for a 
@@ -57,138 +57,295 @@ $h(x,y): \cX \times \cY \mapsto \cY$ & classifier \\
 
 
 
-\section{Linear classifiers}
+\section{Generalized linear classifiers}\label{sec:glms}
 There are many possible parametric and non-parametric choices of hypothesis 
 classes $\cH$ to consider.  One of the easiest to represent, learn and analyze 
 is the hypothesis class of {\em generalized linear models}:
 \begin{equation}
-h(x,y) = \sum_{i=1}^d w_i f(x,y)\ = \w \cdot \f(x,y) 
-\end{equation}
+h(x,y) = \sum_{i=1}^d w_i f_i(x,y)\ = \w \cdot \f(x,y) \end{equation}
 where $\w \in \reals^d$ is a vector of linear parameters of our model and 
 $\f(x,y) \in \reals^d$ is a vector of features that depend on the input and 
 output variables.  Thus the model is simply a weighted sum of features to 
 obtain a real valued score, and $\cH = \reals^d$.
 
 
-\section{Structured models}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{figs/binary-multiclass-ml.pdf}
+\caption[Binary and multi-class linear classification.]{Binary and multi-class classification.  On the left is shown a binary labeling problem in 2 dimensions, with a linear classifier which perfectly classifies the data.  On the right is shown a 3 class classification problem, with a linear classifier for each class, each of which perfectly separates the correct label from the two incorrect labels.}
+\label{fig:binary-multiclass-ml}
+\end{center}
+\end{figure}
 
-The inference problem is to determine the highest scoring possibility out of 
-all possible outputs in $\cY$: \begin{equation} h(x) = \argmax_{y \in \cY} 
-h(x,y).  \end{equation}  When $\cY$ is low-dimensional, brute-force search is 
-easy enough: evaluate $h(x,y)$ for all possible $y$, and return the highest 
-scoring.
 
-For binary classification, this requires only a single dot product in $d$-dimensions
+\subsection{Binary and multi-class classifiers}
+\label{sec:binary-multi-class}
+In binary ($y \in \{0,1\}$) and multi-class ($y \in \{0,\ldots,k\}$) 
+classification problems, there is a simple and intuitive geometric 
+interpretation to linear classifiers.  In two dimensions, the classifiers 
+describe a line, in three dimensions, they describe a plane, and in general, 
+they describe a {\em hyperplane} which partitions the feature space (for a 
+particular label) into two halfspaces.  
+
+In the case of binary classification, observe that for binary classification, 
+we need only look at which side of a hyperplane a point lies on in a particular 
+feature space to determine the label:
 \begin{align}
 h(x) &= \Ind\left( h(x,1) > h(x,0)\right) \\
 &= \Ind\left( \w \cdot \f(x,1) > \w \cdot \f(x,0) \right) \\
-&= sign\left( \w \cdot \left(f(x,1) - f(x,0)\right) \right) \\ 
-&= sign\left( \w \cdot \tilde{f}(x) \right)  
+&= \w \cdot \left(f(x,1) - f(x,0)\right)  > 0\\ 
+&= \w \cdot \tilde{f}(x) > 0 
 \end{align}
-\todo{view of this as a hyperplane...and it's good to keep this intuition even for more complex settings than binary}
 
-In a multiclass problem with $k$ possible labels for $y$, we require in general $k$ $d$-dimensional dot products.
+The vector $\w$ describes a hyperplane via its surface normal.  The test $\w 
+\cdot \tilde{f}(x) > 0$ determines which side of the hyperplane an example lies 
+on, which also corresponds to its predicted label, as 
+in~\figref{binary-multiclass-ml}, left.  When $k > 2$, we can also transform 
+feature spaces and interpret the linear classifier as $k$ separating 
+hyperplanes in $d$ dimensions, one hyperplane to separate each label from the 
+rest.  \figref{binary-multiclass-ml}, right illustrates an example with $k = 3$ 
+and $d = 2$.
 
-However, in the most general setting, $\cY$ is exponential in 
-$k$: $|\cY| = k^n$, and we can't hope to enumerate all possible outputs in 
-$\cY$ to find the highest-scoring.  Without any further modeling assumptions, 
-there is not much we can do here.  In order to handle problems of these times, 
-we impose assumptions about the {\em structure} of the output space.  
-
-For example, imagine we are tracking the location of a robot on a map with 500 
-locations over 100 time steps.  We have noisy sensor readings $x$ for every 
-time step.  The output $y$ is a sequence of locations the robot visited in all 
-100 time steps, one out of $\cY = 100^{500} = 10^{1000}$ possibilities.  By 
-comparison, the estimated number of atoms in the universe is only $10^{80}$.  
-
-The key insight to be made is the following: if we know where the robot is at 
-time $t$, this is tremendously useful for determining the robots next location 
-at time $t+1$ .  In addition, knowing where the robot was at $t-1$ also helps 
-localize it at $t+1$ since we can now estimate velocity given two locations, 
-but not as much.  Going further into the past, there is probably very little 
-information to help localize where the robot is at time $t+1$ if we are told 
-where it was many steps ago, say, $t-10$.  In general, we can make the 
-simplifying assumption that {\em given the recent past, the future is 
-independent of the distant past}.
-
-In other structured problems, it also makes sense to make {\em independence 
-assumptions} about which dimensions of $y$ are assumed dependent on each other and their interactions should be directly modeled. 
-In handwriting recognition, adjacent letters in a document 
-depend very little on letters far away in the document which correspond to different words.
-In human pose estimation, knowing the location of the left shoulder is only a weak indicator of where the right wrist should be. In scene labeling, we can assume the label of the upper right image region does not depend on far away regions in the image~\citep{cour05}.
-
-You may object that some of the assumptions made in the above examples are 
-somewhat extreme.  However, they are typically seen as forgivable thanks to the 
-great decrease in computational complexity they provide in the inference 
-problem.  For any problem in which dimensions of $y$ can be grouped into 
-overlapping dependent sets of dimensions $\{c\}$, then the linear predictor $\w 
-\cdot \f(x,y)$ can be {\em decomposed} into a sum over overlapping factors.
+\section{Pairwise structured models}
+\label{sec:mrfs}
+In structured prediction, $|\cY| = |\{0,\ldots,k\}^n|$ is exponential in $n$ 
+and typically enormous. Due to computational and modeling considerations to be 
+discussed, we assume that the full model $\w \cdot \f(x,y)$ {\em decomposes} 
+into factors, or {\em cliques} which involve overlapping sets of variables.  
 \begin{equation}
-\w \cdot \f(x,y) = \sum_{c \in \cC} \w_c \cdot \f_c(x,y_c) = \sum_{c \in \cC} \phi_c
+\w \cdot \f(x,y) = \sum_{c \in \cC} \w_c \cdot \f_c(x,y_c) = \sum_{c \in \cC} 
+\phi_c(x,y_c),
 \end{equation}
-where we use the shorthand for cliques $\phi_c \defn \w_c \cdot \f(x,y_c)$.
+where we use the shorthand for cliques $\phi_c(\cdot) \defn \w_c \cdot 
+\f(\cdot)$.
+We can encode the sets of factors and their overlap relations in general using 
+a {\em factor graph}~\citep{koller-book}.  The number of different settings and 
+representations for structured models is vast and varied and outside the scope 
+of this work.  
 
-As a simple example of this, consider our robot problem where we make the 
-common assumption that the position of the robot at time $t+1$ only depends on 
-the immediate past $t$.  Then the linear structured model for this problem can 
-be written
-\begin{equation*}
-\w \cdot \f(x,y) = \sum_{t=1}^{99} \w_{t,t+1} \cdot \f(x,y_{t,t+1}) = \sum_{t=1}^{99} \phi_{t,t+1} 
-\end{equation*}
-Observe now how computing the maximum score of the classifier also decomposes for this simple problem:
-\begin{align}
-&\max_{y \in \cY} \w \cdot \f(x,y)\\ &= \max_{y_1,\ldots,y_{100}} \sum_{t=1}^{99} \phi_{t,t+1} \\
-%&= \max_{y_{100}} \left( \phi_{99,100} + \max_{y_{99}} \left( \phi_{98,99} + \ldots \max_{y_3} \left(\phi_{3,4} + \max_{y_2} \left( \phi_{2,3} + \max_{y_1} \phi_{1,2} \right) \right) \ldots \right) \right) \\
-&= \max_{y_{100}} \left[ \phi_{99,100} + \max_{y_{99}} \left[ \phi_{98,99} + \ldots \max_{y_3} \left[\phi_{3,4} + \max_{y_2} \left[ \phi_{2,3} + \max_{y_1} \phi_{1,2} \right] \right] \ldots \right] \right] 
-%&= \max_{y_{100}} \phi_{99,100} + \max_{y_{99}} \phi_{98,99} + \ldots \max_{y_3} \phi_{3,4} + \max_{y_2} \phi_{2,3} + \max_{y_1} \phi_{1,2} 
-\label{eq:nesting} \end{align} 
-In~\equref{nesting}, we see that the max over each dimension of $y$ can be
-nested and needs only reason over individual factors at a time.  In our robot problem,
-each factor is only $500^2 = 2500$ numbers to consider and there are 99 factors. The total number of work done is $O(n \cdot k^2) \approx 250,000$ in
-this case, an astronomical improvement over the complete space of $10^{1000}$.
-
-This nice property can be generalized to any linear model that decomposes into 
-factors.  We can encode the sets of factors and their overlap relations in 
-general using a {\em factor graph}~\citep{koller-book}.  The number of 
-different settings and representations for structured models is vast and varied 
-and outside the scope of this work. 
-
-\subsection{Pairwise structured prediction}\label{sec:pairwise-model} For our purposes, we focus on structured problems with at most {\em pairwise structure}, where $|c| \leq 2\;\; \forall c \in \cC$.  This simplification does not result in loss of generality, as factors involving 3 or more variables can always be converted into pairwise or unary factors with an expanded label set consisting of the Cartesian product of each variable's state space. For example, a factor involving the variables $y_1,y_2$ and $y_3$ with state space $\{1,\ldots,k\}^3$ can be converted into a single variable $y_{123} \in \{1,\ldots,k^3\}$.
+For our purposes, we focus on structured problems with at most {\em pairwise 
+structure}, where $|c| \leq 2\;\; \forall c \in \cC$.  This simplification does 
+not result in loss of generality, as factors involving 3 or more variables can 
+always be converted into pairwise or unary factors with an expanded label set 
+consisting of the Cartesian product of each variable's state space. For 
+example, a factor involving the variables $y_1,y_2$ and $y_3$ with state space 
+$\{1,\ldots,k\}^3$ can be converted into a single variable $y_{123} \in 
+\{1,\ldots,k^3\}$.
 
 We can represent a pairwise structured model as a graph $G = (\cV_G,\cE_G)$ where each variable $y_i$ corresponds to a vertex in the graph's vertex set $\cV_G$, and each edge in $\cE_G$ corresponds to two variables $y_i,y_j$ being involved in a pairwise factor $\phi_{ij}$.  We can then decompose our classifier into the special form
 \begin{align}
 \w \cdot \f(x,y) &= \sum_{i \in \cV_G} \w_i \cdot \f(x,y_i) + \sum_{i,j \in \cE_G} \w_{ij} \cdot \f(x,y_{ij}) \\
 & = \sum_{i \in \cV_G} \phi_i + \sum_{i,j \in \cE_G} \phi_{ij}.
-\end{align} 
-There is a huge amount of literature dedicated to this form of model, originally stemming from the physics literature.  When given a probabilistic interpretation as we will see in~\secref{probinterp}, this type of model is known as a {\em pairwise Markov Random Field} (MRF).  Coming from this literature which uses this form of model to model \todo{WTF am I saying}, we refer to the different terms as {\em potentials}.  Terms of the form $\phi_i = \w_i \cdot \f_i$ we will refer to as {\em unary potentials}; $\phi_{ij} = \w_{ij} \cdot \f_{ij}$ are {\em pairwise potentials}.
+\label{eq:mrf}
+\end{align} There is a huge amount of research dedicated to models of this form 
+originally stemming from statistical mechanics, where it was first used to 
+determine the spin of particles connected in a grid, and~\equref{mrf} describes 
+the log of the energy of the system.  When given a probabilistic interpretation 
+as we will see in~\secref{probinterp}, this type of model is known as a {\em 
+pairwise Markov Random Field} (MRF).  Because of such historical intuitions as 
+a model for energy, we refer to the different terms as {\em potentials}, 
+and~\equref{mrf} as the negative of an {\em energy function} which we seek to 
+minimize.  Terms of the form $\phi_i = \w_i \cdot \f_i$ we will refer to as 
+{\em unary potentials}; $\phi_{ij} = \w_{ij} \cdot \f_{ij}$ are {\em pairwise 
+potentials}.
 
-When blah forms a tree, we can always exploit the structure for exact efficient inference.  Using the same trick we used in the specific example of the robot localization problem~\equref{nesting}, when the graph structure (synonomously, pairwise variable interactions) form a tree, we can perform inference by nesting the $\max$ operator over pairs of variables at a time, as well as storing the $\argmax$ maximizer of each $\max$ operation.  For completeness, the algorithm is in \algref{max-inference}, commonly referred to as max-sum {\em message passing, belief propagation}, or {\em viterbi decoding}.  The algorithm results in inference that is $O(nk^2)$ computation rather than $k^n$.
+\subsubsection{Pairwise MRF examples}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{figs/mrf-examples.pdf}
+\caption[MRF examples]{MRF examples.  (a) A robot localization problem on a $10 
+\times 10$ grid. (b) Handwriting recognition.  (c) Scene labeling.  (d) Human 
+pose estimation.  (e) Image denoising. See text for details. }
+\label{fig:mrf-examples}
+\end{center}
+\end{figure}
 
-\input{inference-alg}
+
+
+Our primary application of interest in this work is human pose estimation, 
+whose modeling as an MRF will be discussed in detail in~\secref{ps}.  However, 
+to first give motivation and intuition about how and why to model problems via 
+a pairwise MRF, we present examples here.
+
+\mypar{Wandering robot}
+For example, imagine we are tracking the location of a robot on a map with 100 
+locations over 100 time steps, see~\figreff{mrf-examples}{a}.  We have no idea 
+what the robot's intent is or where he starts out in the world (the ``kidnapped 
+robot'' scenario), only that he can move only to an adjacent grid position at 
+each time step (\ie, cannot teleport).  We have noisy sensor readings $x = 
+[x_1,\ldots,x_{100}]$ for every time step.  The output $y$ is a sequence of 
+locations the robot visited in all 100 time steps, one out of $\cY = 100^{100} 
+= 10^{1000}$ possibilities.  By comparison, the estimated number of atoms in 
+the universe is only $10^{80}$.  A \naive approach would be to model this as a 
+multi-class problem with $10^{1000}$ labels, and try to directly learn a 
+mapping $h(x,y) = \w \cdot \f(x,y)$ for all possible $y$.  Importantly, there 
+is a lot of {\em structure} to this problem, the most obvious being that many 
+outputs $y$ are just not valid, due to the fact that the robot can only move to 
+an adjacent location at each step.
+
+The key insight to be made is the following: if we know where the robot is at 
+time $t$, this is tremendously useful for determining the robot's next location 
+at time $t+1$ .  In addition, knowing where the robot was at $t-1$ also helps 
+localize it at $t+1$, but with diminishing returns---we guess the robot is in 
+roughly the same spatial neighborhood, and also exploit knowledge of its 
+velocity.  Going further into the past, there is increasingly less information 
+to help localize where the robot is at time $t+1$ if we are told where it was 
+many steps ago, say, $t-10$.  In general, we can make the simplifying 
+assumption that {\em given the recent past, the future is independent of the 
+distant past}.  Using this intuition, we can model the problem as a {\em chain} 
+MRF:
+\begin{equation}
+\w \cdot \f(x,y) = \sum_{t=1}^{100} \phi_t(x,y_t) + \sum_{t=1}^{99} 
+\phi_{t,t+1}(x,y_t,y_{t+1})
+\end{equation}
+where the graph structure is a node for the output variable at each time step 
+$y_t$, and we only consider pairwise factors over adjacent time steps 
+$\phi_{t,t+1}$, creating a chain of variable interactions.  The unary 
+potentials $\phi_t$ can model the likelihood of being in each grid location at 
+time $t$ based on sensor readings, and the pairwise potentials can model how 
+likely it is to transition from any location $y_t$ to any location $y_{t+1}$.  
+The pairwise term in such tracking problems is typically represented as a {\em 
+transition matrix}.  In this robot localization problem the transition matrix 
+would be very sparse, since any location can only transition to adjacent grid 
+locations.
+
+
+In other structured problems, it also makes sense to make {\em independence 
+assumptions} about which dimensions of $y$ are assumed dependent on each other and their interactions should be directly modeled. 
+
+\mypar{Handwriting recognition} In this problem, the output at each position is 
+which letter of the alphabet is written given handdrawn letter images $x$ 
+($k=26$ if only considering `a',\ldots,`z', or roughly $50$ if considering all 
+alphanumerics plus punctiation).  In this problem, clearly adjacent letters in 
+a document are highly correlated (\eg, adjacent outputs such as `ab' and `he' 
+are likely, but `hb' is not), but depend very little on letters far away in the 
+word, sentence or even document.  Practitioners again typically model this as a 
+chain, seen in~\figreff{mrf-examples}{b}.
+
+\mypar{Scene labeling} In scene labeling, the goal is to label coarse segments 
+of an image with scene types (``sky'',``grass'',``building'',``cow'', etcetera; 
+$k$ is on the order of tens) given the image as $x$. The typical assumption 
+made is that adjacent regions output directly depend on each other, whereas the 
+label of spatially distant segments have weak or no interactions and are not 
+modeled~\citep{cour05}.  The MRF model thus connects adjacent segments in the 
+image, giving us a cyclic planar graph~\figreff{mrf-examples}{c}.
+
+\mypar{Human pose estimation}  Knowing the location of the left shoulder is 
+strong cue for where the left elbow should be, since they are kinematically 
+coupled in the real world, but only a weak indicator of where the right wrist 
+should be.  The typical representation is to describe the human layout as a 
+tree graph corresponding to the kinematic skeleton, 
+see~\figreff{mrf-examples}{d} and~\secref{ps}.
+
+
+\mypar{Image denoising} Here the input $x$ is an image with a small set of 
+labels that are corrupted by noise, the goal is to determine the uncorrupted 
+original image $y$ the same size as $x$.  Here $k$ is typically 2 or a small 
+set of indexed colors. Practitioners typically model this problem with a grid 
+graph, where variable $y_{r,x}$ corresponding to pixel label at row $r$, column 
+$c$ is connected to (is in pairwise factors with) 
+$y_{r+1,c},~y_{r-1,c},~y_{r,c+1}, \text{ and } y_{r,c-1}$.  
+See~\figreff{mrf-examples}{e}.
+
+You may object that some of the decomposition assumptions made in the above 
+examples are somewhat extreme.  However, they are typically seen as forgivable 
+thanks to the greater simplicity of modeling only local, overlapping 
+interactions. Even more enticing is the reduction in computation they allow, 
+discussed in~\secref{inference}.
 
 \subsection{Probabilistic interpretation}\label{sec:probinterp}
 
 \section{Inference}
-\subsection{max-sum}
-\subsection{max-marginals}
-\subsection{probabilistic marginals}
+\label{sec:inference}
+The inference problem is to determine the highest scoring possibility out of 
+all possible outputs in $\cY$: \begin{equation} h(x) = \argmax_{y \in \cY} 
+h(x,y).  \end{equation}  When $\cY$ is low-dimensional, brute-force search is 
+easy enough: evaluate $h(x,y)$ for all possible $y$, and return the highest 
+scoring.  This can be done for binary classification---where we need only check 
+which side of a separating hyperplane an example lies on 
+(\secref{binary-multi-class})---and multi-class classification, where we 
+evaluate each of $k$ labels do determine the highest scoring.
+
+
+However, in the most general setting, $\cY$ is exponential in 
+$k$: $|\cY| = k^n$, and we can't hope to enumerate all possible outputs in 
+$\cY$ to find the highest-scoring.  Thankfully, the decomposable structure we 
+impose on our models, discussed in~\secref{mrfs}, allows us to find a solution 
+time polynomial in $k$ and linear in $n$, rather than exponential in $n$.
+ 
+
+As a simple example of this, consider our wandering robot problem where we make 
+the common assumption that we only model temporally adjacent pairs of output 
+variables together, making a chain of variable dependencies:
+\begin{equation*}
+\w \cdot \f(x,y) = \sum_{t=1}^{100} \phi_t(x,y_t) + \sum_{t=1}^{99} 
+\phi_{t,t+1}(x,y_t,y_{t+1})
+\end{equation*}
+Observe now how computing the maximum score of the classifier {\em also 
+decomposes} for this simple problem:
+\begin{align}
+&\max_{y \in \cY} \w \cdot \f(x,y) = \max_{y_1,\ldots,y_{100}} 
+\sum_{t=1}^{100} \phi_t(x,y_t) + \sum_{t=1}^{99} \phi_{t,t+1}(x,y_t,y_{t+1}) \\
+&= \max_{y_{100}} \left[ \phi_{99,100} + \phi_{100} + \ldots \max_{y_3} \left[\phi_{3,4} + \phi_3 +  \max_{y_2} \left[ \phi_{2,3} + \phi_2 + \max_{y_1} \phi_{1,2} + \phi_1 \right] \right] \ldots \right] 
+\label{eq:nesting} \end{align} 
+In~\equref{nesting}, we see that the max over each dimension of $y$ can be
+nested and needs only reason over at largest a pairwise factor at a time.  In our robot problem,
+each pairwise factor is only $100^2$ numbers to consider and each unary factor is of size $100$. Thus the total amount of numbers that need to be examined in this problem is roughly $10^6$, an astronomical improvement over the complete space of $10^{1000}$. In general the bottleneck of inference is the max over the pairwise factors of size $k^2$, and thus inference is $O(n \cdot k^2)$.
+
+In general, when an MRF model forms a tree, we can always exploit the structure for exact efficient 
+inference~\citep{koller-book}.  Using the same trick we used in the specific 
+example of the robot localization problem~\equref{nesting}, we can perform 
+inference by nesting the $\max$ operator over pairs of variables at a time, as 
+well as storing the $\argmax$ maximizer of each $\max$ operation.  For 
+completeness, the algorithm is in \algref{max-inference}, commonly referred to 
+as max-sum {\em message passing, belief propagation}, or {\em viterbi 
+decoding}.  The algorithm results in inference that is $O(nk^2)$ computation 
+rather than $k^n$.
+
+\todo{max-sum? max-marginals? loopy?}
+
+\input{inference-alg}
+
 \section{Supervised learning}
 In the supervised learning setting, we have access to a training set
-$S = \{(x^{(j)},y^{(j)})\}_{j=1}^m$ of training examples, assumed to be sampled 
+$S = \{(x^{(j)},y^{(j)})\}_{j=1}^m$ of examples assumed to be sampled 
 independently, identically distributed (i.i.d.) from some true joint 
 distribution $(x,y) \sim P(X,Y)$. The standard supervised learning task is to 
-learn a hypothesis $h: \cX \times \cY \mapsto \cY$ that minimizes the average 0/1-error on the training set: 
+learn a hypothesis $h: \cX \times \cY \mapsto \cY$ that minimizes the average misclassification error (0/1 error) on the training set: 
 \begin{align}
-\cL_{01}(h,S) = \hat{\E}_{S}\left[
-  \ell\left(h(X),Y\right)\right] = \frac{1}{m}\sum_{j=1}^m \Ind\left(h(x^{(j)}) = y^{(j)}\right)
-\end{align}.
-
-
-for some loss function $\ell: Y \times Y \rightarrow \reals^+$. The linear hypothesis class we
-consider is of the form $h(x) = \argmax_y \score{y}$, where the
-scoring function $\score{y} \triangleq \w \cdot \f(x,y)$ is the
-inner product of a vector of parameters $\theta$ and a feature
+\cL_{0/1}(h,S) = \frac{1}{m}\sum_{j=1}^m \Ind\left(h(x^{(j)}) \neq y^{(j)}\right)
+\end{align}
+The linear hypothesis class we consider is of the form $h(x) = \argmax_y h(x,y)$, where the
+scoring function $h(x,y) \triangleq \w \cdot \f(x,y)$ is the
+inner product of a vector of parameters $\w$ and a feature
 function $\bft: X \times Y \mapsto \reals^d$ mapping $(x,y)$ pairs to
-$d$ real-valued features. 
+$d$ real-valued features, as discussed in~\secref{glms}.  
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{figs/losses.png}
+\caption[Convex surrogate supervised loss functions.]{Convex surrogate supervised loss functions.}
+\label{fig:surrogates}
+\end{center}
+\end{figure}
+
+Using a linear representation, we have the following optimization problem to learn our model from training data:
+\begin{align}
+\minimize_\w \cL_{0/1}(h,S) = \\ \minimize_\w \frac{1}{m}\sum_{j=1}^m \Ind\left( \argmax_y [\w \cdot \f(x^{(j)},y)] \neq y^{(j)}\right)
+\end{align}
+The above optimization is extremely difficult to solve in high dimensions, because it is non-convex and discontinuous, leading to many poor local minima.  In light of this, we introduce a {\em convex surrogate} to the indicator loss function $\ell(\cdot)$ to replace $\Ind(\cdot)$ with an upper-bound~\citep{bishop-book}:
+\begin{align}
+\minimize_\w \cL_{\ell}(h,S) = \\ \minimize_\w \frac{1}{m}\sum_{j=1}^m \ell\left( \w \cdot \f(x^{(j)},y), y^{(j)}\right)
+\end{align}
+There are many common choices for $\ell(\cdot)$, shown in~\figref{surrogates}, 
+leading to many different structured and non-structured machine learning 
+algorithms.  We choose to use the {\em hinge loss} for most of this work, which 
+leads to a simple and intuitive stochastic optimization algorithm.  The hinge 
+loss is of the form $\ell(u) = \max (0,1-u) \defn [1-u]_+$, giving us the 
+following optimization problem:
+
+\begin{align}
+\minimize_\w \frac{1}{m}\sum_{j=1}^m \left[ \argmax_y \w \cdot \f(x^{(j)},y) - \w \cdot \f(x,y^{(j)}) + 1\right]_+
+\end{align}
 
 
