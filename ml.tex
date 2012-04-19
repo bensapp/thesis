@@ -134,7 +134,8 @@ $\{1,\ldots,k\}^3$ can be converted into a single variable $y_{123} \in
 
 We can represent a pairwise structured model as a graph $G = (\cV_G,\cE_G)$ where each variable $y_i$ corresponds to a vertex in the graph's vertex set $\cV_G$, and each edge in $\cE_G$ corresponds to two variables $y_i,y_j$ being involved in a pairwise factor $\phi_{ij}$.  We can then decompose our classifier into the special form
 \begin{align}
-\w \cdot \f(x,y) &= \sum_{i \in \cV_G} \w_i \cdot \f(x,y_i) + \sum_{i,j \in \cE_G} \w_{ij} \cdot \f(x,y_{ij}) \\
+\w \cdot \f(x,y) &= \sum_{i \in \cV_G} \w_i \cdot \f(x,y_i) + \sum_{i,j \in 
+\cE_G} \w_{ij} \cdot \f(x,y_{ij}) \\
 & = \sum_{i \in \cV_G} \phi_i + \sum_{i,j \in \cE_G} \phi_{ij}.
 \label{eq:mrf}
 \end{align} There is a huge amount of research dedicated to models of this form 
@@ -149,7 +150,7 @@ minimize.  Terms of the form $\phi_i = \w_i \cdot \f_i$ we will refer to as
 {\em unary potentials}; $\phi_{ij} = \w_{ij} \cdot \f_{ij}$ are {\em pairwise 
 potentials}.
 
-\subsubsection{Pairwise MRF examples}
+\subsubsection{Pairwise MRF examples}\label{sec:pairwise-mrf}
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.95\textwidth]{figs/mrf-examples.pdf}
@@ -255,16 +256,55 @@ discussed in~\secref{inference}.
 
 \subsection{Probabilistic interpretation}\label{sec:probinterp}
 
+We have motivated most of this chapter via first principles about linear classifiers.  However, much of the development of models and methods originally came from the probabilistic model community.  From another perspective, our model describes a {\em log-linear} probabilistic formulation of the posterior probability $p(y|x)$:
+\begin{equation}
+p(y|x)= \frac{\exp \left[ \w \cdot \f(x,y) \right]}{\sum_{y \in \cY} \exp \left[\w \cdot f(x,y) \right]} = \frac{1}{Z(x)} \exp \left[ \w \cdot \f(x,y) \right]
+\end{equation}
+It can be shown~\citep{jaynes1963} that this particular form of $p(y|x)$ is the
+distribution with maximum entropy, subject to the constraints that feature 
+expectations with respect to $p(y|x)$ match empirical feature expectations.  
+This principle is based on the desire to have our model make as few assumptions 
+as possible (most entropic) about the observed data.
+
+Because we are typically only interested in the most likely $y$---here, the 
+{\em maximum a posteriori} or MAP assignment---it is sufficient to find the 
+$\argmax$ of a simplified quantity and not worry about normalization by $Z(x)$:
+
+\begin{align}
+&\argmax_y p(y|x) \\
+&= \argmax_y \log p(y|x) \\
+&= \argmax_y \w \cdot \f(x,y) - \log Z(x) \\
+&= \argmax \w \cdot \f(x,y)
+\end{align}
+
+A distribution $p(y|x)$ modeling a structured $y$ that decomposes over factors 
+as in~\secref{pairwise-mrf} takes the form:
+\begin{equation}
+p(y|x) \propto\exp\left[  \sum_{i \in \cV_G} \phi_i + \sum_{i,j \in \cE_G}  
+\phi_{ij}\right] = \prod_{i \in \cV_G} \exp \phi_i  \prod_{i,j \in \cE_G} \exp 
+\phi_{ij}
+\end{equation}
+Historically and in other settings, terms $\exp \phi_c$ were assumed to be 
+themselves proper joint $p(y_c,x)$ or posterior $p(y_c|x)$ distributions over 
+subsets of random variables $c$, but we assume no such restriction in our case.
+
 \section{Inference}
 \label{sec:inference}
 The inference problem is to determine the highest scoring possibility out of 
-all possible outputs in $\cY$: \begin{equation} h(x) = \argmax_{y \in \cY} 
-h(x,y).  \end{equation}  When $\cY$ is low-dimensional, brute-force search is 
-easy enough: evaluate $h(x,y)$ for all possible $y$, and return the highest 
-scoring.  This can be done for binary classification---where we need only check 
-which side of a separating hyperplane an example lies on 
-(\secref{binary-multi-class})---and multi-class classification, where we 
-evaluate each of $k$ labels do determine the highest scoring.
+all possible outputs in $\cY$: 
+\begin{equation} 
+y^\star = h(x) = \argmax_{y \in \cY} h(x,y).  
+\end{equation}
+We use the convention $h$ to mean {\em hypothesis} or {\em hypothesis class}, originating from the machine learning community.  In the spirit of optimization, we also view this as a {\em scoring function} and use the synonomous notation $s$ to denote the score:
+\begin{equation} 
+s(x) = \max_{y \in \cY} s(x,y) \defn h(x,y)
+\end{equation}
+When $\cY$ is low-dimensional, brute-force search is easy enough: evaluate 
+$h(x,y)$ for all possible $y$, and return the highest scoring.  This can be 
+done for binary classification---where we need only check which side of a 
+separating hyperplane an example lies on (\secref{binary-multi-class})---and 
+multi-class classification, where we evaluate each of $k$ labels do determine 
+the highest scoring.
 
 
 However, in the most general setting, $\cY$ is exponential in 
@@ -302,9 +342,50 @@ as max-sum {\em message passing, belief propagation}, or {\em viterbi
 decoding}.  The algorithm results in inference that is $O(nk^2)$ computation 
 rather than $k^n$.
 
-\todo{max-sum? max-marginals? loopy?}
-
 \input{inference-alg}
+
+\section{Max-marginals}\label{sec:max-marginals}
+
+Recall the score  of a joint part state $y$ in input $x$ is $s(x,y)$. Often we
+are interested in just the best scoring complete assignment $y^\star = 
+\argmax_y s(x,y)$ and its corresponding score $s^\star(x) = \max_y s(x,y)$, 
+both obtainable from~\algref{max-inference}.  However, another extremely useful 
+quantity which we rely on often is the notion of a {\em marginal} score.  When 
+treating our model as a log-linear conditional distribution $p(y|x)$ (see 
+\secref{probinterp}), we can consider the marginal distribution of a particular 
+variable
+\begin{equation}
+p(y_i|x) = \sum_{y_j \text{ s.t. } j \neq i} p(y|x)
+\end{equation}
+as a measure of the model's belief over the value of variable $i$.  
+
+Similarly, we explore the notion of a {\em max-marginal}, an analogous quantity 
+for the $\max$ operator:
+\begin{align}
+\mmi \defn  \max_{y'} s(x,y') \text{, subject to: } y_i' = y_i
+ \end{align}
+In words, the max-marginal score for $y_i$ is the score of the best full 
+assignment restricted to fixing variable $i$ to be $y_i$. 
+
+A \naive way to compute $\mmi$ for all states in our model is as follows: for 
+each $i$ and each $y_i$ (in total $nk$ possibilities), set 
+$\phi_{ij}(x,y_i',y_j) \rightarrow -\infty$ for all $y_i' \neq y_i$, and all 
+$j$ attached to $i$, then run~\algref{max-inference}.  This ensures that $y_i$ 
+is the ``chosen'' state for variable $i$, and we get its max-marginal score 
+$\mmi$.  This strategy would cost in total $O(nk \cdot nk^2) = O(n^2k^3)$, 
+which is not very satisfying.
+
+It turns out we can compute max-marginal quantities for all $nk$ variable-state 
+possibilities in $O(nk^2)$ time using a forward {\em and } backward pass of 
+message passing and careful bookkeeping, similar to~\algref{max-inference}.  In 
+addition, we can also collect {\em witness statistics}, which keep track of the 
+number of times different states have been used in any max-marginal satisfying 
+assignment (and thus are a ``witness'' to the assignment).  The {\em witness} 
+for $\mmi$ is 
+\begin{equation}
+\witnessi \defn  \argmax_{y'} s(x,y') \text{, subject to: } y_i' = y_i,
+\end{equation}
+which is the maximizer which corresponds to maximum $\mmi$.  For completeness, the algorithm to compute max-marginal values and witness statistics is included in~\secref{} in~\algref{mm-inference}.
 
 \section{Supervised learning}
 In the supervised learning setting, we have access to a training set

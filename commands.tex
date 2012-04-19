@@ -39,6 +39,8 @@
 
 \def\naive{na\"{\i}ve\xspace}
 \def\Naive{Na\"{\i}ve\xspace}
+\def\naively{na\"{\i}vely\xspace}
+\def\Naively{Na\"{\i}vely\xspace}
 
 \newcommand{\CPS}{CPS\xspace}
 \newcommand{\LLPS}{LLPS\xspace}
@@ -74,22 +76,10 @@
 \newcommand{\figreff}[2]{\hyperref[fig:#1]{Figure~\ref{fig:#1}#2}}
 
 
-\newcommand{\score}[1]{\theta(x,#1)}         % score function
-\newcommand{\scoremax}[0]{\theta^\star(x)}   % argmax score
-\newcommand{\scorei}[1]{\theta(x^i,#1)}         % score function
-\newcommand{\scoremaxi}[0]{\theta^\star(x^i)}   % argmax score
-\newcommand{\mm}[1]{\theta^\star(x,#1)}   % max marginal score
-\newcommand{\mmi}[1]{\theta^\star(x^i,#1)}   % max marginal score
-\newcommand{\pmm}[1]{\theta_p^\star(x,#1)}   % max marginal score
-\newcommand{\pmmi}[1]{\theta_p^\star(x^i,#1)}   % max marginal score
-\newcommand{\pmmarg}[1]{\theta_p^\star(x,#1)}   % max marginal score
-\newcommand{\pscore}[1]{\theta_p(x,#1)}         % score function
-\newcommand{\pscoremax}[0]{\theta_p^\star(x)}   % argmax score
-\newcommand{\pmmargi}[1]{\theta_p^\star(x^i,#1)}   % max marginal score
-\newcommand{\pscorei}[1]{\theta_p(x^i,#1)}         % score function
-\newcommand{\pscoremaxi}[0]{\theta_p^\star(x^i)}   % argmax score
-\newcommand{\pscorej}[1]{\theta_p(x^j,#1)}         % score function
-\newcommand{\pscoremaxj}[0]{\theta_p^\star(x^j)}   % argmax score
+\newcommand{\score}[0]{s(x,y)}
+\newcommand{\pscore}[0]{s^p(x,y)}
+\newcommand{\mmi}[0]{s^\star_x(y_i)}
+\newcommand{\witnessi}[0]{y^\star(y_i)}
 
 %\renewcommand{\includegraphics}[2]{}
 

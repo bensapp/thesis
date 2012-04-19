@@ -275,7 +275,9 @@ together, you can only observe their boundary geometry, and {\em not } the
 image content on their faces.
 
 
-\subsection{Image-dependent interactions via a cascade of models}
+\subsection{Image-dependent interactions in a tree structured 
+model,~\secref{CPS}}
+\label{sec:contrib1}
 Instead, we wish to actually {\em exploit } image content when modeling 
 pairwise interactions.  In the puzzle analogy, this would allow us to fit 
 pieces together based on their color similarity and continuous contours across 
@@ -285,15 +287,101 @@ support and multi-modal descriptions of geometry.
 
 To this effect, we propose a more general model of human pose, of the form 
 \begin{equation}
-h(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{\tree}} 
-\phi_{ij}(x,y_i,y_j)
+\boxed{h(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
+\cE_{\tree}} \phi_{ij}(x,y_i,y_j)}
 \label{eq:contrib1}
 \end{equation}
 This turns out to be computational infeasible using standard tools and techniques.  In light of this, we propose a {\em cascade} of models to focus computation on portions of the state space that are more promising.  The key insight is that there are many pose possibilities that are easy to reject as incorrect with a simple model, and we are then able to freely apply a richer model on the possibilities that remain.  This is illustrated in~\figref{cps-overview}.
 
-We develop and analyze {\em structured prediction cascades}, and apply them to the problem of 2D pose estimation, allowing us to use a model in the form of~\equref{contrib1} at every level of the cascade.  Importantly, we provide a novel learning objective for the cascade of models so that parameters of the model are tuned to specifically to filter out a a significant proportion of states at any intermediate level. 
+We develop and analyze {\em structured prediction cascades}, and apply them to 
+the problem of 2D pose estimation, allowing us to use a model in the form 
+of~\equref{contrib1} at every level of the cascade.  Importantly, we provide a 
+novel learning objective for the cascade of models so that parameters of the 
+model are tuned to specifically to filter out a significant proportion of 
+states at any intermediate level. 
+
+\subsection{Image-dependent interactions in a general 
+graph,~\secref{stretchable}}
+The model we propose in the previous section works for any tree-structured 
+model.  However, in any tree model, we fail to capture important interactions 
+between parts, both {\em within} a single frame (\eg, color constancy between 
+left/right symmetric parts to model clothing) and {\em across} frames when 
+dealing with tracking multiple parts and their interactions over time in video.  
+We address this with a generalization of~\equref{contrib1}:
+\begin{equation}
+\boxed{h(x,y) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{G}} 
+\phi_{ij}(x,y_i,y_j)}
+\label{eq:contrib2}
+\end{equation}
+where $G = (\cV_G,\cE_G)$ is a general graph, not just a tree.  Determining the 
+best possible answer $\argmax_y h(x,y)$ over a general graph $G$ is known to be 
+NP-hard~\citep{koller-book}---exponential in the number of frames of video.  We 
+provide an approximate approach which decomposes~\equref{contrib2} into a 
+collection of subtree graphs, whose union of edges is equal to $\cE_G$.  This 
+allows us to exploit all the interesting interaction terms in the original 
+model with efficient inference in each subtree, thanks to the structure and the 
+use of our cascade approach developed in~\secref{contrib1}.  This allows us to 
+exploit all the cues we used in the tree-based model, and in addition, cues 
+based on color symmetry across the body, and temporal appearance and location 
+persistence information.  We propose and investigate empircally different 
+methods of reaching a consensus between the subtrees.
+
+We evaluate our approach on a new video dataset, the first of it's kind in 
+tracking human pose in the wild without any assumed extra knowledge. We show 
+our proposed model and approximation scheme is beneficial, beating the 
+state-of-the-art in pose estimation systems.
+
+\subsection{Multi-modal interactions,~\secref{llps}}
+\label{sec:contrib3}
+The aforementioned models focus attention on increasing the quality of features 
+and increasing the number of modeled part interactions.  The hope is that these 
+more expressive models do a better job at capturing the inherently multi-modal 
+appearance space of poses, by better separating the true pose configurations 
+from false alarms.  This somewhat addresses the issue of non-linearity in 
+lower-dimensional feature spaces, \eg, using only edge information.
+
+Complementary to the models described by~\equref{contrib1} 
+and~\equref{contrib2}, we propose to capture this nonlinearity directly as 
+follows:
+\begin{equation}
+\boxed{h(x,y,z) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i,z) + \sum_{i,j \in 
+\cE_{G}} \phi_{ij}(x,y_i,y_j,z)}
+\label{eq:contrib3}
+\end{equation}
+where now the goal is to determine not only the best pose layout $y$, but also 
+which {\em mode} $z$ the pose belongs to: $y^\star,z^\star = \argmax_{y,z} 
+h(x,y,z)$.  Each mode need only model a portion of the pose space, which we 
+define by radii in appearance and pose centered around training examples.  This 
+means we get up to thousands of exemplars to form a basis for a discriminative 
+pose space.  Instead of fitting the parameters of one monolithic model to cover 
+all possible modes, here we learn separate parameters for each mode, allowing 
+us to learn more precise descriptions of appearance and geometry.
+
+\subsection{Summary of contributions}
+
+In summary, the work detailed in this thesis contributes the following to the 
+fields of machine learning and computer vision, specifically their intersection 
+for human pose estimation:
+\begin{itemize}
+
+\item New models of human pose that model interactions between parts as a 
+function of image data.
+
+\item Computational innovations that enable learning and inference in these 
+models, which are \naively intractable: structured cascades and tree ensemble 
+methods.
+
+\item A variety of new features and feature types not typically applied to pose 
+estimation.  Some of these are bottom-up type features complementary to the 
+traditional edge-based cues.
+
+\item State-of-the-art results on the public Buffy and Pascal Stickmen single 
+frame datasets, and our introduced Videopose video sequence dataset.
+
+\end{itemize}
 
 
-$$ \max_y \sum_{i \in \cV_{G}} \phi_i(x,y_i) + \sum_{i,j\in  \cE_{G}} \phi_{ij}(x,y_i,y_j) $$
-$$ \max_y \max_z \sum_{i \in \cV_{G}} \phi_i(x,y_i,z) + \sum_{i,j \in \cE_{G}} \phi_{ij}(x,y_i,y_j,z)$$
+\subsection{Published work supporting this thesis}
+
+
 

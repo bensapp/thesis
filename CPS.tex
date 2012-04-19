@@ -1,23 +1,27 @@
 \chapter{Cascaded Pictorial Structures}\label{sec:CPS}
 
-Pictorial structure models~\cite{fischler1973ps} are a popular method for human body pose estimation~\cite{felz05,fergus2005sparse,devacrf,ferrari08,andriluka09}.
-The model is a Conditional Random Field over pose variables that characterizes 
+
+\section{Introduction}
+Pictorial structure models, first proposed by ~\cite{fischler1973ps} and outline in~\secref{ps}, are a popular method for human body pose estimation~\cite{felz05,fergus2005sparse,devacrf,ferrari08,andriluka09}.
+The model is a pairwise structured model over pose variables that characterizes 
 local appearance properties of parts and geometric part-part interactions.   
-The search over the joint pose space is linear time in the number of parts when 
+The search over the full pose space is linear time in the number of parts when 
 the part-part dependencies form a tree.  However,  the individual part 
-state-spaces are too large (typically hundreds of thousands of states) to allow 
-complex appearance models be evaluated densely.   Most appearance models are 
+state spaces are too large (typically hundreds of thousands of states) to allow 
+complex appearance models to be evaluated densely.   Most appearance models are 
 therefore simple linear filters on edges, color and 
-location~\cite{felz05,devacrf,ferrari08,andriluka09}. Similarly, because of 
-quadratic state-space complexity, part-part relationships are typically 
-restricted to be image-independent deformation costs that allow for convolution 
-or distance transform tricks to speed up inference~\cite{felz05}. A common 
-problem in such models is poor localization of parts that have weak appearance 
-cues or are easily confused with background clutter (accuracy for lower arms in 
-human figures is almost half of that for torso or head~\cite{andriluka09}).   
-Localizing these elusive parts requires richer models of individual part shape 
-and joint part-part appearance, including contour continuation and segmentation 
-cues, which are prohibitive to compute densely.
+location~\cite{felz05,devacrf,ferrari08,andriluka09}. 
+
+Similarly, because of quadratic state-space complexity, part-part relationships 
+are typically restricted to be image-independent deformation costs that allow 
+for convolution or distance transform tricks to speed up 
+inference~\cite{felz05}, see~\secref{ps}. A common problem in such models is 
+poor localization of parts that have weak appearance cues or are easily 
+confused with background clutter (accuracy for lower arms in human figures is 
+almost half of that for torso or head~\cite{andriluka09}).   Localizing these 
+elusive parts requires richer models of individual part shape and joint 
+part-part appearance, including contour continuation and segmentation cues, 
+which are prohibitive to compute densely.
 
 In order to enable richer appearance models, we propose to learn a cascade of 
 pictorial structures (\CPS) of increasing pose resolution which 
@@ -26,74 +30,146 @@ to the work on cascades for face detection~\cite{geman2001,viola02}, but the
 key difference is the use of structured models. Each level of the cascade at a 
 given spatial/angular resolution refines the set of candidates from the 
 previous level and then runs inference to determine which poses to filter out.  
-For each part, the model selects poses with the largest max-marginal scores, 
-subject to a computational budget.  Unlike conventional pruning heuristics, 
-where the possible part locations are identified using the output of a 
-detector, models in our cascade use inference in simpler structured models to 
-identify what to prune, taking into account global pose in filtering decisions.
-%\begin{figure}[t]
-%\begin{center}
-%\includegraphics[width=0.8\textwidth]{figs/empty.jpg}
-%\end{center}
-%\caption{\label{fig:overview} Overview: A discriminative coarse-to-fine cascade 
-%of pictorial structures filters the pose space so that expressive and 
-%computationally expensive cues can be used in the final pictorial structure.  
-%Shown are 5 levels of our coarse-to-fine cascade for the right upper and lower 
-%arm parts.  Green vectors represent position and angle of unpruned states, the 
-%downsampled images correspond to the dimensions of the resepective state space, 
-%and the white rectangles represent classification using our final model.}
-%\end{figure}
+For each part, the model selects poses with the largest {\em max-marginal}
+scores, subject to a computational budget.  Unlike conventional pruning 
+heuristics, where the possible part locations are identified using the output 
+of a detector, models in our cascade use inference in simpler structured models 
+to identify what to prune, taking into account global pose in filtering 
+decisions.
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=1.0\textwidth]{figs/cps-overview.png}
+\end{center}
+\caption[Overview of Cascaded Pictorial Structures 
+(CPS)]{\label{fig:cps-overview} Overview of CPS:  A discriminative 
+coarse-to-fine cascade of pictorial structures filters the pose space so that 
+expressive and computationally expensive cues can be used in the final 
+pictorial structure.  Shown are 5 levels of our coarse-to-fine cascade for the 
+right upper and lower arm parts.  Green vectors represent position and angle of 
+unpruned states, the downsampled images correspond to the dimensions of the 
+respective state space (but {\em not } the resolution at which features are 
+computed), and the white rectangles represent classification using our final 
+model.}
+\end{figure}
 As a result, at the final level the \CPS{} model has to deal with a much 
-smaller hypotheses set which allows us to use a rich combination of features.  
+smaller hypothesis set which allows us to use a rich combination of features.  
+
 In addition to the traditional part detectors and geometric features, we are 
 able to incorporate object boundary continuity and smoothness, as well as shape 
-features. The former features represent mid-level and bottom-up cues, while the 
-latter capture shape information, which is complementary to the traditional 
-HoG-based part models.  The approach is illustrated in the overview 
-Figure~\ref{fig:overview}. We apply the presented \CPS model combined 
-with the richer set of features on the Buffy and PASCAL stickmen benchmark, 
-improving the state-of-the-art on arm localization. 
+features, discussed in detail in~\secref{features}. The former features 
+represent mid-level and bottom-up cues, while the latter capture shape 
+information, which is complementary to the traditional HoG-based part models.  
+The approach is illustrated in the overview Figure~\ref{fig:cps-overview}. We 
+apply the presented \CPS model combined with the richer set of features on the 
+Buffy and PASCAL Stickmen benchmark, improving the state-of-the-art on arm 
+localization, as discussed in~\secref{experiments}. 
 
 \label{subsec:our_ps}
-We choose instead to model part configurations as a general log-linear Conditional Random Field over pairwise and unary terms:
+We choose instead to model part configurations as a general linear MRF over 
+pairwise and unary terms:
 \begin{align}
-p( y | x) &\propto \exp \Biggl[\sum_{ij} \w_{ij} \cdot \f_{ij}(y_i,y_j,x) +
-\sum_i \w_i \cdot \f_i(y_i,x) \Biggl] = e^{\w \cdot \f(y,x)}.
+h(x,y)  = \w \cdot \f(x,y) = \sum_{i \in \cV_\tree} \w_i \cdot \f_i(x,y_i)  + 
+\sum_{ij \in \cE_\tree} \w_{ij} \cdot \f_{ij}(x,y_i,y_j)
+\label{eq:cps}
 \end{align}
-The parameters of our model are the pairwise and unary weight vectors 
-$\theta_{ij}$ and $\theta_i$ corresponding to the pairwise and unary feature 
-vectors $\phi_{ij}(y_i,y_j,x)$ and $\phi_i(\l_i,x)$.  For brevity, we stack all 
-the parameters and features into vectors using notation $\theta^T \phi(ys,x)$.  
-The key differences with the classical PS model are that (1) our pairwise costs 
-allow data-dependent terms, and (2) we do not constrain our parameters to fit 
-any parametric distribution such as a Gaussian.  For example, we can express 
-the pairwise features used in the classical model as $y_{i} \cdot y_{i} \text{, 
-} y_{j}\cdot y_{j} \text{ and }  y_{i}\cdot y_{j}$ without requiring that their 
-corresponding weights can be combined into a positive semi-definite covariance 
-matrix.
+where $\tree = (\cV_\tree,\cE_\tree)$ defines a tree structured graph of part 
+interactions.  The parameters of our model are the pairwise and unary weight 
+vectors $\w_{ij}$ and $\w_i$ corresponding to the pairwise and unary feature 
+vectors $\f_{ij}(x,y_i,y_j)$ and $\f_i(x,y_i)$.   The key differences with the 
+classical PS model are (1) our pairwise costs allow data-dependent terms, and 
+(2) we do not constrain our parameters to fit any parametric distribution such 
+as a Gaussian distribution, as is done 
+in~\citet{felz05,devacrf,andriluka09,eichner09}.  This is strictly more 
+general.  For example, we can express the pairwise features used in the 
+classical model as $y_{i} \cdot y_{i}$, $y_{j}\cdot y_{j}$, and $y_{i}\cdot 
+y_{j}$ without requiring that their corresponding weights can be combined into 
+a positive semi-definite covariance matrix.
 
-In this general form, inference can not be performed efficiently with distance transforms or convolution, and we rely on standard $O(|\mathcal{Y}_i|^2)$ dynamic programming techniques to compute the MAP assignment or part posteriors.  Many highly-effective pairwise features one might design would be intractable to compute in this manner for a reasonably-sized state space---for example an $100\times100$ image with a part angle discretization of $24$ bins yields $|\mathcal{Y}_i|^2 = 57.6$ billion part-part hypotheses.
+In this general form (\equref{cps}), inference can {\em not} be performed 
+efficiently with distance transforms or convolution as discussed 
+in~\secref{dt}, and we rely on standard $O(nk^2)$ dynamic programming 
+techniques to compute the MAP assignment or part posteriors.  Many 
+highly effective pairwise features one might design would be intractable to 
+compute in this manner for a reasonably-sized state space---for example an $80 
+\times 80$ spatial grid with a part angle discretization of $24$ bins yields 
+$k^2 \approx 1$ billion part-part hypotheses.
 
-In the next section, we describe how we circumvent this issue via a cascade of models which aggressively prune the state space at each stage typically without discarding the correct sequence.  After the state space is pruned, we are left with a small enough number of states to be able to incorporate powerful data-dependent pairwise and unary features into our model.
+In~\secref{SPC}, we describe how we circumvent this issue via a cascade of 
+models which aggressively prune the state space at each stage typically without 
+discarding the correct sequence.  After the state space is pruned, we are left 
+with a small enough number of states to be able to incorporate powerful 
+data-dependent pairwise and unary features into our model.
 
 
-\subsection*{Structured Prediction Cascades} \label{cascades}
-The recently introduced Structured Prediction Cascade framework~\cite{cascades} provides a principled way to prune the state space of a structured prediction problem via a sequence of increasingly complex models.
-There are many possible ways of defining a sequence of increasingly complex models.  In~\cite{cascades} the authors introduce higher-order cliques into their models in successive stages (first unary, then pairwise, ternary, etc.).  Another option is to start with simple but computationally efficient features, and add more complex features downstream as the number of states decreases.  Yet another option is to geometrically coarsen the original state space and successively prune and refine.
-We use a coarse-to-fine state space approach with simple features until we are at a reasonably fine enough state space resolution and left with few enough states that we can introduce more complex features.  We start with a severely coarsened state space and use standard pictorial structures unary detector scores and geometric features to perform quick exhaustive inference on the coarse state space.  
+\section{Related work}
+For unstructured, binary classification, cascades of classifiers have been 
+quite successful for reducing computation.  \citet{geman2001} propose a 
+coarse-to-fine sequence of binary tests to detect the presence and pose of 
+objects in an image.  The learned sequence of tests is trained to minimize 
+expected computational cost.  The extremely popular Viola-Jones 
+classifier~\citep{viola02} implements a cascade of boosting ensembles, with 
+earlier stages using fewer features to quickly reject large portions of the 
+state space.
 
-%The simplest analogy of the framework is to the popular cascade classifier introduced by Viola and Jones for binary prediction problems~\cite{Viola2002}.
-More specifically, each level of the cascade uses inference to identify which states to prune away and the next level refines the spatial/angular resolution on the unpruned states.
-The key ingredient to the cascade framework is that states are pruned using {\em max-marginal} scores, computed using dynamic programming techniques.  For brevity of notation, define the score of a joint part state $ys$ as $\theta_x(ys)$ and the max-marginal score of a part state as follows:
-\begin{align}
-\theta_x(ys) &= \theta^T \phi(ys,x)= \sum_{ij}  \theta_{ij}^T \phi_{ij}(y_i,y_j,x) +
-\sum_i \theta_i^T\phi_i(y_i,x) \\
-\mmi  &= \max_{y' \in ys} \;\;\; \{ \theta_x(y') \; : \; y_i'=y_i \}
-\end{align}
+Our cascade model is inspired by these binary classification cascades. In 
+natural language parsing, several works \citep{carreras2008tag,petrov:PhD} use 
+a coarse-to-fine idea closely related to ours and~\citet{geman2001}: the 
+marginals of a simple context free grammar or dependency model are used to 
+prune the parse chart for a more complex grammar.
 
-In words, the max-marginal for location/angle $y_i$ is the score of the best sequence which constrains $y_i = y_i$.  In a pictorial structure model, this corresponds to fixing limb $i$ at location $y_i$, and determining the highest scoring configuration of other part locations and angles under this constraint.  A part could have weak individual image evidence of being at location $y_i$ but still have a high max-marginal score if the rest of the model believes this is a likely location.  Similarly, we denote the MAP assignment score as
+Recently,~\citet{pff-cascade} proposed a cascade for a structured parts-based 
+model.  Their cascade works by early stopping while evaluating individual 
+parts, if the combined part scores are less than fixed thresholds.  While the 
+form of this cascade can be posed in our more general framework (a cascade of 
+models with an increasing number of parts), we differ from~\citet{pff-cascade} 
+in that our pruning is based on thresholds that adapt based on inference in 
+each test example, and we explicitly learn parameters in order to prune safely 
+and efficiently. In~\citet{geman2001,viola02,pff-cascade}, the focus is on 
+preserving established levels of accuracy while increasing speed.  The focus in 
+this paper is instead developing more complex models---previously infeasible 
+due to the original intractable complexity---to improve state-of-the-art 
+performance.
+
+A different approach to reduce the intractable number of state hypotheses is to instead propose a small set of likely hypotheses based on bottom-up perceptual grouping principles~\cite{mori04,Srinivasan07}.  Mori et al.~\cite{mori04} use bottom-up saliency cues, for example strength of supporting contours, to generate limb hypotheses.  They then prune via hand-set rules based on part-pair geometry and color consistency. The shape, color and contour based features we use in our last cascade stage are inspired by such bottom-up processes.  However, our cascade is solely a sequence of discriminatively-trained top-down models.
+
+
+
+\section{Structured Prediction Cascades} \label{sec:SPC}
+The recently introduced Structured Prediction Cascade framework~\cite{cascades} 
+provides a principled way to prune the state space of a structured prediction 
+problem via a sequence of increasingly complex models.
+There are many possible ways of defining a sequence of increasingly complex 
+models.  In~\cite{cascades} the authors introduce higher-order cliques into 
+their models in successive stages (first unary, then pairwise, ternary, etc.).  
+Another option is to start with simple but computationally efficient features, 
+and add more complex features downstream as the number of states decreases.  
+Yet another option is to geometrically coarsen the original state space and 
+successively prune and refine.
+ We use a coarse-to-fine state space approach with simple features until we are 
+at a reasonably fine enough state space resolution and left with few enough 
+states that we can introduce more complex features.  We start with a severely 
+coarsened state space and use standard pictorial structures unary detector 
+scores and geometric features to perform quick exhaustive inference on the 
+coarse state space.  
+
+More specifically, each level of the cascade uses inference to identify which 
+states to prune away and the next level refines the spatial/angular resolution 
+on the unpruned states.
+The key ingredient to the cascade framework is that states are pruned using 
+{\em max-marginal} scores, computed using dynamic programming techniques, 
+discussed in~\secref{max-marginals}.  In words, the max-marginal for variable 
+$i$ is the score of the best full assignment to all variables which constrains 
+the assignment to variable $i$ to be $y_i$.  In a pictorial structures model, 
+this corresponds to fixing part $i$ at location $y_i$, and determining the 
+highest scoring configuration of other part locations and angles under this 
+constraint.  A part could have weak individual image evidence of being at 
+location $y_i$ but still have a high max-marginal score if the rest of the 
+model believes this is a likely location.  Similarly, we denote the MAP 
+assignment score as
 $\theta_x^\star = \max_{ys \in ys} \theta_x(ys)$, the unconstrained best configuration of all parts.
 
+
+\subsection{Learning}
 When learning a cascade, we have two competing objectives that we must trade off,
 accuracy and efficiency: we want to minimize the number of errors incurred by each
 level of the cascade  and maximize the number of filtered max marginals.  A natural strategy is to prune away the lowest ranked states based on max-marginal scores. Instead, \cite{cascades} prune the states whose max-marginal score is lower than an data-specific threshold $t_x$: $l_i$ is pruned if $\mmi < t_x$.  This threshold is defined as a convex combination of the MAP assignment score and the mean max-marginal score, meant to approximate a percentile threshold: $$t_x(\theta,\alpha) = \alpha \theta^\star_x + (1-\alpha)\frac{1}{M}\sum_{i=1}^M\frac{1}{|\mathcal{Y}_i|}\sum_{y_i \in \mathcal{Y}_i} \mmi,$$ where $\alpha\in[0,1]$ is a parameter to be chosen that determines how aggressively to prune. When $\alpha = 1$, only the best state is kept, which is equivalent to finding the MAP assignment.  When $\alpha = 0$ approximately half of the states are pruned (if the median of max-marginals is equal to the mean) .  The advantage of using  $t_x(\theta,\alpha)$ is that it is convex in $\theta$, and leads to a convex formulation for parameter estimation that trades off the proportion of incorrectly pruned states with the proportion of unpruned states.
@@ -148,16 +224,16 @@ The stages of the cascade are learned sequentially, from coarse to fine, and eac
 the refinement structure of the cascade in Section~\ref{implementation}.
 In the end of a coarse-to-fine cascade we are left with a small, sparse set of states that typically contains the groundtruth states or states relatively close to them---in practice we are left with around 500 states per part, and 95\% of the time we retain a state the is close enough to be considered a match (see Table~\ref{tab:pruning}). At this point we have the freedom to add a variety of complex unary and pairwise part interaction features involving geometry, appearance, and compatibility with perceptual grouping principles which we describe in Section~\ref{sec:features}.
 
-\mypar{Why not just detector-based pruning?} A naive approach used in a variety 
-of applications is to simply subsample states by thresholding outputs of part 
-or sparse feature detectors, possibly combined with non-max suppression.  Our 
-approach, based on pruning on max-marginal values in a first-order model, is 
-more sophisticated: for articulated parts-based models, strong evidence from 
-other parts can keep a part which has weak individual evidence, and would be 
-pruned using only detection scores.  The failure of prefiltering  part 
-locations in human pose estimation is also noted by~\cite{andriluka09}, and 
-serves as the primary justification for their use of the dense classical PS. 
-This is illustrated in Figure~\ref{fig:cascade_pruning} on an example image 
-from~\cite{ferrari08}.
+\subsection{Why not just detector-based pruning?} A \naive approach used in a 
+variety of applications is to simply subsample states by thresholding outputs 
+of part or sparse feature detectors, possibly combined with non-max 
+suppression.  Our approach, based on pruning on max-marginal values in a 
+first-order model, is more sophisticated: for articulated parts-based models, 
+strong evidence from other parts can keep a part which has weak individual 
+evidence, and would be pruned using only detection scores.  The failure of 
+prefiltering  part locations in human pose estimation is also noted 
+by~\cite{andriluka09}, and serves as the primary justification for their use of 
+the dense classical PS.  This is illustrated in 
+Figure~\ref{fig:cascade_pruning} on an example image from~\cite{ferrari08}.
 
 
