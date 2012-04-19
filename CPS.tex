@@ -152,21 +152,35 @@ coarsened state space and use standard pictorial structures unary detector
 scores and geometric features to perform quick exhaustive inference on the 
 coarse state space.  
 
-More specifically, each level of the cascade uses inference to identify which 
-states to prune away and the next level refines the spatial/angular resolution 
-on the unpruned states.
+\subsection{Inference}
+The procedure for CPS described above is as follows:
+
+\begin{itemize}
+\item For an input $x$, initialize a coarse state space $\cS_0 = \cY_0$
+
+\item Repeat for each cascade level $t = 0,\ldots,T-1$:
+\begin{itemize}
+\item Run sparse, exact inference over  $\cS_t$ using the $t^{th}$ cascade 
+model, computing max-marginal scores.
+\item Filter states based on max-marginal scores to obtain $\tilde{\cS}_t$.  
+\item Refine the state space of $\tilde{\cS}_t$ to obtain $\cS_t$ for the next 
+cascaded model.
+\end{itemize}
+\item Predict using the final level: $y^\star = \argmax_{y \in \cY_T} s(x,y)$.
+\end{itemize}
+
+
 The key ingredient to the cascade framework is that states are pruned using 
 {\em max-marginal} scores, computed using dynamic programming techniques, 
-discussed in~\secref{max-marginals}.  In words, the max-marginal for variable 
-$i$ is the score of the best full assignment to all variables which constrains 
-the assignment to variable $i$ to be $y_i$.  In a pictorial structures model, 
-this corresponds to fixing part $i$ at location $y_i$, and determining the 
-highest scoring configuration of other part locations and angles under this 
-constraint.  A part could have weak individual image evidence of being at 
-location $y_i$ but still have a high max-marginal score if the rest of the 
-model believes this is a likely location.  Similarly, we denote the MAP 
-assignment score as
-$\theta_x^\star = \max_{ys \in ys} \theta_x(ys)$, the unconstrained best configuration of all parts.
+discussed in~\secref{max-marginals}.  The notion of a max-marginal is easily 
+explained in the application of pose estimation:  The max-marginal for a part 
+$i$ at location $y_i$ is obtained by fixing or ``pinning'' the part at that 
+location, and finding the best possible pose whilst the part is pinned at 
+$y_i$.
+Importanly, max-marginals are a {\em global} quantity of a complete model of 
+pose, rather than a local one: A part could have weak individual image evidence 
+of being at location $y_i$ but still have a high max-marginal score if the rest 
+of the model believes this is a likely location. 
 
 
 \subsection{Learning}
