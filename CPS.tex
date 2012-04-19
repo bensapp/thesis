@@ -68,7 +68,7 @@ localization, as discussed in~\secref{experiments}.
 We choose instead to model part configurations as a general linear MRF over 
 pairwise and unary terms:
 \begin{align}
-h(x,y)  = \w \cdot \f(x,y) = \sum_{i \in \cV_\tree} \w_i \cdot \f_i(x,y_i)  + 
+s(x,y)  = \w \cdot \f(x,y) = \sum_{i \in \cV_\tree} \w_i \cdot \f_i(x,y_i)  + 
 \sum_{ij \in \cE_\tree} \w_{ij} \cdot \f_{ij}(x,y_i,y_j)
 \label{eq:cps}
 \end{align}
@@ -88,7 +88,7 @@ a positive semi-definite covariance matrix.
 In this general form (\equref{cps}), inference can {\em not} be performed 
 efficiently with distance transforms or convolution as discussed 
 in~\secref{dt}, and we rely on standard $O(nk^2)$ dynamic programming 
-techniques to compute the MAP assignment or part posteriors.  Many 
+techniques to compute the best scoring assignment $\argmax_y s(x,y)$.  Many 
 highly effective pairwise features one might design would be intractable to 
 compute in this manner for a reasonably-sized state space---for example an $80 
 \times 80$ spatial grid with a part angle discretization of $24$ bins yields 
@@ -153,90 +153,163 @@ scores and geometric features to perform quick exhaustive inference on the
 coarse state space.  
 
 \subsection{Inference}
-The procedure for CPS described above is as follows:
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/cascade-concept.pdf}
+\caption[Intermediate cascade filtering/refinement step.]{Two consecutive stages of a cascade, showing a model with a sparse set of states in a coarsened state space (top) filtering out states, and then passing them on to the next model (bottom) which works on a finer, upsampled version of the state space.}
+\label{fig:cascade-concept}
+\end{center}
+\end{figure}
+
+
+The procedure for CPS described above is as follows.  Two intermediate steps of the process are conceptualized in~\figref{cascade-concept}.
 
 \begin{itemize}
-\item For an input $x$, initialize a coarse state space $\cS_0 = \cY_0$
+\item For an input $x$, initialize a coarse state space $\cS_0 = \cY_0$ by 
+spatially pooling states in the original space (downsampling the state space 
+volume).
 
 \item Repeat for each cascade level $t = 0,\ldots,T-1$:
 \begin{itemize}
 \item Run sparse, exact inference over  $\cS_t$ using the $t^{th}$ cascade 
 model, computing max-marginal scores.
-\item Filter states based on max-marginal scores to obtain $\tilde{\cS}_t$.  
-\item Refine the state space of $\tilde{\cS}_t$ to obtain $\cS_t$ for the next 
-cascaded model.
+\item Filter states based on max-marginal scores to obtain $\tilde{\cS}_t$:\\
+\indent For each $i$, filter $y_i$ if $\mmi < t_x$, a data-dependent threshold (see~\secref{cps-thresh}).
+
+ \item Refine the state space of $\tilde{\cS}_t$ to obtain $\cS_t$ for 
+the next cascaded model.
 \end{itemize}
 \item Predict using the final level: $y^\star = \argmax_{y \in \cY_T} s(x,y)$.
 \end{itemize}
 
 
 The key ingredient to the cascade framework is that states are pruned using 
-{\em max-marginal} scores, computed using dynamic programming techniques, 
-discussed in~\secref{max-marginals}.  The notion of a max-marginal is easily 
-explained in the application of pose estimation:  The max-marginal for a part 
-$i$ at location $y_i$ is obtained by fixing or ``pinning'' the part at that 
-location, and finding the best possible pose whilst the part is pinned at 
-$y_i$.
-Importanly, max-marginals are a {\em global} quantity of a complete model of 
-pose, rather than a local one: A part could have weak individual image evidence 
-of being at location $y_i$ but still have a high max-marginal score if the rest 
-of the model believes this is a likely location. 
+{\em max-marginal} scores, introduced in~\secref{max-marginals}, computed 
+efficiently using dynamic programming techniques.  The notion of a max-marginal 
+is intuitively explained in our model of pose estimation:  The max-marginal for 
+a part $i$ at location $y_i$ is the score of the highest scoring pose with part $i$ fixed or ``pinned'' to location $y_i$. Importantly, max-marginals are a {\em 
+global} quantity of a complete model of pose, rather than a local one: A part 
+could have weak individual image evidence of being at location $y_i$ but still 
+have a high max-marginal score if the rest of the model believes this is a 
+likely location. 
 
+\subsection{Filtering threshold}\label{sec:cps-thresh}
 
-\subsection{Learning}
-When learning a cascade, we have two competing objectives that we must trade off,
-accuracy and efficiency: we want to minimize the number of errors incurred by each
-level of the cascade  and maximize the number of filtered max marginals.  A natural strategy is to prune away the lowest ranked states based on max-marginal scores. Instead, \cite{cascades} prune the states whose max-marginal score is lower than an data-specific threshold $t_x$: $l_i$ is pruned if $\mmi < t_x$.  This threshold is defined as a convex combination of the MAP assignment score and the mean max-marginal score, meant to approximate a percentile threshold: $$t_x(\theta,\alpha) = \alpha \theta^\star_x + (1-\alpha)\frac{1}{M}\sum_{i=1}^M\frac{1}{|\mathcal{Y}_i|}\sum_{y_i \in \mathcal{Y}_i} \mmi,$$ where $\alpha\in[0,1]$ is a parameter to be chosen that determines how aggressively to prune. When $\alpha = 1$, only the best state is kept, which is equivalent to finding the MAP assignment.  When $\alpha = 0$ approximately half of the states are pruned (if the median of max-marginals is equal to the mean) .  The advantage of using  $t_x(\theta,\alpha)$ is that it is convex in $\theta$, and leads to a convex formulation for parameter estimation that trades off the proportion of incorrectly pruned states with the proportion of unpruned states.
-Note that  $\alpha$ controls efficiency, so we focus on learning the parameters $\theta$ that 
-minimize the number of errors for a given filtering level $\alpha$.   The learning formulation uses a simple fact about max-marginals and the definition of $t_x(\theta,\alpha)$
-to get a handle on errors of the cascade:
-if $\theta_x(ys) > t_x(\theta,\alpha)$, then for all i, $\mmi >  t_x(\theta,\alpha)$, so no part state of $ys$ is pruned.   Given an example $(x,ys)$,
-this condition $\theta_x(ys) > t_x(\theta,\alpha)$ is sufficient to ensure that no correct part is pruned.
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=0.75\textwidth]{figs/empty.jpg}
-\caption[SHORT TITLE]{Upper right: Detector-based pruning by thresholding (for 
-the lower right arm) yields many hypotheses far way from the true one. Lower 
-row: The CPS, however, exploits global information to perform better pruning.}
-\label{fig:cascade_pruning}
-\end{center}
-\end{figure}
-%\end{floatingfigure}
-
-To learn one level of the structured cascade model $\theta$ for a fixed $\alpha$, we try to minimize 
-the number of correct states that are pruned on training data by solving the
-following convex margin optimization problem given $N$ training examples $(x^n,ys^n)$:
+When applying a cascade, we have two competing objectives that we must trade 
+off, accuracy and efficiency: we want to minimize the number of errors incurred 
+by each level of the cascade  and maximize the number of filtered 
+max-marginals.  A natural strategy is to prune away the lowest ranked states 
+based on max-marginal scores. Instead, we prune the states whose max-marginal 
+score is lower than a data-specific threshold $t_x$: $y_i$ is pruned if $\mmi < 
+t_x$.  This threshold is defined as a convex combination of the highest score
+$s^\star_x = \max_y s(x,y)$ and the {\em mean max-marginal score}, defined as:
 \begin{equation}
-  \label{eq:convex_opt}
- \min_{\theta} \;\;\;\ \frac{\lambda}{2}||\theta||^2 + \frac{1}{N}\sum_{n=1}^N H(\theta;x^n,ys^n),
+\bar{s}^\star_x = \frac{1}{n} \sum_{i=1}^n \frac{1}{|\cY_i|} \sum_{y_i \in 
+\cY_i} \mmi.
 \end{equation}
-where $H$ is a hinge upper bound 
-$H(\theta;x,ys) = \max\{0, 1 + t_x(\theta,\alpha) - \theta_x(ys)\}$.
-The upper-bound $H$ is a hinge loss measuring the margin between the
-filter threshold $t_{x^n}(\theta,\alpha)$ and the score of the truth
-$\theta^T\phi(ys^n,x^n)$; the loss is zero if the truth scores above
-the threshold by margin $1$.  We solve \eqref{eq:convex_opt} using stochastic
-sub-gradient descent. Given an example $(x,ys)$, we apply the following
-update if $H(\theta;x,ys)$ (and the sub-gradient) is non-zero:
-\begin{equation*}
-    \label{eq:spf_update}
-    \theta'  \leftarrow \theta + \eta \left(-\lambda \theta + \phi(ys,x) - \alpha \phi(ys^\star,x)  - (1-\alpha) \frac{1}{M} \sum_{i} \frac{1}{|\mathcal{Y}_i|}\sum_{y_i \in \mathcal{Y}_i}  \phi(ys^\star(ys_i),x)\right).
-\end{equation*}
-Above, $\eta$ is a learning rate parameter, $ys^\star = \argmax_{ys'}
-\theta_x(ys')$ is the highest scoring assignment and $ys^\star(ys_i) = \argmax_{ys': ys'_i = l_i} \theta_x(ys')$
-are highest scoring assignments constrained to $y_i$ for part $i$.
+which is just the average $\mmi$ over all parts and all states for each part.  Our thresholding function is thus
+\begin{equation}
+t_x(s,\alpha) = \alpha s^\star_x + (1-\alpha)\bar{s}^\star_x
+\end{equation}
+where $\alpha\in[0,1]$ is a parameter to be chosen that 
+determines how aggressively to prune. When $\alpha = 1$, only the best state is 
+kept, which is equivalent to finding the best, unconstrained assignment.  When $\alpha = 0$ 
+approximately half of the states are pruned (if the median of max-marginals is 
+equal to the mean).  The reasons for choosing $t_x(s,\alpha)$ are (1) it is a 
+function of the image $x$, which allows a threshold that adapts to the 
+difficulty of the problem, and (2) it leads to a convex learning formulation 
+with additional guarantees, as opposed to sorting max-marginals and choosing a 
+cutoff.
+
+\out{
+The advantage of using  $t_x(s,\alpha)$ is that it 
+is convex in $s(x,y)$, and leads to a convex formulation for parameter 
+estimation that trades off the proportion of incorrectly pruned states with the 
+proportion of unpruned states.
+Note that  $\alpha$ controls efficiency, so we focus on learning the parameters $\theta$ that 
+minimize the number of errors for a given filtering level $\alpha$.   
+}
+\subsection{Learning}
+The goal of learning is to fit parameters to our models $\w$ such that they are 
+optimized for the task of filtering states efficiently and accurately.  This is 
+notably different than standard supervised learning, which attempts to find 
+$\w$ to separate the right answer from wrong.  In some sense, the filtering 
+learning object is easier to learn---the correct answer does not have to be the 
+highest scoring, but only above the threshold value.  To wit, we pose the 
+following hard-constraint learning objective, assuming a training set of pairs 
+$\{(x^{(j)},y^{(j)})\}_{j=1}^M$:
+\begin{align}
+\minimize_\w& \frac{1}{2} ||\w||_2^2 \\
+\subjectto& s(x^{(j)},y^{(j)}) \geq t_{x^{(j)}}(s,\alpha) + 1,\;\;\; \forall \; j
+\end{align}
+In words, the above is attempting to find a regularized set of weights $\w$ 
+such that, in every training example, the score of the correct pose is above 
+our image-adaptive threshold.  We convert the hard constraint objective into an 
+unconstrained hinge-loss form typical of a max-margin structured learning 
+problem (see~\secref{learning}):
+\begin{align}
+\minimize_\w& \frac{\lambda}{2} ||\w||_2^2 + \frac{1}{M} \sum_{j=1}^M \left[ 
+t_{x^{(j)}}(s,\alpha) - s(x^{(j)},y^{(j)}) + 1 \right]_+
+\label{eq:cps-learn-hinge}
+\end{align}
+
+
+The learning formulation uses a simple fact about max-marginals and the 
+definition of $t_x(s,\alpha)$
+to get a handle on errors of the cascade:
+if $s(x,y) > t_x(s,\alpha)$, then for all $i$, $\mmi >  t_x(s,\alpha)$, so no 
+part state of $y$ is pruned.   Given an example $(x,y)$,
+this condition $s(x,y) > t_x(s,\alpha)$ is {\em sufficient} to ensure that no 
+correct part is pruned, which is our justification for using max-marginals as 
+the pruning quality.  Note that probabilistic marginals do {\em not} have this 
+property: $p(y|x)$ being above a threshold does not guarantee that $p(y_i|x)$ 
+are above a threshold for all $i$.
+
+We solve \eqref{eq:cps-learn-hinge} using stochastic
+sub-gradient descent. Given an example $(x,y)$, we apply the following when the 
+term $\left[ t_x(s,\alpha) - s(x,y) + 1 \right]_+$ (and the sub-gradient) is 
+non-zero:
+\begin{equation} \label{eq:spf_update}
+\w  \leftarrow \w + \eta \left[-\lambda \w + \f(y,x) - \alpha \f(y^\star,x)  - 
+(1-\alpha) \bar{\f}^\star(x) \right].
+\end{equation}
+Above, $\eta$ is a learning rate parameter, $y^\star = \argmax_{y'}
+s(x,y')$ is the highest scoring assignment and $\bar{\f}^\star(x)$ are the 
+average features used by all max-marginal witnesses $\witnessi $ (explained 
+in~\secref{max-marginals}):
+\begin{equation}
+\bar{\f}^\star(x) = \frac{1}{n} \sum_{i=1}^n \frac{1}{|\cY_i|} \sum_{y_i \in 
+\cY_i} \f(x,\witnessi).
+\end{equation}
 The key distinguishing feature of this update as compared to
-structured perceptron is that it subtracts features included in all
-max-marginal assignments $ys^\star(ys_i)$\footnote{Note that because \eqref{eq:convex_opt} is $\lambda$-strongly convex,
+structured perceptron is the last term which subtracts features included in all
+max-marginal assignments $\witnessi$.
+
+\out{\footnote{Note that because \eqref{eq:convex_opt} is $\lambda$-strongly 
+convex,
 if we chose $\eta_t = 1/(\lambda t)$ and add a projection step to keep 
 $\theta$ in a closed set, the update would correspond to the Pegasos
 update with convergence guarantees of $\tilde{O}(1/\epsilon)$ iterations for
 $\epsilon$-accurate solutions~\cite{shalev-shwartz07pegasos}.  In our experiments, we found the projection step made no difference and used only 2 passes over the data, with $\eta$ fixed.}.
 %, as we discuss in Section~\ref{implementation}.
+}
 
-The stages of the cascade are learned sequentially, from coarse to fine, and each has a different $\theta$ and $\mathcal{Y}_i$ for each part, as well as  $\alpha$.  The states of the next level are simply refined versions of the states that have not been pruned. We describe 
-the refinement structure of the cascade in Section~\ref{implementation}.
-In the end of a coarse-to-fine cascade we are left with a small, sparse set of states that typically contains the groundtruth states or states relatively close to them---in practice we are left with around 500 states per part, and 95\% of the time we retain a state the is close enough to be considered a match (see Table~\ref{tab:pruning}). At this point we have the freedom to add a variety of complex unary and pairwise part interaction features involving geometry, appearance, and compatibility with perceptual grouping principles which we describe in Section~\ref{sec:features}.
+\mypar{Sequential cascade learning} The stages of the cascade are learned 
+sequentially, from coarse to fine, and each has a different set of parameters 
+$\w$ and $\mathcal{Y}_i$ for each part, as well as $\alpha$.  The states of the 
+next level are simply refined versions of the states that have not been pruned.  
+We describe the refinement structure of the cascade in~\secref{experiments}.
+
+\out{
+In the end of a coarse-to-fine cascade we are left with a small, sparse set of 
+states that typically contains the groundtruth states or states relatively 
+close to them---in practice we are left with around 500 states per part, and 
+95\% of the time we retain a state the is close enough to be considered a match 
+(see Table~\ref{tab:pruning}). At this point we have the freedom to add a 
+variety of complex unary and pairwise part interaction features involving 
+geometry, appearance, and compatibility with perceptual grouping principles 
+which we describe in Section~\ref{sec:features}.
+}
 
 \subsection{Why not just detector-based pruning?} A \naive approach used in a 
 variety of applications is to simply subsample states by thresholding outputs 
@@ -245,9 +318,22 @@ suppression.  Our approach, based on pruning on max-marginal values in a
 first-order model, is more sophisticated: for articulated parts-based models, 
 strong evidence from other parts can keep a part which has weak individual 
 evidence, and would be pruned using only detection scores.  The failure of 
-prefiltering  part locations in human pose estimation is also noted 
-by~\cite{andriluka09}, and serves as the primary justification for their use of 
-the dense classical PS.  This is illustrated in 
-Figure~\ref{fig:cascade_pruning} on an example image from~\cite{ferrari08}.
+pre-filtering  part locations in human pose estimation is also noted 
+by~\citet{andriluka09}, and serves as the primary justification for their use 
+of the dense classical PS.  This is illustrated in~\figref{cascade-pruning}.
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/cascade-pruning.pdf}
+\caption[Cascade filtering example]{Cascade filtering example. Detector-based 
+pruning (0th order model) by thresholding yields many hypotheses far way from 
+the true one for the lower right arm. The CPS (bottom row), however, exploits 
+global information (such as certainty of the shoulder location) to perform 
+better state pruning.}
+\label{fig:cascade-pruning}
+\end{center}
+\end{figure}
+
+
 
 
