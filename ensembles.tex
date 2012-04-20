@@ -231,7 +231,7 @@ Let $G = (\cV,\cE)$ be our full graphical
 pose model; we further assume a general pairwise MRF model that decomposes over 
 the vertices $\cV$ and edges $\cE$, so that
 \begin{equation}
-  \label{eq:model-score}
+  \label{eq:loopy-model}
   \score = \sum_{i \in \cV}\w \cdot \f_i(x,y_i) + \sum_{(i,j) \in \cE}\\w \cdot 
 \f_{ij}(x,y_i,y_j). 
 \end{equation}
@@ -240,7 +240,7 @@ frames. Let there be $P$ tree sub-models, and $G_p = (\cV, \cE_p)$ be the sub-gr
 to the $p$'th one as in~\figreff{stretchable-overview}{right}.  Then
 we decompose the score $\score$ into the sum of the scores of the
 $P$ constituent sub-models: $\score = \sum_{p=1}^P s_p(x,y)$, the
-score of the $p$'th model is as in Equation~\ref{eq:model-score}, restricted to the
+score of the $p$'th model is as in~\equref{loopy-model}, restricted to the
 edges $\cE_p$, i.e. 
 \begin{equation}
 s_p(x,y) = \sum_{i\in\cV}\w_p^\top\f_i(x,y_i) + 
@@ -274,8 +274,8 @@ inference methods by order of decreasing agreement below.
 
 \paragraph{Full Agreement via Dual Decomposition.} A natural goal is
 to find the argmax decoding of joint locations throughout the entire
-sequence of frames using our original model in
-Eq.~\ref{eq:model-score}. However, solving the argmax decoding problem
+sequence of frames using our original model in~\equref{loopy-model}.  However, 
+solving the argmax decoding problem
 exactly is prohibitively expensive, due to the high treewidth of this
 cyclic graph. We use the method of Dual Decomposition (DD)
 \cite{bertsekas99,komodakis2007dualdecomp} to solve a linear
@@ -339,10 +339,10 @@ all $P$ tree submodels (i.e., twice as slow overall).
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/single-frame-agreement.pdf}
 \caption[Single Frame Agreement construction]{Single frame agreement 
-construction.  We first precompute messages coming into frame $t$ (left).  We 
-then combine 3-cliques state spaces via cartesian product to merge cliques into 
-nodes in a larger state space (middle) to obtain a chain graph (right) over 
-which we can perform exact inference.}
+construction.  We first precompute messages coming into frame $t$ from all 
+other frames (left).  We then combine 3-cliques state spaces via cartesian 
+product to merge cliques into nodes in a larger state space (middle) to obtain 
+a chain graph (right) over which we can perform exact inference.}
 \label{fig:single-frame-agreement}
 \end{center}
 \end{figure}
@@ -356,16 +356,16 @@ at a time \cite{weisssapp10}.  This is a weaker criteria for model
 agreement, but yields cheaper and simpler inference.  This gives us
 the following inference problem for the $i^{th}$ variable:
 \begin{equation}
-\argmax_{y_i'} \sum_{p=1}^P \max_{y: y_i=y_i'}\pscore{y} \quad{}\quad{(SV)}
+\argmax_{y_i'} \sum_{p=1}^P \max_{y: y_i=y_i'} s_p(x,y) \quad{}\quad{(SV)}
 \end{equation}
 This can be solved by computing max-marginals for each model using standard forward-backward message passing, summing the $P$ max-marginal scores, and taking the highest scoring sum.
-Note that this is actually equal to MAP decoding in the full model when  
-all sub-models agree on the argmax, which rarely occurs in practice. However, in \cite{weisssapp10} we showed
-empirically that this decoding is a useful approximation
-of the full MAP decoding prediction. 
+Note that this is actually equal to the best assignment decoding in the full 
+model~\equref{loopy-model} {\em when all sub-models agree on the argmax}.  
+However, this rarely occurs in practice.
 
-We also compared the above methods to predicting each joint using the single model in
-the ensemble that incorporated temporal dependencies for that
+\paragraph{Independent / No Agreement}
+We also compared the above methods to predicting each joint using the single 
+model in the ensemble that incorporated temporal dependencies for that
 specific part, which we call the $Independent$ decoding scheme.
 
 
