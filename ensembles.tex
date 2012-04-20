@@ -222,7 +222,7 @@ hypothesis $h: X \mapsto Y$ that minimizes the expected loss $\E{S}{
 : Y \times Y \rightarrow \reals^+$. The linear hypothesis class we
 consider is of the form $h(x) = \argmax_y \score{y}$, where the
 scoring function $\score{y} \triangleq \w \cdot \f(x,y)$ is the
-inner product of a vector of parameters $\theta$ and a feature
+inner product of a vector of parameters $\w$ and a feature
 function $\bft: X \times Y \mapsto \reals^d$ mapping $(x,y)$ pairs to
 $d$ real-valued features.  }
 
@@ -373,7 +373,7 @@ specific part, which we call the $Independent$ decoding scheme.
 at {\em test time}, coupling inference during training for more than one 
 variable is prohibitively expensive to use as part of a learning procedure.  
 Thus we learn
-parameters $\theta_m$ using {\em decoupled} inference separately for
+parameters $\w_p$ using {\em decoupled} inference separately for
 each model. To learn parameters, we optimize a convex hinge-loss
 objective for each model separately. Let $s_p^{\star (j)} = \max_y 
 s_p(x^{(j)},y)$ and $y^{\star(j)}$ a corresponding maximizer, then the learning 
@@ -382,15 +382,7 @@ problem for model $s_p$ is \begin{align}
 \frac{1}{n}\sum_{j=1}^n \left[ s_p^{\star (j)} - s_p(x^{(j)},y^{(j)})
 +1\right]_+
 \end{align}
-where $[\cdot]_+ = \max(0,\cdot)$.
-\out{
-$\theta_m^\star =
-\min_{\theta_m} \frac{\lambda}{2} ||\theta_m||^2 +
-\frac{1}{n}\sum_{i=1}^n H(x^{(i)},y^{(i)},\theta_m)$, where $H$ is the hinge loss function, 
-$H(x^{(i)},y^{(i)},\theta_m) = \left[ \pscorei{y^{i}} - \max_y \pscorei{y} - \ind{y\ne y^{(i)}} \right]_+$.
-}
-We optimize
-this problem via stochastic sub-gradient descent, and we choose
+We optimize this problem via stochastic sub-gradient descent, and we choose
 $\lambda$ and the number of training epochs using a held-out
 development set to minimize error.
 

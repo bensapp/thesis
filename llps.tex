@@ -1,20 +1,26 @@
 \chapter{Locally-linear pictorial structures}\label{sec:llps}
+\section{Introduction}
+\out{
 Human pose estimation from single, 2D images holds great potential to assist in 
 a wide range of applications---semantic indexing of images and videos, action 
 recognition, activity analysis, and human computer interaction, to name a few.
 However, human pose estimation ``in the wild'' is an extremely challenging 
 problem.  It shares all of the difficulties of object detection, such as 
 confounding background clutter, lighting, viewpoint, and scale, in addition to
-significant difficulties unique to human poses.  There is an enormous 
-variation in foreground color and texture due to clothing, and even given 
+significant difficulties unique to human poses.  }
+
+
+In this chapter, we focus explicitly on the multi-modal aspect of the 2D pose 
+estimation problem.  As discussed in~\secref{perceptual}, there is an enormous 
+variation in foreground and background color and texture, and even given 
 viewpoint and pose, the shape of body parts is highly variable due to clothing, 
 relative scale variations, and articulation (causing foreshortening, 
 self-occlusion and physically different body contours).
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
-\caption{\small \label{fig:overview} \textbf{Left:} Most pictorial structures 
+\includegraphics[width=0.99\linewidth]{figs/llps-overview.pdf}
+\caption{\label{fig:overview} \textbf{Left:} Most pictorial structures 
 researchers have put effort into better and larger feature spaces, in which 
 they fit one linear model.  The feature computation is expensive, and we still 
 fail at capturing the many appearance modes in real data.  \textbf{Right:} We 
@@ -34,20 +40,12 @@ sleeves, stripes, solids, bare arms, and short sleeves ending near the
 elbow---let's assume we can summarize clothing variation around elbows with 5 
 appearance modes (also overly optimistic).  Finally, given body type and 
 clothing, we still must consider articulation.  A typical discretization of 
-angles to model human pose~\cite{felzps,devacrf,eichner09,sapp2010cascades} 
-uses $15^\circ$ increments for a total of 24 possible relative angles.  As a 
-rough back-of-the-envelope calculation, this already amounts to $5 \times 5 
-\times 24 = 600$ major appearance modes, just for the elbow.  See 
-Figure~\ref{fig:lelbs} for an illustration.
+angles to model human pose~\cite{felz05,devacrf,eichner09} uses $15^\circ$ 
+increments for a total of 24 possible relative angles.  As a rough 
+back-of-the-envelope calculation, this already amounts to $5 \times 5 \times 24 
+= 600$ major appearance modes, just for the elbow.  See Figure~\ref{fig:lelbs} 
+for an illustration.
 
-\begin{figure}[b!]
-\centering
-\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
-\caption{\small \label{fig:lelbs} A random sampling of 100 left elbows from the 
-Buffy Stickmen pose dataset, removing color and intensity bias, to illustrate 
-the huge variety of appearance due to clutter, motion blur, clothing, body 
-type, and pose.}
-\end{figure}
 
 Clearly, some degree of sharing between appearance modes is warranted and 
 beneficial, in particular because it is easier to estimate fewer model 
@@ -62,8 +60,16 @@ used at most only tens of modes per part, and struggle with discovery of latent
 modes and/or defining an effective discrete quantization of the pose space.  
 See Section~\ref{sec:rel} for details.
 
+\begin{figure}[tb!]
+\centering
+\includegraphics[width=0.99\linewidth]{figs/lelbs.jpg}
+\caption{ \label{fig:lelbs} A random sampling of 100 left elbows from the Buffy 
+Stickmen pose dataset, removing color and intensity bias, to illustrate the 
+huge variety of appearance due to clutter, motion blur, clothing, body type, 
+and pose.}
+\end{figure}
 
-\mypar{Our approach:} In this paper, we propose a model of human pose that 
+\mypar{Our approach:} In this chapter, we propose a model of human pose that 
 defines a mode {\em per training example}, to capture a local neighborhood of
 pose {\em and } appearance.  This results in hundreds or thousands of modes in 
 contrast to the 20 or fewer used by recent work. This gives us the ability to 
@@ -117,7 +123,10 @@ Thus, given a test example, the test time inference procedure is straightforward
 \begin{figure}[tb!]
 \centering
 \includegraphics[width=0.99\linewidth]{figs/empty.jpg}
-\caption{\small \label{fig:inference} An illustration of the inference process.  Each training example defines a local neighborhood model.  Each model is run in parallel on a test image, and the argmax prediction is taken as a guess. Inset: the graphical model structure.}
+\caption{\label{fig:inference} An illustration of the inference process.  Each 
+training example defines a local neighborhood model.  Each model is run in 
+parallel on a test image, and the argmax prediction is taken as a guess. Inset: 
+the graphical model structure.}
 \end{figure}
 
 \section{Learning}\label{sec:learning}
