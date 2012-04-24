@@ -232,21 +232,20 @@ pose model; we further assume a general pairwise MRF model that decomposes over
 the vertices $\cV$ and edges $\cE$, so that
 \begin{equation}
   \label{eq:loopy-model}
-  \score = \sum_{i \in \cV}\w \cdot \f_i(x,y_i) + \sum_{(i,j) \in \cE}\\w \cdot 
-\f_{ij}(x,y_i,y_j). 
-\end{equation}
+  \score = \sum_{i \in \cV}\w_i \cdot \f_i(x,y_i) + \sum_{(i,j) \in \cE}\w_{ij} 
+\cdot \f_{ij}(x,y_i,y_j).  \end{equation}
 Note that edges $(i,j)$ may connect variables between consecutive
 frames. Let there be $P$ tree sub-models, and $G_p = (\cV, \cE_p)$ be the sub-graph of $G$ corresponding
 to the $p$'th one as in~\figreff{stretchable-overview}{right}.  Then
 we decompose the score $\score$ into the sum of the scores of the
-$P$ constituent sub-models: $\score = \sum_{p=1}^P s_p(x,y)$, the
+$P$ constituent sub-models: $\score = \sum_{p=1}^P s^p(x,y)$, the
 score of the $p$'th model is as in~\equref{loopy-model}, restricted to the
 edges $\cE_p$, i.e. 
 \begin{equation}
-s_p(x,y) = \sum_{i\in\cV}\w_p^\top\f_i(x,y_i) + 
-\sum_{(i,j)\in\cE_p}\w_m^\top\f_{ij}(x,y_i,y_j).
+s^p(x,y) = \sum_{i\in\cV}\w_i^p \cdot \f_i(x,y_i) + 
+\sum_{(i,j)\in\cE_p}\w_{ij}^p \cdot \f_{ij}(x,y_i,y_j).
 \end{equation}
-Note that we do not couple parameters across different models $\w_p$, so that different models can learn different parameters and effect different behaviors accorded to strengths and weaknesses dictated by their graph structures.
+Note that we do not couple parameters across different models $\w^p$, so that different models can learn different parameters and effect different behaviors accorded to strengths and weaknesses dictated by their graph structures.
 
 \out{
 \begin{figure}[]
@@ -285,7 +284,7 @@ into $P$ subproblems { if those problems are coupled through a global
   equality constraint}:
 \begin{align}
   \label{eq:dual-decomp}
-&\argmax_{y, y^1,\dots,y^P} \sum_{p=1}^P s_p(x,y^p)  \textrm{ s.t. } \:  y^p=y  \quad{}\quad{(DD)}
+&\argmax_{y, y^1,\dots,y^P} \sum_{p=1}^P s^p(x,y^p)  \textrm{ s.t. } \:  y^p=y  \quad{}\quad{(DD)}
 \end{align}
 Although the optimization \eqref{eq:dual-decomp} is still intractable because of the integral constraints, optimizing the {\em dual} of \eqref{eq:dual-decomp} is always
 tractable (if we first drop the integrality requirement), but no longer guaranteed to return an optimal integral solution. We solve the dual problem with sub-gradient descent. Once complete agreement between all
@@ -300,8 +299,9 @@ Lagrange multipliers $\nu_{ik}^p$ for every possible state assignment
 $y_i = k$ in every part model. We then alternate between updating the
 dual variables $\nu^p$ and the primal variables $y^p$:
 \begin{align}
-  y^p & \leftarrow \argmax_y \left( s_p(x,y) +  \sum_{i,k} \nu^p_{ik} \ind{y_i=k^p}\right) \\
-  \nu^p_{ik} & \leftarrow \nu_{ik} - \alpha\left(  \ind{y_i^p=k} - \frac{1}{P}\sum_p \ind{y_i^p=k} \right),
+  y^p & \leftarrow \argmax_y \left( s^p(x,y) +  \sum_{i,k} \nu^p_{ik} \ind{y_i=k^p}\right) \\
+  \nu^p_{ik} & \leftarrow \nu_{ik} - \alpha\left(  \ind{y_i^p=k} - 
+\frac{1}{P}\sum_{p=1}^P \ind{y_i^p=k} \right),
 \end{align}
 where $\alpha$ is a rate parameter chosen according to the scheme given in \cite{komodakis2007dualdecomp}.
  
@@ -314,7 +314,7 @@ at a time.  If we restrict our attention to the variables in a single
 time frame only, inference is considerably simpler.  For each frame
 $t$, we solve
 \begin{equation}
-\argmax_{y_{\bf{t}}'} \sum_{p=1}^P \;\; \max_{y : y_{\bf{t}} = y_{\bf{t}}'} s_p(x,y) \quad{}\quad{(SF)}
+\argmax_{y_{\bf{t}}'} \sum_{p=1}^P \;\; \max_{y : y_{\bf{t}} = y_{\bf{t}}'} s^p(x,y) \quad{}\quad{(SF)}
 \end{equation}
 to obtain the joint configuration for that frame (remember $y_{\bf t}$
 denotes the {\em set} of $n$ joint variables in frame $t$).  In words,
@@ -356,7 +356,7 @@ at a time \cite{weisssapp10}.  This is a weaker criteria for model
 agreement, but yields cheaper and simpler inference.  This gives us
 the following inference problem for the $i^{th}$ variable:
 \begin{equation}
-\argmax_{y_i'} \sum_{p=1}^P \max_{y: y_i=y_i'} s_p(x,y) \quad{}\quad{(SV)}
+\argmax_{y_i'} \sum_{p=1}^P \max_{y: y_i=y_i'} s^p(x,y) \quad{}\quad{(SV)}
 \end{equation}
 This can be solved by computing max-marginals for each model using standard forward-backward message passing, summing the $P$ max-marginal scores, and taking the highest scoring sum.
 Note that this is actually equal to the best assignment decoding in the full 
@@ -373,13 +373,12 @@ specific part, which we call the $Independent$ decoding scheme.
 at {\em test time}, coupling inference during training for more than one 
 variable is prohibitively expensive to use as part of a learning procedure.  
 Thus we learn
-parameters $\w_p$ using {\em decoupled} inference separately for
+parameters $\w^p$ using {\em decoupled} inference separately for
 each model. To learn parameters, we optimize a convex hinge-loss
-objective for each model separately. Let $s_p^{\star (j)} = \max_y 
-s_p(x^{(j)},y)$ and $y^{\star(j)}$ a corresponding maximizer, then the learning 
-problem for model $s_p$ is \begin{align}
-\min_{\theta_m} \frac{\lambda}{2}||\w_p||^2 +
-\frac{1}{n}\sum_{j=1}^n \left[ s_p^{\star (j)} - s_p(x^{(j)},y^{(j)})
+objective for each model $p$ separately:
+ \begin{align}
+\min_{\theta_m} \frac{\lambda}{2}||\w^p||^2 +
+\frac{1}{n}\sum_{j=1}^n \left[ \max_y s^p(x^{(j)},y) - s^p(x^{(j)},y^{(j)})
 +1\right]_+
 \end{align}
 We optimize this problem via stochastic sub-gradient descent, and we choose
