@@ -20,14 +20,14 @@ self-occlusion and physically different body contours).
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.99\linewidth]{figs/llps-overview.pdf}
-\caption{\label{fig:overview} \textbf{Left:} Most pictorial structures 
-researchers have put effort into better and larger feature spaces, in which 
-they fit one linear model.  The feature computation is expensive, and we still 
-fail at capturing the many appearance modes in real data.  \textbf{Right:} We 
-take a different approach.  Rather than introduce more and more features in 
-hopes of high-dimensional linear separability, we model the non-linearities in 
-simpler, lower dimensional feature spaces, using a collection of {\em locally} 
-linear models.}
+\caption[LLPS overview.]{\label{fig:overview} \textbf{Left:} Most pictorial 
+structures researchers have put effort into better and larger feature spaces, 
+in which they fit one linear model.  The feature computation is expensive, and 
+we still fail at capturing the many appearance modes in real data.  
+\textbf{Right:} We take a different approach.  Rather than introduce more and 
+more features in hopes of high-dimensional linear separability, we model the 
+non-linearities in simpler, lower dimensional feature spaces, using a 
+collection of {\em locally} linear models.}
 \end{figure}
 
 
@@ -64,10 +64,10 @@ See \secref{llps-rel} for details.
 \begin{figure}[tb!]
 \centering
 \includegraphics[width=0.99\linewidth]{figs/lelbs.jpg}
-\caption{ \label{fig:lelbs} A random sampling of 100 left elbows from the Buffy 
-Stickmen pose dataset, removing color and intensity bias, to illustrate the 
-huge variety of appearance due to clutter, motion blur, clothing, body type, 
-and pose.}
+\caption[Elbow sample patches.]{ \label{fig:lelbs} A random sampling of 100 
+left elbows from the Buffy Stickmen pose dataset, removing color and intensity 
+bias, to illustrate the huge variety of appearance due to clutter, motion blur, 
+clothing, body type, and pose.}
 \end{figure}
 
 \mypar{Our approach:} In this chapter, we propose a model of human pose that 
@@ -233,10 +233,10 @@ fits easily into popular parallelization frameworks, such as MapReduce.
 \begin{figure}[tb!]
 \centering
 \includegraphics[width=0.99\linewidth]{figs/llps-inference.pdf}
-\caption{\label{fig:llps-inference} An illustration of the inference process.  
-Each training example defines a local neighborhood model.  Each model is run in 
-parallel on a test image, and the argmax prediction is taken as a guess. Inset: 
-the graphical model structure.}
+\caption[LLPS inference.]{\label{fig:llps-inference} An illustration of the 
+inference process.  Each training example defines a local neighborhood model.  
+Each model is run in parallel on a test image, and the argmax prediction is 
+taken as a guess. Inset: the graphical model structure.}
 \end{figure}
 
 \section{Learning}\label{sec:llps-learning}

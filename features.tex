@@ -10,6 +10,21 @@ pose.  The standard approach is to represent limbs with an edge-based rigid
 template invariant to color, lighting, and minor deformations. In addition to 
 this, we use color, shape and geometry. 
 
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=1.05\textwidth]{figs/feature-sources.pdf}
+\caption[Feature sources.]{Feature sources. (a) Running example input image.  
+(b) Coarse HoG representation. (c) Different geometric quantities we compute 
+for our models. (d) Normalized cuts.  (e) Long contours derived from Ncut 
+segment boundaries. (f) Optical flow field shown sparsely as a quiver plot over 
+the dense magnitude of the optical flow field at every pixel.}
+\label{fig:feature-sources}
+\end{center}
+\end{figure}
+
+
+
 \section{Edges}\label{sec:edges}
 The standard cue for pictorial structures is rigid templates based on 
 edges~\citep{ferrari08,eichner09,andriluka09,ddtran,devacrf,deva2011}.  Edges 
@@ -27,7 +42,8 @@ spatial bins (cells) and $9$ unsigned orientation bins.  HoG was originally
 proposed by~\citet{dalal-triggs} for pedestrian detection, and has been hugely 
 popular as the representation of choice for the object recognition community as 
 a whole, \eg~\cite{pff-dpm}.  We use a modified version of the implementation 
-by~\citet{pff-dpm}, changed to use only unsigned orientations and no color.
+by~\citet{pff-dpm}, changed to use only unsigned orientations and no color.  
+See~\figreff{feature-sources}{b}.
 
 \section{Color}\label{sec:color}
 Color is a tricky cue to exploit, being highly variable from image to image.  
@@ -35,6 +51,20 @@ However, having knowledge of the foreground and/or background color is powerful
 information that enables us to separate unlikely poses from likely ones---we 
 can exploit such assumptions as figure/ground color separation, and foreground 
 constancy across the body and through time. 
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/fg-color.pdf}
+\caption[Foreground color estimation.]{Foreground color estimation.  (a) Masks 
+obtained from groundtruth locations of face, torso and background {\em a 
+priori}, overlaid on an example image. (b,c) Output of classifier learned to 
+discriminate face versus background and torso versus background independently 
+for every pixel. }
+\label{fig:fg-color}
+\end{center}
+\end{figure}
+
+
 
 \mypar{Foreground/Background modeling}
 It is difficult to model the foreground or background color without first {\em 
@@ -46,12 +76,12 @@ We choose a simple and effective method inspired by~\citet{strikeapose} to
 obtain foreground skin and clothing color models in a single pre-processing 
 step.  We exploit the fact that humans are quite well localized by people 
 detectors~\citep{ferrari08}, and assume we have samples of pixels from the 
-face, torso and (importantly) background.  \figref{todo} shows a mask of pixels 
-which we sample and corresponding labels.  Treating these samples as {\em 
-groundtruth}, we model color using a supervised binary classifier (\secref{ml}) 
-for skin and torso color separately, using the assumed \{face, torso\} pixels 
-as positive examples, and assumed background pixels as negative examples.  Each 
-pixel is its own example, classified independently.
+face, torso and (importantly) background.  \figref{fg-color} shows a mask of 
+pixels which we sample and corresponding labels.  Treating these samples as 
+{\em groundtruth}, we model color using a supervised binary classifier 
+(\secref{ml}) for skin and torso color separately, using the assumed \{face, 
+torso\} pixels as positive examples, and assumed background pixels as negative 
+examples.  Each pixel is its own example, classified independently.
 
 Because we have few samples that do not completely describe the range of 
 foreground and background colors, and because the feature space is relatively 
@@ -108,7 +138,7 @@ hand-crafted rules to propose and connect limbs, \eg~\citet{mori04,praveen07}.
 We choose to use Multiscale Normalize Cut (Ncut)~\citep{cour05} to obtain 
 regions.  Ncut seeks a balanced partitioning of the image into meaningful 
 regions via a spectral decomposition of a graph over image pixels, based on 
-pairwise pixel affinities.
+pairwise pixel affinities. See~\figreff{feature-sources}{d}.
 
 We obtain long continuous contours in the image from the regions obtained by 
 Ncut, as follows.  We define a graph whose nodes are all boundaries between 
@@ -121,7 +151,7 @@ smoothness of a contour is quantified as the maximum angle between boundaries
 along this contour. Finally, we find among all shortest paths those whose 
 length exceeds $18\%$ of the estimated person's upper body and whose smoothness 
 angle is less then $45^\circ$ to obtain a final set of contours, typically 15 
-to 30 per image.
+to 30 per image. See~\figreff{feature-sources}{e}.
 
 \section{Geometry}\label{sec:geom}
 As discussed in~\secref{ps}, most models of human pose consider only a unimodal 
@@ -134,13 +164,17 @@ coordinates), relative angles between parts, absolute angles that limbs make
 with the horizontal, and absolute locations of limbs and joints.  The 
 ``absolute'' measurements are really with respect to the detected person 
 bounding box, which can be thought of as a simple virtual ``root'' part which 
-is always instantiated (observed) in our models.
+is always instantiated (observed) in our models.  
+See~\figreff{feature-sources}{c}.
 
 \section{Motion}\label{sec:motion} Motion gives us cues separate foreground 
 from background, and fast moving parts (\eg, hands) from more stationary ones 
 (\eg head).  When consecutive frames of video are available, we obtain motion 
 estimation from optical flow.  Specifically, we use the fast implementation 
-from~\citet{liu-optflow}. 
+from~\citet{liu-optflow}.  See~\figreff{feature-sources}{f}.
+
+
+
 
 \chapter{Features}
 
@@ -169,7 +203,7 @@ $\w_i \cdot \f_i(x,y_i)$ and $\w_{ij} \cdot \f(x,y_i,y_j)$ quickly for all
 factors.
 
 
-\section{Limb-pair features}
+\section{Limb-pair features}\label{sec:limb-limb}
 \mypar{Color similarity [CPS:]}: We measure the color similarity of 
 kinematically-connected upper and lower arms as via $\chi^2$-distance between 
 histograms of quantized RGB color, described in~\secref{color}.  The histograms 
@@ -180,6 +214,7 @@ We discretize the colorspace into only $8$ bins to histogram, giving us a
 stable but crude representation of color.  The coarseness of the quantization 
 is permissible because we only need to model a local region of a single image 
 around a detected person.
+
 
 \mypar{Contour support [CPS]:} We can use the set of contours $\{c_k\}$ 
 obtained as described in~\secref{shape} to define features for each pair of 
@@ -206,14 +241,32 @@ of support which this pair of arms can receive from any of the image contours:
 \textrm{cc}_{ij}^{(t)}(\omega, \omega') = \max_{k} \textrm{ 
 cc}_{ijk}^{(t)}(\omega, \omega'), \quad\textrm{for} \quad t\in\{1,2\}
 \]
-By varying the angles $\omega$ and $\omega'$ in a set of admissible angles $\Omega$ defining parallelism between the part and the contour, we obtain $|\Omega|^2$ contour features\footnote{We set $\Omega=\{10^\circ, 20^\circ, 30^\circ\}$, which results in $18$ features for both scores.}.
+By varying the angles $\omega$ and $\omega'$ in a set of admissible angles 
+$\Omega$ defining parallelism between the part and the contour, we obtain 
+$|\Omega|^2$ contour features\footnote{We set $\Omega=\{10^\circ, 20^\circ, 
+30^\circ\}$, which results in $18$ features for both scores.}  The features are 
+illustrated in~\figreff{contour-feature}{(b)}.
 
 \mypar{Geometry [CPS]:} We measure the interior angle made between parts, 
 keeping the part identity so that the angle is in the full range $[0,2\pi]$.  
 We also look at difference from the expected position $\delta_{ij}$ for a pair 
 of parts, using the signed $x$ and $y$ components as features.
 
-\section{Joint-pair features}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/contour-feature.pdf}
+\caption[Shape features.]{Shape features.  (a) Input image.  (b) Measuring a 
+pair of limbs co-likelihood by checking attachment to long contours in the 
+image, as described in the ``Contour support'' feature.  (c)  Measuring the 
+likelihood of a single limb's region support, as described in the ``Region 
+support'' feature. (d) Examples of right lower arm hypotheses that have poor 
+support from underlying regions (top), and good support (bottom).}
+\label{fig:contour-feature}
+\end{center}
+\end{figure}
+
+
+\section{Joint-pair features}\label{sec:joint-joint}
 \mypar{HoG limb detectors [CPS, ESM]:} For each of the 6 body parts -- head, 
 torso, upper and lower arms -- we learn an individual Gentleboost 
 classifier~\cite{friedman00} on HoG features (\secref{edges}) using the Limbs 
@@ -232,7 +285,7 @@ coordinate system.  We include convexity information $|conv(R)|/|R|$, where
 $conv(\cdot)$ is the convex hull of a set of points, and $|R|$ is the number of 
 points in the collection of segments.  We also include the number of points on 
 the convex hull, and the number of part axis points that pass through $R$ to 
-express continuity along the part axis.
+express continuity along the part axis.  See~\figreff{contour-feature}{b,c}.
 
 \mypar{Foreground color [CPS, ESM]:} Using likelihood heatmaps of estimated 
 skin and torso color (\secref{color}), we measure the likelihood that a limb is 
@@ -256,6 +309,7 @@ should be far from the right shoulder) as well as a left-right order of parts
 (e.g., the left shoulder should be to the left of the right shoulder). Note 
 that we do {\em not} express features describing the angle of the lower arm, 
 leaving it free to rotate and stretch.
+See~\figreff{misc-features}{d}.
 
 To express joint motion continuity through time in ESM, we use one simple 
 geometric feature: the Euclidean distance between the joint in consecutive 
@@ -270,13 +324,13 @@ segment (angle less than $12^\circ$) and within a spatial support region
 feature the number of supporting contour points, normalized by the length of 
 the limb hypothesis.  Due to the sparse contour set, this feature can be 
 computed extremely efficiently, by quickly discarding hypotheses whose 
-endpoints are not near any contour. 
+endpoints are not near any contour.  See~\figreff{misc-features}{c}.
 
 \mypar{Color consistency [ESM]:} To capture the fact that the color of pairs of 
 joints is often similar due to clothing and/or skin color, we describe the 
 color consistency of pairs of joints via the $\chi^2$-distance between color 
 histograms obtained from small image patches (with side length 10\% of image 
-dimensions) extracted around each joint.  
+dimensions) extracted around each joint.  See~\figreff{misc-features}{b}.
 
 \mypar{Color tracking [ESM]:}  We capture the persistence of appearance over 
 time with a simple and effective patch-based color tracker for each joint.  We 
@@ -288,7 +342,8 @@ function.  Let $P_{t}$ and $P_{t+1}$ represent quantized color image patches
 around the joint in frame $t$ and $t+1$, with $N$ pixels.  Then the color 
 tracking distance feature is $ 
 ||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind{P_{t}(r,c)~=~P_{t+1}(r,c)}$ 
-where (r,c) indexes rows and columns in the patch. 
+where (r,c) indexes rows and columns in the patch.  
+See~\figreff{misc-features}{b}.
 
 The coarse quantization gives us a robust way to compare the color in 
 consecutive frames that is tolerant to changes in lighting and pixel 
@@ -300,11 +355,41 @@ cue than color histogram distances across time (as used in \eg~\citet{ren07})
 because it requires that the {\em pixel structure} of the patch be similar in 
 consecutive frames.  
 
+\mypar{Figure from flow [ESM]:}
+We use several features based on dense optical flow from~\cite{optflow}, which we compute between 
+adjacent frames. We obtain a rough estimate of the foreground of each clip by 
+assuming there are only 2 planes of motion: foreground (figure) and background.  
+Given a detected person, we estimate the background motion by computing the 
+median flow vector $\mu_{bg}$ outside the detected person bounding box, and not 
+considering outlier flow with magnitude greater than the $75^{th}$ percentile.  
+We then subtract off $\mu_{bg}$ from the flow field and take the magnitude of 
+the flow as an estimate of foreground likelihood.  We incorporate this as a
+limb feature by computing the average foreground likelihood sampled at 5 points 
+evenly spaced along the line segment between joint pairs.
+See~\figreff{misc-features}{e}.
+
+\section{Single joint features} \label{sec:single-joint}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/misc-features.pdf}
+\caption[Joint and joint-pair features.]{Joint and joint-pair features. See 
+\secref{joint-joint} and \secref{single-joint}. (a)  Hand detectors.  (b) Color 
+distances for left-right symmetry and tracking, using a quantized color space 
+(shown).  (c) Visualization of arm hypotheses that are supported by contours in 
+the image.  (d) Joint-joint geometry we employ in our Stretchable Ensemble 
+model.  (e)  Figure-ground estimation by estimating two flow clusters.}
+\label{fig:misc-features}
+\end{center}
+\end{figure}
 
 
-\section{Single joint features}
+\mypar{Histogram of Gradients [ESM, LLPS]:} 
 
-\mypar{Histogram of Gradients [ESM, LLPS]:} \todo{write hog here}
+In ESM we have no specific learned model of joints, so we project down trained 
+limb detectors from~\secref{joint-joint}, taking a max over all possible angles 
+and over 3 possible limb lengths (not foreshortened, somewhat foreshortened, 
+extremely foreshortened, estimated by quantiles of dataset groundtruth limbs).
 
 In LPPS, we represent joints with $5 \times 5$ cell Histogram of Gradients 
 descriptors around each joint, using the implementation from~\cite{dpm}, 
@@ -313,10 +398,7 @@ learned parameters capture the local shape around each joint, {\em specific to}
 the variations of pose and appearance in a small local neighborhood.  We 
 supplement the HoG channels with an extra ``out-of-image'' channel, to jointly 
 learn if it's likely that a body part lies at least partially outside the image 
-coordinates.  Finally, we augment the above with one feature not learned 
-locally, but shared among all local models: a skin-based hand detector 
-from~\cite{sapp2011}.  We used cross-validation to determine how to balance the 
-strength of the hand detector channel with the rest of the features.
+coordinates.
 
 \mypar{Color and motion-based hand detectors [ESM, LLPS]:}  Detecting the hand 
 location is an extremely useful cue in anchoring all joint locations.  
@@ -327,19 +409,10 @@ from two different input modalities:  (1) Skin detection heatmaps.
 (\secref{color}).  (2) The gradient of the magnitude of the optical flow field 
 between consecutive images (\secref{motion}).  This exploits the fact that 
 hands are often in motion (and naturally the fastest moving body part).  Both 
-linear filters can be evaluated efficiently densely via convolution.
+linear filters can be evaluated efficiently densely via convolution.  
+See~\figreff{misc-features}{a}.
 
 \mypar{Figure from flow [ESM]:}
-We use several features based on dense optical flow from~\cite{optflow}, which we compute between 
-adjacent frames. We obtain a rough estimate of the foreground of each clip by 
-assuming there are only 2 planes of motion: foreground (figure) and background.  
-Given a detected person, we estimate the background motion by computing the 
-median flow vector $\mu_{bg}$ outside the detected person bounding box, and not 
-considering outlier flow with magnitude greater than the $75^{th}$ percentile.  
-We then subtract off $\mu_{bg}$ from the flow field and take the magnitude of 
-the flow as an estimate of foreground likelihood.  We incorporate this as a 
-unary feature for each joint, and a pairwise feature by computing the average 
-sampled evenly along the line segment between joint pairs.
-
-
-
+We again use an estimate of foreground via optical flow magnitude as 
+in~\secref{joint-joint}, and \figreff{misc-features}{e}.  Here we report a mean 
+foreground likelihood in a small window around the joint as a feature.
