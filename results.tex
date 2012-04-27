@@ -121,15 +121,6 @@ cyclic models.
 \section{System results}
 In this section we analayze end-to-end system results, using the publicly 
 available code for our systems and competitors, for reproducibility's sake.
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=1.00\textwidth]{figs/results-buffy-pascal.pdf}
-\caption[Single frame pose estimation results.]{Single frame pose estimation 
-results.  Shown are our single frame models CPS and LPPS against 
-state-of-the-art competitor models (\secref{competition})}.
-\label{fig:results-buffy-pascal}
-\end{center}
-\end{figure}
 \begin{table}[tb]
 \begin{center}
 \input{res-table}
@@ -143,6 +134,15 @@ picture see \figref{results-buffy-pascal}.}
 
 
 \subsection{Single frame pose estimation}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=1.00\textwidth]{figs/results-buffy-pascal.pdf}
+\caption[Single frame pose estimation results.]{Single frame pose estimation 
+results.  Shown are our single frame models CPS and LPPS against 
+state-of-the-art competitor models (\secref{competition})}.
+\label{fig:results-buffy-pascal}
+\end{center}
+\end{figure}
 The performance of all single-frame models are shown on the Buffy and Pascal 
 datasets in \figref{results-buffy-pascal}.  We see that in general, CPS and 
 \citet{deva2011} outperform the rest, with CPS performing strictly better on 
@@ -151,6 +151,16 @@ performance in different regimes of precision.   However, absolute performance
 localization accuracy is only one way to measure the quality of a model---see 
 \secref{discussion} for more discussion.
 
+Surprisingly, the ``mean pose'' baseline outperforms some models elbow 
+localization accuracy in some regimes, in particular on the Pascal dataset.  
+This is an indication of either the difficulty or boringness (lack of pose 
+variation) in these datasets, or a combination of both.  In fact, the 
+scatterplots in \figref{dataset-scatterplots} do show that most elbows are very 
+tightly grouped in these single frame datasets. 
+
+We also report PCP scores in~\tabref{res-table}.  Comparing the induced ranking 
+of methods by \tabref{res-table} and \figref{results-buffy-pascal}, we see that 
+PCP does not give a complete story of performance.
 
 \subsection{Video pose estimation}
 \begin{figure}[tb]
