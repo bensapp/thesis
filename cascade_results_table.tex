@@ -1,0 +1,25 @@
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\multirow{3}{*}{cascade level}   & state        & \multicolumn{2}{|c|}{\# 
+states in the}        &  \multirow{3}{*}{ } state space       & near-correct \\\cline{3-4}
+ &       dimensions &original   & pruned        & reduction     &  lower arms  \\
+ &       & space        & space & \%    & unpruned (PCP) \\
+
+\hline
+\hline
+0        & 10x10x12      & 153600        & 1200 &        00.00 & 100  \\
+\hline
+1        & 10x10x24      & 72968 &      1140  &  52.50   & 76.6 \\
+\hline
+3        & 20x20x24      & 6704  & 642  &  95.64         & 72.3 \\
+\hline
+5        & 40x40x24      & 2682  & 671   & 98.25         & 70.5 \\
+\hline 
+7        & 80x80x24      & 492   & 492&          99.67   & 68.4 \\
+\hline
+\hline
+detection pruning        & 80x80x24      & 492   & 492&          99.67   & 58.6 \\
+%pruning         &       &       &&              &  \\
+\hline
+\end{tabular}
+

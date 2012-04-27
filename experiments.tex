@@ -140,7 +140,7 @@ relaxed (2) is discontinuous and (3) only considers one operating point instead
 of a range.  However, for historical reasons, many works have reported results 
 in terms of PCP, and here we do the same for compatibility.
 
-\section{Competitor Methods}
+\section{Competitor Methods}\label{sec:competition}
 
 The field of 2D human pose estimation has exploded in the last 5 years.  The 
 public datasets we report numbers on are highly competitive, with absolute 
@@ -171,7 +171,7 @@ limb detectors are trained Adaboost ensembles of Shape Context on top of Canny
 edges.  The pairwise potentials are geometric displacement, computed 
 efficiently with distance transforms (\secref{dt}).
 
-\item \citet{eichner09} [EFZ]
+\item \citet{eichner09} [EZ]
 
 This is a complex system built off of~\citet{devacrf}.  The initial unary term 
 is linear filters on image edges.  It then iteratively re-parses using color 
@@ -189,7 +189,7 @@ modes for each part, which they treat as latent variables to be estimated
 during training.  \end{itemize}
 
 
-\section{Implementation Details}
+\section{Implementation Details}\label{sec:impl-details}
 
 Here we give various additional details about the implementation of our models, 
 for practical purposes.  All the details of the various feature implementations 
