@@ -82,7 +82,48 @@ space of possible models combining the two approaches.
 
 \section{Joints or limbs?}
 
+The ESM model introduced a joint-based 2D representation of pose.  At the same 
+time, \citet{deva2011} also introduced a model based on joints and limb 
+midpoints as basic units of inference.  This approach has clear benefits for 
+easily capturing foreshortening and scale.  It has the seeming disadvantage of 
+not being able to capture limb-pair features with a pairwise model.  However, 
+this is not a fundamental limitation.  Especially using cascaded inference 
+techniques we should not shy away from describing higher order cliques in the 
+future.  In general, the scope of the basic atomic unit for inference (the 
+inference variables) need not be dictated by the scope of the largest clique we 
+capture in our model.  Joint-based models are worth exploring further.  In 
+particular, we expect an Ensemble of Stretchable Models approach applied to 
+{\em single frame} pose estimation to work well.
+
 \section{Detection, localization, or both?}
+
+Some pose estimation models use as a selling point that they work well for both 
+person detection---finding where a person in at different scales in an image 
+{\em and} pose estimation---localizing there body parts.  In particular 
+\citet{andriluka09} and \citet{deva2011} do this.  The benefits of these 
+approaches are that they are easy to use: one function to both find a person 
+and find their body parts.  Our approach on the other hand, is really two step 
+when given an image: (1) detect the person with a dedicated person detector, 
+and (2) run our pose models on the detected person.  This is a slightly more 
+cumbersome procedure. 
+
+We believe that detection and localization are fundamentally different tasks 
+and should be decoupled.  In detection, we wish to generalize over all poses 
+and determine how to discriminate any pose from background clutter---a 
+detection is correct even when a pose is incorrect, and a detector must also 
+have some notion of global confidence to determine, over all possible image 
+patches, whether it is a person or not.  A pose estimator works under the 
+assumption that a pose is present, and is correct only if it predicts the right 
+pose versus combinatorially many wrong poses.
+
+One model that attempts to perform both tasks is bound to perform only as well 
+as it could tuned to each task independently, and probably worse.  It may be 
+that PS models are the right family of models for both detection and 
+localization---they have attractive benefits for generalizing over poses with 
+deformations and obstructions in addition to localizing pose---and they should 
+be used for both.  However, a detection model should be trained with the task 
+of detection in mind, and a pose estimation model should be trained for pose 
+estimation. 
 
 \section{Everything and the kitchen sink: a bug or a feature?}
 One of the main contributions of this thesis was technical contributions that 
@@ -118,28 +159,53 @@ a tree graph.
 
 We push past the inference barrier in several ways, allowing us to include 
 richer image-dependent interactions.  First, we proposed Cascaded Pictorial 
-Structures, a sequence of structured models that efficiently prune the state 
-space of possible poses down to a manageable number.  This allows us to perform 
-efficient exact inference without restrictions.  We exploit this by 
+Structures ({\bf CPS}), a sequence of structured models that efficiently prune 
+the state space of possible poses down to a manageable number.  This allows us 
+to perform efficient exact inference without restrictions.  We exploit this by 
 incorporating a variety of rich features from complementary sources, improving 
 upon state-of-the-art PS approaches in single frame pose estimation.
 
-We then extend this approach to handle pose estimation in video.
+We then extend this approach to handle pose estimation in video.  Maintaining a 
+rich set of variable interactions in video creates a cyclic network of variable 
+interactions, which is known to require inference inference exponential in the 
+number of frames of video.  We maintain tractability through the use of a 
+cascade step as in CPS, and an approximate inference method which decomposes 
+the cyclic structure of interactions into an ensemble of tree graphs, which 
+capture all the interactions of the cyclic network, with redundancies.  With 
+this Ensemble of Stretchable Models ({\bf ESM}), approximate inference is only 
+linear in the number of frames of video.  Furthermore, to handle fine-grained 
+articulation and foreshortening effects often present in real video clips, we 
+use a joint-based representation of pose, as opposed to a limb-based 
+representation, hence our model is ``stretchable''.
 
-Finally, LLPS.
+Finally, we explore a complementary approach to the line of research that 
+motivated CPS and ESM.  These methods focused on novel computational techniques 
+that allowed us to add more and more features and rich interactions into our 
+pose models, in the hope that more features would lead to better 
+generalizability and performance accuracy.  Alternatively, in Local Linear 
+Pictorial Structures ({\bf LLPS}), we focus instead explicitly on the 
+non-linear, multi-modal nature of the problem, {\em not} by introducing more 
+and more features, but instead modeling each local neighborhood with it's own 
+PS model.  Local neighborhoods are defined as a function of closeness in 
+appearance and pose centered at every training example, allowing us to 
+preciesely model different modes of the input that result from different 
+clothing, body types, and pose.
 
-We show empirically that we are awesome.
+We show empirically that our models are state-of-the-art on competitive public 
+datasets, verifying the worthiness of our modeling innovations: (1) cascades of 
+structured models (2) ensemble of tree models (3) joint-based representations 
+(4) local linear modeling.  All of these ideas are valuable contributions to 
+the field of pose estimation, with potential to help in other domains involving 
+structured problems as well.
 
-Future.
+Human pose estimation in the wild in its most general setting is still far from 
+a solved problem, although we have made significant advances through the course 
+of this research.  Moving forward, we expect further advances to be made with 
+larger datasets, the computation capabilities to scale current approaches to an 
+order of magnitude more data, and reconciling estimates of pose within the 
+larger context of scene understanding.
 
-The end.
-
-
-
-
-
-
-
-
-
-
+Future improvements in pose accuracy seem promising and the dream of 
+understanding human pose for a variety of applications is increasingly 
+compelling given the advancements in robotics and the pervasiveness of cameras 
+in our lives---the future of pose estimation is bright.
