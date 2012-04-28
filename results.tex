@@ -87,15 +87,16 @@ Models affects performance.}
 \end{center}
 \end{figure}
 
-One of the main contributions of this thesis was technical contributions that 
-allow us to include a veritable kitchen sink of features.  At this point we 
-wish to verify that the work done implementing, computing and learning 
-parameters for features makes a difference in performance.  This is actually 
-quite difficult to do in general, because it is computationally infeasible to 
-explore the combinatorially many possibilities of feature sets, whose 
-interactions between modalities are significant.  We analyze the importance of 
-of features by grouping them by modality, and adding or removing them from our 
-full systems in turn, measuring the change in performance.
+One of the main contributions of this thesis was technical innovations that 
+allow us to include ``everything and the kitchen sink'' (in the house of vision 
+features).  At this point we wish to verify that the work done implementing, 
+computing and learning parameters for features makes a difference in 
+performance.  This is actually quite difficult to do in general, because it is 
+computationally infeasible to explore the combinatorially many possibilities of 
+feature sets, whose interactions between modalities are significant.  We 
+analyze the importance of of features by grouping them by modality, and adding 
+or removing them from our full systems in turn, measuring the change in 
+performance.
 
 In \figref{ablative} we do a feature analysis for CPS (left) and ESM (right), 
 grouping features by coarse modalities.  The first important thing to note is 
@@ -118,7 +119,7 @@ estimation models because they require joint interactions which lead to loopy,
 cyclic models.
 
 
-\section{System results}
+\section{System results}\label{sec:system-results}
 In this section we analayze end-to-end system results, using the publicly 
 available code for our systems and competitors, for reproducibility's sake.
 \begin{table}[tb]
