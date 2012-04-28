@@ -2,8 +2,10 @@
 
 In this chapter, we discuss advantages and disadvantages of the different 
 models developed in this thesis and competitor models, justifying contributions 
-of this thesis.  Performance of the different models in terms of part 
-localization accuracy is in ~\secref{system-results}.
+of this thesis.  In addition, we address possible criticisms and other 
+tradeoffs and design choices that are of importance beyond raw accuracy.  
+Performance of the different models in terms of part localization accuracy is 
+in~\secref{system-results}.
 
 \section{The case for image-dependent interactions}
 
@@ -126,19 +128,66 @@ of detection in mind, and a pose estimation model should be trained for pose
 estimation. 
 
 \section{Everything and the kitchen sink: a bug or a feature?}
-One of the main contributions of this thesis was technical contributions that 
-allow us to include a veritable kitchen sink of features---the goal was to 
-include as many feature modalities as possible in our CPS and ESM models.  
-Having so many features makes it difficult to determine exactly what is 
-contributing to the success of our model.  From a machine learning standpoint, 
-this is an attractive aspect of our system: given training data, we can try 
-everything and see what works.  From a computer vision standpoint, this is a 
-disadvantage---it is difficult to gain insight into why the model is performing 
-well exactly.
+Some of the main contributions of this thesis are technical innovations that 
+allow us to include a smorgasbord of features.  The goal was to include as many 
+feature modalities as possible in our CPS and ESM models.  Having so many 
+features makes it difficult to determine exactly what is contributing to the 
+success of our model.  
 
+From a machine learning standpoint, this is an attractive aspect of our system: 
+given training data, we can try everything and see what works.  From a computer 
+vision standpoint, this is a disadvantage---it is difficult to gain insight 
+into why the model is performing well exactly.
+
+We take a functional, application-driven approach towards computer vision, and 
+consider our problem on pose estimation as engineering rather than perceptual 
+science.  The inability to measure the individual performance of components in 
+any complex system is inevitable---the whole is greater than the sum of its 
+parts.  We provide individual feature analysis in~\figref{ablative}, and make 
+convincing arguments that the features and interactions we include are 
+beneficial.  We make no statement as to which features are the ``best'', in any 
+sense other than their contribution to final system performance.
 
 \section{Accuracy, speed, simplicity}
-time vs accuracy vs complexity
+
+When developing our CPS and ESM models, we focused our attention and obtaining 
+the best performing, computationally tractable system.  Besides raw 
+performance, practitioners care as much about {\em speed}---does the system run 
+quickly?---and {\em simplicity}---how long does it take for me to download, 
+compile, understand, run and/or re-implement in a language of choice?  One of 
+the motivations of LLPS and attractiveness of~\citet{deva2011} is their speed 
+and simplicity, in terms of image features (only HoG) and lines of code.
+
+To wit, while performing only slight better than LPPS, CPS and ESM have a 
+significant feature overhead, involving Normalized Cuts segmentation and gPb 
+and in total, hundreds of different feature types.  These two approaches take 5 
+to 10 minutes per image.  Further, the work of~\citet{eichner09} involves 
+iterative re-estimation of part color models, iterative inference with 
+different trees, and graphcut.  Their public implementation takes 10.5 seconds 
+per image.
+
+LLPS, on the same machine, takes 11.0 seconds per image using 1 core.  However, 
+since LLPS inference is trivially parallelizable at the level of local models, 
+using 8 cores reduces this time in practice to 4.1 seconds on average, 1.5 
+seconds of which are spent running the un-optimized hand detector feature.  We 
+expect further linear speedup with more cores.
+
+
+\citet{deva2011}'s model takes 1.6 seconds to run on our machines, using 32 
+features of signed and unsigned edge and color histograms.  Their model uses 
+just a few modes per part, but their inference is quadratic in the number of 
+modes, making it unclear how they might scale to hundreds of modes like our 
+method uses, although they note in their paper more modes leads to better 
+performance.
+
+We believe that, moving forward, models with any combination of the three 
+objects {\em accuracy, speed, simplicity} are all worthwhile, even independent 
+of the others.  Any current system's slowness today will likely be a non-issue 
+in 5-10 years with the advent of faster CPUs. Anecdotally, at time of 
+publication two years ago, the CPS system took 5 minutes and 15 seconds on an 
+Intel Xeon E5450 CPU @ 3.00GHz with 8 cores.  Today, at roughly the same price 
+and consumer availability, the system runs in 3 minutes on an AMD Opteron 4284 
+CPU @ 3.00 GHz with 16 cores.
 
 \chapter{Future directions}
 
@@ -208,4 +257,4 @@ larger context of scene understanding.
 Future improvements in pose accuracy seem promising and the dream of 
 understanding human pose for a variety of applications is increasingly 
 compelling given the advancements in robotics and the pervasiveness of cameras 
-in our lives---the future of pose estimation is bright.
+in our lives.  In conclusion, the future of pose estimation is bright.
