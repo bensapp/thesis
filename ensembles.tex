@@ -324,7 +324,9 @@ $y_{\bf t}'$.  The outer $\argmax$ is over all possibilities of single
 frame configurations $y_{\bf t}'$.  This extends the notion of a
 max-marginal of a variable (see~\secref{max-marginals}) to a max-marginal
 over {\em a set} of variables.  This method requires first computing
-the max-sum messages in a forward-backward message passing algorithm (see~\algref{mm-inference}), sent to variables in frame $t$, in each of the submodels.  Finding the argmax decoding of $y_{\bf t}$ is then
+the max-sum messages in a forward-backward message passing algorithm that 
+incident to the variables in frame $t$, in each of the submodels.  Finding the 
+argmax decoding of $y_{\bf t}$ is then
 equivalent to inference in a grid with $n$ variables (in our case $n=6$
 joints).  This can be solved exactly by forming cliques of size 3, for
 which the message passing clique-tree forms a chain. The construction is 

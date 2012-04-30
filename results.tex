@@ -103,20 +103,19 @@ grouping features by coarse modalities.  The first important thing to note is
 that, by and large, the rich features we include over standard edge template 
 and geometry information help.  For CPS, we see that including rich features of 
 simple geometry alone helps performance, in particular pairwise cues such as 
-color and contours that we intractable to compute without a cascade approach.  
-An interesting except is the region based features working in isolation 
-actually {\em hurt} performance slightly on the test set.  However, all 
-features together do significantly better than any one feature modality on top 
-of the standard geometric information.
+color and contours that were intractable to compute without our cascade 
+approach.  In the bar marked ``baseline PS'' we evaluate a classical unimodal 
+PS, whereas the geometric parameters in our cascade models (``geom only'') are 
+learned bin weights that can achieve non-linearity.  All features together do 
+significantly better than any one feature modality on top of the standard 
+geometric information.
 
 On the right side of \figref{ablative}, we do an ablative analysis of our ESM 
-model.  Interestingly, the hand detector features slightly hurt system 
-performance on the test set, contrary to training and validation procedures.  
-The most important individual feature modality was optical flow, which gives us 
-a fairly good estimate of foreground/background separation in many video 
-frames.  Importantly, many of these feature modalities are not used in pose 
-estimation models because they require joint interactions which lead to loopy, 
-cyclic models.
+model.  The most important individual feature modality was optical flow, which 
+gives us a fairly good estimate of foreground/background separation in many 
+video frames.  Importantly, many of these feature modalities are not used in 
+pose estimation models because they require joint interactions which lead to 
+loopy, cyclic models.
 
 
 \section{System results}\label{sec:system-results}
