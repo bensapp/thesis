@@ -1,23 +1,23 @@
 \chapter{Related work}
 
-In this section we survey a variety of models for 2D human pose estimation.  We 
-focus here on methods that are meant to run in a general setting (\ie in the 
+In this section we survey a variety of methods for 2D human pose estimation.  
+We focus here on methods that are meant to run in a general setting (\ie in the 
 wild).  In particular, we don't address models that make additional assumptions 
 about the environment, such as known background, known person or clothing, or 
 motion capture systems.
 
 
 % classic PS stuff
-\mypar{Tree models} The classical PS model described in \secref{PS} was first 
+\mypar{Tree models} The classical PS model described in \secref{ps} was first 
 introduced by \citet{fischler1973ps} and serves as a canonical example of a 
 parts-based model with pairwise interactions between parts.  Importantly, the 
 graph of interactions forms a tree, which allows for efficient inference in 
 time quadratic in the number of states.  A method for max-inference that is 
-linear in the number of states was introduced by \citet{felzps}, and since then 
+linear in the number of states was introduced by \citet{felz05}, and since then 
 there has been an explosion of work focusing on improving this model by 
 training it discriminatively~\citep{devacrf,andriluka09} and improving upon 
 individual part localization capabilities via edge 
-descriptors~\citep{andriluka} and color \citep{eichner09}.
+descriptors~\citep{andriluka09} and color \citep{eichner09}.
 
 %more interactions
 \mypar{Beyond tree structure}
@@ -29,12 +29,15 @@ greedy search as an approximate inference technique. \citet{wang2008multiple}
 consider multiple, different trees over parts, where different edges can 
 express different geometric constraints, and the union of all edges forms a 
 cyclic graph.  They use a learned weighted-sum of individual tree beliefs at 
-test time.
+test time.  Quite recently \citet{min-bb} use a fully-connected graph using the 
+output of our cascade system (\secref{CPS}), and improves upon our results 
+which use a tree model.  They use branch-and-bound techniques and orders of 
+magnitude more time for inference to obtain exact solutions.
 
 %time graphs, approximate inference
 \mypar{Temporal models}
 In temporal processing, pairwise models resort to approximate inference 
-techniques to deal with intractable inference.  \citet{ferrari09} uses loopy 
+techniques to deal with intractable inference.  \citet{ferrari08} uses loopy 
 belief propagation, with temporal interactions expressing spatial continuity 
 between consecutive frames.  In 3D, \citet{sigal2004tracking} use 
 non-parametric belief propagation with learned motion distributions for 

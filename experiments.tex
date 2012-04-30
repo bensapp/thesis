@@ -164,14 +164,14 @@ data, so that guessing the mean joint position will do some fraction of joints
 correct.  The mean pose is obtained by empirical averages of joint locations on 
 the training sets; each joint estimated independently.
 
-\item \citet{andriluka09} [ARS] 
+\item \citet{andriluka09} 
 
 This is a classical dense PS method, as described in~\secref{ps}.  The unary 
 limb detectors are trained Adaboost ensembles of Shape Context on top of Canny 
 edges.  The pairwise potentials are geometric displacement, computed 
 efficiently with distance transforms (\secref{dt}).
 
-\item \citet{eichner09} [EZ]
+\item \citet{eichner09} 
 
 This is a complex system built off of~\citet{devacrf}.  The initial unary term 
 is linear filters on image edges.  It then iteratively re-parses using color 
@@ -179,7 +179,7 @@ estimated from the initial parse.  It also uses graphcut~\citep{boykov2001} to
 rule out some of the background clutter, and post-processing of probabilistic 
 marginals to obtain final limb segments.
 
-\item \citet{deva2011} [YR]
+\item \citet{deva2011} 
 
 This recent work uses HoG as its basic representation.  Like our models, it is 
 trained jointly in a discriminative learning framework.  Contemporary with our 

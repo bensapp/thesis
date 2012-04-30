@@ -1,31 +1,61 @@
 \chapter{Introduction}
-
-``Geman quote''
-
 {\em Why pose estimation?}
+\vspace{1cm}
 
-The idea of an intelligent robot performing a variety of mundane and 
-extraordinary tasks, up to and exceeding human performance, has captured the 
-hearts and minds of people since at least The Renaissance.  A key feature of 
-much of this romantic vision is that robots can interact with {\em us} - 
-working with, around and for humans.  An understanding of human pose is a 
-crucial component to making this compelling dream becoming a reality.  
+The idea of an intelligent robot performing a variety of tasks, extraordinary 
+and mundane, up to and exceeding human performance, has captured the hearts and 
+minds of people since at least the European Renaissance.  A key feature of much 
+of this romantic vision is that robots can interact with {\em us}---working 
+with, around and for humans.  An understanding of human pose is a crucial 
+component to making this compelling dream become a reality.  
 
 In the more practical and not-too-distant future, understanding human pose from 
 images has enormous potential to help in many computer vision tasks: semantic 
 indexing of images and video~\citep{posesearch}, action 
 recognition~\citep{pose-action11}, human-object interaction~\citep{bangpeng12}, 
-scene understanding~\citep{gupta11}.   
+and scene understanding~\citep{gupta11}, to name a few.   
 
-AI philosopical question - humans can do it, babies,  dogs can do it - why 
-can't a computer
+The problem of human pose understanding is also interesting in its own right.  
+It pushes the boundaries of what can and cannot be accomplished by artificially 
+intelligent systems.  Infants and even other species can understand human 
+pose---why can't a computer?  
 
-Challenging problem: Human pose estimation inherits all the difficulties of 
-object recognition - it shows off computation
+Pose estimation subsumes one of the holy grails of computer vision: general 
+object recognition.  It serves as useful vehicle to demonstrate computer vision 
+techniques that can be used in other subfields.  Humans can be considered a 
+collection of related objects (body parts), or a single, highly deformable 
+object.  The parts themselves are some of the most difficult to detect in the 
+literature.  Typical objects that researchers work on recognizing---faces, 
+bicycles or even potted plants \citep{voc09}---have distinguishing features, 
+reliable patterns and limited intra-class variability.  A body part such as a 
+lower arm, on the other hand, is far more generic.  It has a generic shape---
+at best it can be described as a projection of a cylinder or frustum---and is 
+subject to much higher intra-class variability due to clothing, articulated 
+pose, body type, and severe foreshortening.  Features developed must be 
+invariant to pose, lighting, texture and color and still discriminate parts 
+from clutter, or efficient search procedures over these variations need to be 
+developed. These types of techniques are valuable for computer vision in 
+general.
 
-For all these reasons, the task of estimating a human's pose from visual input 
-is a worthwhile and timely problem.  
+Human pose estimation is also one of the most computationally demanding 
+problems in computer vision, as the set of possible outputs is combinatorial in 
+the number of parts.  It can be posed as a graph assignment or graphical model 
+inference problem with an enormous set of possible labels (for each part, 
+determine which pixel it is associated with).  This makes it an interesting 
+testbed for advancements in graphical model and matching algorithms for and 
+beyond computer vision.
 
+Finally, the problem of pose estimation is timely.  In the computer vision 
+community, statistical machine learning tools and supervised datasets give us 
+principled protocols to learn effective recognition models which didn't exist a 
+decade ago.  Robots, cameras, and automated systems are more and more pervasive 
+in everyday life.  The demand for reliable pose estimation is already felt in 
+the entertainment and defense industries. 
+
+For all these reasons---practical applications, the dream of artificial 
+intelligence, the general applicability to vision and machine learning, the 
+convergence of technology to make it all possible---human pose estimation is an 
+excellent problem upon which to focus.
 
 
 \section{Problem Statement}
@@ -86,11 +116,13 @@ lower body parts, while increasing the computation time of all models at least
 linearly.  
 
 Finally, we restrict ourselves to polynomial running time.  The space of all 
-possible poses is exponential in the number of parts, and in some sense, the 
-ideal thing to do if computation were free is enumerate all possibilities and 
-score them holistically.  However, this is simply not feasible, and we are 
-forced to make conditional independence assumptions between certain parts to 
-achieve tractability.
+possible poses is exponential in the number of parts. The 
+ideal thing to do, if computation were not an issue, is enumerate all 
+possibilities and score them all using any scoring function of arbitrary 
+complexity. However, this is simply not feasible, and we are forced to make 
+conditional independence assumptions between certain parts to achieve 
+tractability.  In practice, we wish to estimate pose on the order of a few 
+minutes per frame.
 
 \section{Intrinsic difficulties}
 Human pose estimation in the wild is an extremely challenging problem.  It 
@@ -113,9 +145,10 @@ estimation.  See~\secref{perceptual}}
 \end{center}
 \end{figure}
 
-This is a difficult problem primarily because the appearance of pose is largely 
-unconstrained, making it highly variable with multiple appearance modes.  Some 
-issues are as follows, illustrated by~\figref{perceptual-issues}.
+One of the primary difficulties in human pose estimation is that appearance of 
+pose is largely unconstrained, making it highly variable with multiple 
+appearance modes.  Some issues are as follows, illustrated 
+by~\figref{perceptual-issues}.
 
 \mypar{Lighting:} Images of pose can be taken indoor or outdoor, making not 
 only the mean intensity of the image variable (signal bias), but also contrast 
@@ -124,22 +157,22 @@ features have been developed to be invariant to lighting, \eg, HoG~\citep{hog},
 but require harsh quantization and local normalization of edge energy 
 information. 
 
-\mypar{Viewpoint and pose: } Humans can look very different depending on the 
-angle they are to the camera.  The global ``twist'' (rotation about the 
-length-of-body axis) which determines the degree of frontal versus profile 
-stance of the person, can be somewhat mitigated by coarse person 
+\mypar{Viewpoint and pose: } Humans can look very different depending on where 
+they are with respect to the imaging plane.  The global ``twist'' (rotation 
+about the length-of-body axis) which determines the degree of frontal versus 
+profile stance of the person can be somewhat mitigated by coarse person 
 detectors~\citep{andriluka2010}.  However, the body can also go through radical 
 appearance changes due to the articulation of the limbs, forcing practical 
-systems to decompose the modeling into the most basic, articulation invariant 
-components as basic units: limbs and joints.
+systems to decompose the modeling into the most basic, articulation-invariant 
+components as atomic units: limbs and joints.
 
-\mypar{Relative scale:} Although we assume as input a detected person at a 
-rough global scale, we have still have a large variation in the scale of parts 
+\mypar{Relative scale:} We assume our input is a detected person at a rough 
+global scale.  However, we still have a large variation in the scale of parts 
 in two different ways: In any particular person, the ratio of limb lengths may 
-not be consistent; \eg a baby's proportions versus an adults.  Across people, 
-there is also a large differences in the geometries of parts, based on gender, 
-body type (fat, skinny, muscular), and age.  These further contribute to the 
-variability in appearance.
+not be consistent; \eg a baby's proportions are very different than an adult's.  
+Across people, there are also a large differences in the geometries of parts, 
+based on gender, body type (fat, skinny, muscular), and age.  These further 
+contribute to the variability in appearance.
 
 \mypar{2D projection:} The fact that we are working with images that are 
 projections of the real world lead to further difficulties.  Foreshortening 
@@ -152,13 +185,18 @@ further in~\secref{limitations}.  This makes it difficult to model priors on
 arm length, as we are forced to measure and reason about lengths on the 2D 
 pixel grid.
 
-\mypar{Clothing:} There is potential for even more variation in clothed people 
-than there is in the space of naked bodies.  Not only is clothing responsible 
-for foreground clutter, it also can be considered an occluder which hides parts 
-(\eg baggy clothing, skirts, ponchos) and can break assumptions about 
-left-right appearance symmetry (\eg an asymmetric shirt).
+\mypar{Clothing:} Clothing contributes a near-infinite space of foreground 
+variation.  Not only is clothing responsible for foreground clutter, it also 
+can be considered an occluder which hides parts (\eg baggy clothing, skirts, 
+ponchos) and can break assumptions about left-right appearance symmetry (\eg an 
+asymmetric shirt).
 
-\mypar{Background clutter:} \todo{forgot this one}
+\mypar{Background clutter:} Background clutter accounts for roughly half the 
+errors in pose estimation performance. Often it is extremely difficult to 
+separate edges in the background from lower arms.  Lower arms appear as little 
+more than a pair of roughly parallel lines in an image, as do many man-made 
+structures and natural objects in backgrounds: walls, tables, chairs, posts, 
+trees, etcetera.
 
 \begin{figure}[tb]
 \begin{center}
@@ -181,10 +219,10 @@ of appearance due to	clutter, motion blur, clothing, body type, and pose.
 
 To operationalize ~\probref{pose}, let $x$ be the input image pixels, and $y$ 
 be a representation of the output predicted pose.  Then a general solution 
-to~\probref{pose} would take the form of a {\em scoring function} $h(x,y)$ 
+to~\probref{pose} would take the form of a {\em scoring function} $s(x,y)$ 
 which evaluates the quality of any estimated pose $y$ in the image $x$.  We can 
-define the ``best'' pose as the highest scoring: $y^\star = \argmax_y h(x,y)$ 
-(or $y^\star = \arg\sup_y h(x,y)$ if $y$ is infinite dimensional, \eg 
+define the ``best'' pose as the highest scoring: $y^\star = \argmax_y s(x,y)$ 
+(or $y^\star = \arg\sup_y s(x,y)$ if $y$ is infinite dimensional, \eg 
 continuous).  Then~\probref{pose} is satisfied if this determination of the 
 maximizer can be done in polynomial time. There are two sources of intrinsic 
 computational complexity within this framework. 
@@ -217,63 +255,80 @@ angles~\citep{felz05}, resulting in an output space that is roughly $150000$
 possibilities for each part, and thus $150000^6 \approx 10^{30}$ for the joint 
 output space of all $6$ parts~\footnote{In the case of continuous spaces, the 
 output space is infinite (infinitely precise), and to maintain tractability the 
-form of $h(x,y)$ is typically analytical with a closed-form maximum, mean 
-and/or mode.}.
+form of $s(x,y)$ is typically analytical with a closed-form maximum, mean 
+and/or mode, or approximate sampling techniques are used for inference.}.
 
 Enumerating all possibilities for a joint configuration of all parts is clearly 
 not feasible.  At the other extreme, we could ignore part interactions, and 
 estimate the pose of each part separately---a task which instead has $6 \times 
-150000$ possibilities, which is very computationally cheap.  However, 
-individual part detection is extremely difficult for body 
+150000$ possibilities, which is computationally very cheap with todays 
+computers.  However, individual part detection is extremely difficult for body 
 parts~\citep{andriluka09} due to the wide range of appearance and lack of 
 discriminating features.
 
 Between the two extremes of (1) estimating parts in isolation and (2) 
 enumerating all possible joint pose configurations, there lies a family of 
-models $h(x,y)$ that consider {\em some} part interactions, but not all.  The 
-simplest of these is a {\em first-order} model which looks at pairs of part 
-interactions at a time, and the graph of part interactions forms a tree 
-structure.  This compromise between a full model of every part and a decoupled 
-model of independent parts will be the basic model building block throughout 
-this work.
+models $s(x,y)$ that consider {\em some} part interactions, but not all.  The 
+simplest of these is a {\em first-order or pairwise model}, which looks at 
+pairs of part interactions at a time, and the graph of part interactions forms 
+a tree structure.  This compromise between a full model of every part and a 
+decoupled model of independent parts will be the basic model building block 
+throughout this work.
 
-In such a first-order, or {\em pairwise} model, the basic bottleneck operation 
-is to evaluate the quality of a pair of parts at a time. The model combines all 
-such pairwise scores together to determine the optimal global pose.  This 
-scoring requires $150000^2 \approx 1$ billion possibilities to consider, which 
-is large but just small enough for modern machines to handle with some 
-additional model restrictions, detailed in~\secref{ps}.
+In such a pairwise model, the basic bottleneck operation is to evaluate the 
+quality of a pair of parts at a time. The model combines all such pairwise 
+scores together to determine the optimal global pose.  This scoring requires 
+$150000^2 \approx 1$ billion possibilities to consider for a pair of parts in 
+our example $80 \times 80 \times 24$ state space, which is large but just small 
+enough for modern machines to handle with some additional model restrictions, 
+detailed in~\secref{ps}.
 
-\todo{reduce from NP-hard problem?}
 
 \section{Contributions of this thesis}
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/puzzle.pdf}
+\caption[Puzzle analogy to pose estimation.]{Puzzle analogy to pose estimation.  
+Classical approaches only use individual part detectors and geometric 
+plausibility to determine the pose of a person.  This is analogous to 
+attempting to put together a puzzle without looking at appearance of the pieces 
+---only the plausibility of them fitting together. On the other hand, models 
+with data-dependent interactions are analogous to using the appearance of the 
+puzzle piece faces as well as there fit when constructing the puzzle.  Even for 
+humans, it is easier to spot the correct pair of upper/lower arms when they are 
+examined jointly.}
+\label{fig:puzzle}
+\end{center}
+\end{figure}
 
 Due to the computational issues discussed above, previous work in pose 
 estimation has resorted to a model of pose that considers, at most, pairwise 
 interactions between parts, in a specially restricted form:
-$$ h(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
+$$ s(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
 \cE_{\tree}} \phi_{ij}(y_i - y_j) $$
 where the network of part pairwise interactions is described by a tree 
 structured graph $\tree = (\cV_\tree,\cE_\tree)$.  The first terms 
-$\phi_i(x,y_i)$ how likely a part is to be placed at location $y_i$, 
-independent of other parts.  The pairwise term $\phi_{ij}(y_i-y_j)$ simply 
-measures the geometric compatibility between pairs of parts.  Importantly, this 
-pairwise term is {\em blind to the image content}.  As we will see 
-in~\secref{ps}, this simple form has been historically necessary in order to 
-find the highest scoring global pose quickly.
+$\phi_i(x,y_i)$ score how likely a part is to be placed at location $y_i$, 
+independent of other parts.  The pairwise terms $\phi_{ij}(y_i-y_j)$ score the 
+geometric compatibility between pairs of parts.  Importantly, this pairwise 
+term is {\em blind to the image content}.  As we will see in~\secref{ps}, this 
+simple form has been historically necessary in order to find the highest 
+scoring global pose quickly.
 
-Such a simplistic pairwise would be admissible if the individual part terms 
-were sufficiently accurate on their own.  However, for reasons discussed 
+Such a simplistic pairwise term would be admissible if the individual part 
+terms were sufficiently accurate on their own.  However, for reasons discussed 
 in~\secref{perceptual}, individual part detector scores are extremely weak: 
 they must work in isolation and generalize to limbs in all settings of 
 backgrounds, foregrounds, articulation, and environment.
 
 As a result, the above model is effectively trying to piece together parts of a 
 person, when the parts themselves are extremely ambiguous. As an extreme 
-analogy of this, it is like attempting to put together a jigsaw puzzle in which 
-the pieces themselves are very generic, and to determine whether two pieces fit 
-together, you can only observe their boundary geometry, and {\em not } the  
-image content on their faces.
+analogy of this, it is similar to attempting to put together a jigsaw puzzle in 
+which the pieces themselves are very generic.  You have many plausible 
+candidates for where each piece should go individually (unary scores), but to 
+determine whether two pieces are adjacent, you can only see how well they fit 
+together, and {\em not } the  image content on their faces; see 
+\figreff{puzzle}{top row}.
 
 
 \subsection{Image-dependent interactions in a tree structured 
@@ -282,13 +337,14 @@ model,~\secref{CPS}}
 Instead, we wish to actually {\em exploit } image content when modeling 
 pairwise interactions.  In the puzzle analogy, this would allow us to fit 
 pieces together based on their color similarity and continuous contours across 
-the connection boundary.  We exploit these same cues for determining whether 
-limbs go together in an image, as well as additional cues such as region 
-support and multi-modal descriptions of geometry.
+the connection boundary; see \figreff{puzzle}{bottom row}.  We exploit these 
+same cues for determining whether limbs go together in an image, as well as 
+additional cues such as region support and multi-modal descriptions of 
+geometry.
 
 To this effect, we propose a more general model of human pose, of the form 
 \begin{equation}
-\boxed{h(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
+\boxed{s(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
 \cE_{\tree}} \phi_{ij}(x,y_i,y_j)}
 \label{eq:contrib1}
 \end{equation}
@@ -310,14 +366,14 @@ left/right symmetric parts to model clothing) and {\em across} frames when
 dealing with tracking multiple parts and their interactions over time in video.  
 We address this with a generalization of~\equref{contrib1}:
 \begin{equation}
-\boxed{h(x,y) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{G}} 
+\boxed{s(x,y) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{G}} 
 \phi_{ij}(x,y_i,y_j)}
 \label{eq:contrib2}
 \end{equation}
 where $G = (\cV_G,\cE_G)$ is a general graph, not just a tree.  Determining the 
-best possible answer $\argmax_y h(x,y)$ over a general graph $G$ is known to be 
-NP-hard~\citep{koller-book}---exponential in the number of frames of video.  We 
-provide an approximate approach which decomposes~\equref{contrib2} into a 
+best possible answer $\argmax_y s(x,y)$ over a general graph $G$ is known to be 
+$\#P$-hard~\citep{koller-book}---exponential in the number of frames of video.  
+We provide an approximate approach which decomposes~\equref{contrib2} into a 
 collection of subtree graphs, whose union of edges is equal to $\cE_G$.  This 
 allows us to exploit all the interesting interaction terms in the original 
 model with efficient inference in each subtree, thanks to the structure and the 
@@ -345,13 +401,13 @@ Complementary to the models described by~\equref{contrib1}
 and~\equref{contrib2}, we propose to capture this nonlinearity directly as 
 follows:
 \begin{equation}
-\boxed{h(x,y,z) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i,z) + \sum_{i,j \in 
+\boxed{s(x,y,z) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i,z) + \sum_{i,j \in 
 \cE_{G}} \phi_{ij}(x,y_i,y_j,z)}
 \label{eq:contrib3}
 \end{equation}
 where now the goal is to determine not only the best pose layout $y$, but also 
 which {\em mode} $z$ the pose belongs to: $y^\star,z^\star = \argmax_{y,z} 
-h(x,y,z)$.  Each mode need only model a portion of the pose space, which we 
+s(x,y,z)$.  Each mode need only model a portion of the pose space, which we 
 define by radii in appearance and pose centered around training examples.  This 
 means we get up to thousands of exemplars to form a basis for a discriminative 
 pose space.  Instead of fitting the parameters of one monolithic model to cover 
@@ -361,8 +417,8 @@ us to learn more precise descriptions of appearance and geometry.
 \subsection{Summary of contributions}
 
 In summary, the work detailed in this thesis contributes the following to the 
-fields of machine learning and computer vision, specifically their intersection 
-for human pose estimation:
+fields of machine learning and computer vision, and especially their 
+intersection for human pose estimation:
 \begin{itemize}
 
 \item New models of human pose that model interactions between parts as a 
@@ -385,4 +441,14 @@ frame datasets, and our introduced Videopose video sequence dataset.
 \subsection{Published work supporting this thesis}
 
 
-
+The Cascaded Pictorial Structure model (\secref{CPS}) first appeared in 
+\citet{sapp2010cascades} and introduced the concepts of a coarse-to-fine 
+cascade that allows one to use arbitrary features efficiently.  This extended 
+the original Structured Prediction Cascades approach from \citet{cascades}, 
+with a journal version under review---\citet{cascades-jmlr}.
+Using the cascade approach for an ensemble of models was developed in 
+\citet{weisssapp10}.  This idea was then extended beyond cascade filtering for 
+prediction in the Ensembles of Stretchable Models framework 
+(\secref{stretchable}) for pose estimation in video in \citet{sapp2011}.  The 
+complementary non-parametric approach of Local Linear Pictorial Structures 
+(\secref{llps}) is currently under review for ECCV2012---\citet{sapp-llps}.

@@ -1,4 +1,4 @@
-\chapter{Pictorial structures: Pose estimation meets structured prediction} 
+\chapter{Pictorial structures: \\Pose estimation meets structured prediction} 
 \label{sec:ps}
 Classical pictorial structure models (PS models) are a class of structured 
 models specifically proposed to represent 2D objects with parts which can 
@@ -7,19 +7,19 @@ articulate in a kinematically plausible way.  The model was first proposed by
 computational innovations by \citet{felz05}.
 
 Pictorial structures take the form of a pairwise structured model as described 
-in \secref{pairwise-model}:
+in \secref{pairwise-mrf}:
 \begin{equation}
-h(x,y) = \sum_{i \in \cV_G} \phi_i(x,y_i) + \sum_{ij \in \cE_G} 
+s(x,y) = \sum_{i \in \cV_G} \phi_i(x,y_i) + \sum_{ij \in \cE_G} 
 \label{eq:standard-ps}
-\phi_{ij}(y_i,y_j)
+\phi_{ij}(y_i-y_j)
 \end{equation}
-with the important exception that {\em the unary terms $\phi_{ij}(y_i,y_j)$ are 
-image-independent}---they are not a function of $x$.
+with the important exception that {\em the pairwise terms $\phi_{ij}(y_i-y_j)$ 
+are image-independent}---they are not a function of $x$.
 
 In the PS model, the variables correspond to the major body parts.  For 
 upper-body pose estimation, $y$ typically corresponds to [head, torso, 
 left-upper-arm, left-lower-arm, right-upper-arm, right-lower-arm], and $y_i \in 
-[1,\ldots,80\times 80 \times 24]$ represents a typical $80 \times 80$ 
+[1,2,3,\ldots,80\times 80 \times 24]$ represents a typical $80 \times 80$ 
 discretized grid of spatial locations, and $24$ discretized angles for each 
 part.  Thus one way to think about the representation for each part is a unit 
 vector describing position and orientation of each limb. 
@@ -29,12 +29,12 @@ interaction structure $G$ must be a tree.  The most common tree is formed by
 considering kinematic connections only: the lower-arm is connected to the 
 upper-arm, the upper-arm to the torso, etcetera.
 
-\mypar{Unary potentials:} The unary potentials $\phi_i(x,y_i)$ encode how likely a limb is 
-at (location,orientation) $y_i$ in the image.  This can be thought of as a part 
-detector applied to an image patch located at $y_i$.  In practice these 
-detectors are patch-based sliding window object detectors, applied at every 
-location and orientation of the image.  The typical representation is based on 
-edge information in order to be invariant to lighting and color. Edges 
+\mypar{Unary potentials:} The unary potentials $\phi_i(x,y_i)$ encode how 
+likely a limb is at location/orientation $y_i$ in the image.  This can be 
+thought of as a part detector applied to an image patch located at $y_i$.  In 
+practice these detectors are patch-based sliding window object detectors, 
+applied at every location and orientation.  The typical representation is based 
+on edge information in order to be invariant to lighting and color. Edge 
 orientation and magnitude are often locally quantized and histogrammed to be 
 more numerically and spatially stable, and invariant to local signal gain.  
 Feature representations are discussed in detail in \secref{features}
@@ -43,27 +43,27 @@ Feature representations are discussed in detail in \secref{features}
 pairwise potential the depends only on the deformation between kinematially 
 attached parts. In general, this is a quadratic stretching cost of the form 
 \begin{align} \label{eq:springcost}
-\phi_{ij}(x,y_i,y_j) = -||T_{ij} y_i - y_j - \delta_{ij} ||_2^2 \end{align}
+\phi_{ij}(y_i-y_j) = -||T_{ij} y_i - T_{ji} y_j - \delta_{ij} ||_2^2 
+\end{align}
 where $T_{ij}$ are rigid transformations (rotation, translation and scale) to 
 place neighboring parts in a local coordinate frame, and $\delta_{ij}$ is the 
 expected displacement between the parts.  For example, 
-$\phi_{ij}(x,y_{\text{luarm,llarm}})$ measures the squared Euclidean distance 
-between the elbow locations according to the left upper arm and left lower arm 
-variables.  
+$\phi_{ij}(y_{\text{luarm}} - y_{\text{llarm}})$ measures the squared Euclidean 
+distance between the elbow locations according to the left upper arm and left 
+lower arm variables.  
 
 \mypar{Spring model interpretation} The reasons for restricting the pairwise 
 potential to be only a function of spatial deformation are primarily 
-computational, as discussed in \secref{ps-inference}.  In addition, this type 
-of model is simple and intuitive to interpret as a ``spring model'' of object 
-layout: the PS model can be interpreted as a set of springs at rest in default 
-positions $\delta_{ij}$ stretched by displacement $T_{ij} y_i - y_j - 
-\delta_{ij}$.  The spring tightness is encoded by warping transformations 
-$T_{ij}$ which can scale the dimensions of the spatial Euclidean coordinate 
-space.  The unary terms pull the spring ends towards locations $y_i$ with 
-higher scores $\phi_i$ which are more likely to be a location for part $i$.  
-Thus the spring model seeks a balance between confidence in individual part 
-detectors, and the amount of deformation from a default, 2D geometric prior of 
-the human layout.
+computational, as discussed in \secref{dt}.  In addition, this type of model is 
+simple and intuitive to interpret as a ``spring model'' of object layout: the 
+PS model can be interpreted as a set of springs at rest in default positions 
+$\delta_{ij}$ stretched by displacement $T_{ij} y_i - T_{ji}y_j $.  The spring 
+tightness is encoded by warping transformations $T_{ij}$ which can scale the 
+dimensions of the spatial Euclidean coordinate space.  The unary terms pull the 
+spring ends towards locations $y_i$ with higher scores $\phi_i$ which are more 
+likely to be a location for part $i$.  Thus the spring model seeks a balance 
+between confidence in individual part detectors, and the amount of deformation 
+from a default, 2D geometric prior of the human layout.
 
 \out{
 spring model
@@ -121,8 +121,8 @@ While fast to compute and intuitive from a spring-model perspective, this model 
 
 \section{Sub-quadratic inference}\label{sec:dt}
 
-As discussed in \secref{pairwise-model}, the computation required to obtain the 
-highest-scoring pose out of the exponentially many possibilities according to 
+As discussed in \secref{pairwise-mrf}, the computation required to obtain the 
+highest-scoring pose out of the exponentially-many possibilities according to 
 \equref{standard-ps} is $O(kn^2)$, using \algref{max-inference}.  In pose 
 estimation, the reason is intuitive: for each possible location of, say a left 
 upper arm, we need to exhaustively search to find the best location of a 
@@ -154,12 +154,12 @@ at location $y_j$, using all the information from predecessor parts in the
 topological ordering.  The quantity $m_{i \rightarrow p}(y_j)$ is the 
 corresponding score for that placement.  
 
-It turns out, as introduced by \citet{felz05}, that when the pairwise term 
-$\phi_{ij} $ takes the form it does for classical PS, as in 
-\equref{springcost}, then we can apply a {\em generalized distance transform} 
+It turns out that when the pairwise term $\phi_{ij} $ takes the form it does 
+for classical PS, then we can apply a {\em generalized distance transform} 
 procedure to compute $a_i$ and $m_{i \rightarrow j}$ over all possibilities for 
-$y_i$ and $y_j$ in time linear in the number of states (versus the \naive 
-quadratic time).
+$y_i$ and $y_j$ in time linear in the number of states. This makes the total 
+cost of inference $O(kn)$ instead of $O(kn^2)$. This was proposed by 
+\citet{felz05}.
 
 The generalized distance transform solves the problem
 \begin{align}
@@ -175,37 +175,37 @@ By manipulating \equref{pairwise-max}, we can massage it into the form of
 
 \begin{align}
 &\max_{y_i} \phi_{ij} + m_i(y_i)\\
-&= \max_{y_i} -||T_{ij}y_i - y_j - \delta_{ij}||_2^2 + m_i(y_i) \\
-&= -\min_{y_i} ||T_{ij}y_i - y_j - \delta_{ij}||_2^2 + (-m_i(y_i)) \\
-&= -\min_{y_i} ||\tilde{y}_i - y_j||_2^2 + (-m_i(y_i)) \\
-&= -\cD_{\tilde{y}_i}(y_j; -m_i)
+&= \max_{y_i} -||T_{ij}y_i - T_{ji}y_j - \delta_{ij}||_2^2 + m_i(y_i) \\
+&= -\min_{y_i} ||T_{ij}y_i - T_{ji}y_j - \delta_{ij}||_2^2 + (-m_i(y_i)) \\
+&= -\min_{y_i} ||\tilde{y}_i - \tilde{y}_j||_2^2 + (-m_i(y_i)) \\
+&= -\cD_{\tilde{y}_i}(\tilde{y}_j; -m_i)
 \end{align}
 
-Where $\tilde{y}_i$ is a transformed version of the 2D state space for $y_i$ 
-via the rigid transform of $T_{ij}$ and a translation by $\delta_{ij}$. In 
-fact, the tricks used to compute the generalized distance transform efficiently 
-work for any unimodal functions of geometric displacement.  In particular, an 
-$L_1$-norm transform can also be used. 
+Where $\tilde{y}_{i,j}$ are transformed versions of the 2D state space for 
+$y_{i,j}$ via the rigid transforms of $T_{ij},T_{ji}$ and a translation by 
+$\delta_{ij}$.  In fact, the tricks used to compute the generalized distance 
+transform efficiently work for any unimodal functions of geometric 
+displacement, \eg $L_1$-norm. 
 
-\todo{relwork: julian's thing, branch and bound, hmm max thing}
 \section{Limitations}
 \label{sec:limitations}
 
-There are some severe limitations to the classical PS model discussed in this 
-section which motivate the contributions of this thesis. 
+There are some severe limitations to the classical PS model.  Some of these are 
+primary motivations for the contributions of this thesis.  
 
 \subsection{2D representation for a 3D object} Inferring 3D pose from 2D input 
 is inherently ambiguous.  Even when the real world geometric specifications of 
-the object are known (\eg, the true lengths of limbs in centimeters, or their 
+an object are known (\eg, the true lengths of limbs in centimeters, or their 
 length ratios), there is ambiguity due to camera projectection---does the 
 imaged limb appear shorter because it is pointing towards or away from the 
 camera?  In a solution provided by~\citet{cj-skel}, knowing the locations of 
 $n$ limbs' image coordinates and real world proportions results in a family of 
 $2^n$ possible real-world solutions, up to an unknown scale factor.  
-User-guided interfaces aided with this technology still take minutes of trial 
-and error adjustments to get a plausible 3D pose from 2D~\citep{poselets}. 
+User-guided interfaces aided with this technology still take minutes of human 
+effort in trial and error adjustments to get a plausible 3D pose from 
+2D~\citep{poselets}. 
 
-Thus it is a intrinsic problem that we must reason in 2D with 2D input 
+It is intrinsic to the 2D pose problem that we must reason in 2D with 2D input 
 (although when estimating pose in video, temporal consistency may help resolve 
 some of the ambiguities).  As a result, the 2D geometric priors are inherently 
 weak.  Fixing global scale of the person, it is only safe to say that a limb 
@@ -217,25 +217,29 @@ background and self-occlusion extremely difficult to model.
 Representing pose  as limbs parametrized by location and orientation has been 
 called a ``cardboard people'' representation, since at best limbs can be 
 described by rectangles of fixed dimensions (from idealized cylinder 
-representations of limbs projected into the image)~\citep{cardboard}.  Such a 
-mode  leaves no room for modeling foreshortening, and is forced to discretize 
-the set of orientations to some coarse $10^\circ$ to $15^\circ$ increments.  In 
-fact, the system originally proposed by~\citet{felz05} also considered $10$ 
-discretized values of scale for each part to handle foreshortening, but no 
-recent publicly available system 
+representations of limbs projected into the image)~\citep{cardboard}.  As such, 
+the representation leaves no room for modeling foreshortening, and is forced to 
+discretize the set of orientations to some coarse $10^\circ$ to $15^\circ$ 
+increments.  In fact, the system originally proposed by~\citet{felz05} also 
+considered $10$ discretized values of scale for each part to handle 
+foreshortening, but no recent publicly available system 
 \citep{andriluka09,eichner09,sapp2010,sapp2010cascades,sapp2011} includes a 
 scale for each part. The reasons are two-fold. 
 
  First, it is computationally more expensive.  Ten scales per part results in a 
 state space for each part that is 10 times larger.  When using distance 
 transform inference tricks as in~\secref{dt}, this makes inferences 10 times 
-slower.  If using standard max-sum inference (\secref{pairwise-model}), it 
-would be 100 times slower.   
+slower.  If using standard max-sum inference (\secref{pairwise-mrf}), it would 
+be 100 times slower.   
 
 Second, there is very little signal in real world scenarios from which to infer 
 foreshortening.  In~\citet{felz05} the system operated on foreground 
 sillhouettes, making background clutter a non-issue.  When severely distorted, 
-it is extremely difficult to determine, even to the human eye, what is a foreshortened arm and what is simply background clutter. \todo{figure}.  This problem can be ameliorated when parsing human pose in video, in which we can track joints as the arm undergoes a foreshortening over a sequence of frames.  We address these issues in \secref{stretchable}.
+it is extremely difficult to determine, even to the human eye, what is a 
+foreshortened arm and what is simply background clutter. This problem can be 
+ameliorated when parsing human pose in video, in which we can track joints as 
+the arm undergoes a foreshortening over a sequence of frames.  We address these 
+issues in \secref{stretchable}.
 
 \subsection{Unimodal potentials}
 
@@ -243,30 +247,31 @@ In order to achieve fast inference, modeling sacrifices have been made.  The
 linear time max-sum inference for PS described in \secref{dt} via distance 
 transforms is supported only if the pairwise potentials are a unimodal function 
 of geometric displacement.  This is quite a strong assumption, especially for 
-representing the angle between, \eg, upper and lower arms.  Figure blah blha 
-blah \todo{figure}. 
+representing the angle between, \eg, upper and lower arms.  
+\figreff{dataset-multimodal}{c} shows that the inner-angle between lower and 
+upper arms is highly multi-modal.
 
-Furthermore, even the unary potentials are typically unimodal, in the sense 
-that they are modeled as individual linear classifiers on an edge 
-representation, of the form $\w_i \cdot \f_i(x,y)$.  As a consequence, all the 
-variations of part appearance due to pose, deformation, body type, lighting, 
-foreshortening and clothing are being fit with a single linear model, resulting 
-in a harsh quantization of the rich space of poses.  The reasons for this are 
-not only computational (the weights can be re-interpreted as a 2D linear 
-filter, and $O(n \log n)$ convolution can be used to evalute them), but also 
-statistical: using a more complex model requires more training data for 
-accurate estimation.  This issue is the motivation for the model proposed 
-in~\secref{llps}.
+Unary potentials are also typically unimodal, in the sense that they are 
+modeled as individual linear classifiers on an edge representation, of the form 
+$\w_i \cdot \f_i(x,y)$.  As a consequence, all the variations of part 
+appearance due to pose, deformation, body type, lighting, foreshortening and 
+clothing are being fit with a single linear model, resulting in a harsh 
+quantization of the rich space of poses.  The reasons for this are not only 
+computational (the weights can be re-interpreted as a 2D linear filter, and 
+$O(n \log n)$ convolution can be used to evalute them), but also statistical: 
+using a more complex model requires more training data for accurate estimation.  
+This issue is the motivation for the model proposed in~\secref{llps}.
 
 \subsection{Image-independent interactions}  Maybe the most unsatisfying 
 property of the pictorial structure model is its effective blindness to image 
 content when determining how to ``piece patches together'' in a geometrically 
 plausible way to obtain the best scoring pose, due to the image-independent 
-pairwise terms $\phi_{ij}(y_i,y_j)$.  This is a necessity in order to achieve
+pairwise terms $\phi_{ij}(y_i-y_j)$.  This is a necessity in order to achieve
 sub-quadratic inference, as discussed in \secref{dt}.  This means we are unable 
 to encode in the pairwise term the likelihood that a pair of part hypotheses go 
 together because they {\em look like} they go together; only that they go 
-together because they fit together geometrically.  Thus we are unable to 
-express color, shape or region compatibility for a pair of parts in our model.  
-Overcoming this limitation is a major contribution of this thesis, addressed 
-in~\secref{CPS} and \secref{stretchable}.
+together because they fit together geometrically, like putting together a 
+jigsaw puzzle without looking at the puzzles faces (\figref{puzzle}).  Thus we 
+are unable to express color, shape or region compatibility for a pair of parts 
+in our model.  Overcoming this limitation is a major contribution of this 
+thesis, addressed in~\secref{CPS} and \secref{stretchable}.

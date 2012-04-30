@@ -26,11 +26,11 @@ motion parsing}.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.99\linewidth]{figs/stretchable-overview.pdf}
-\caption[Stretchable Ensembles overview]{\small \label{fig:overview} Overview.  
-On the left, we show a full model with edges representing all pairwise 
-relationships we want to capture within and between frames.  We approximate 
-this full, intractable loopy model by decomposing it into an ensemble of six 
-models which cover the edge relationships of the full model.  Our joint-centric 
+\caption[Stretchable Ensembles overview]{\label{fig:overview} Overview.  On the 
+left, we show a full model with edges representing all pairwise relationships 
+we want to capture within and between frames.  We approximate this full, 
+intractable loopy model by decomposing it into an ensemble of six models which 
+cover the edge relationships of the full model.  Our joint-centric 
 representation is considerably more flexible in modeling pose variability than 
 rigid limb-based 
 representations~\cite{ferrari08,sapp2010cascades,andriluka09}.}
@@ -92,8 +92,8 @@ decomposition.
 \begin{figure}[tb!]
 \centering
 \includegraphics[width=0.9\linewidth]{figs/videopose-dataset-stats.pdf}
-\caption[VideoPose2.0 statistics]{small \label{fig:dataset} A summary of our 
-new video dataset, VideoPose2.0.  \textbf{Left:} A scatter plot of groundtruth 
+\caption[VideoPose2.0 statistics]{\label{fig:dataset} A summary of our new 
+video dataset, VideoPose2.0.  \textbf{Left:} A scatter plot of groundtruth 
 joints (green dot = shoulder, blue circle = elbow, red square = wrist).  
 \textbf{Right:} Histogram of lower arm lengths in our dataset, illustrating how 
 important it is to model relative part length in a real world setting.  }
@@ -180,7 +180,7 @@ expressive model than standard PS.
 
 
 
-\subsection{Ensembles of stretchable models}
+\subsection{Ensembles of stretchable models (ESM)}
 Ideally we want a model of human motion which captures important
 relationships between all correlated parts.  This includes parts that
 are connected kinematically (e.g., left elbow, left wrist), parts that
@@ -378,10 +378,11 @@ each model. To learn parameters, we optimize a convex hinge-loss
 objective for each model $p$ separately:
  \begin{align}
 \min_{\theta_m} \frac{\lambda}{2}||\w^p||^2 +
-\frac{1}{n}\sum_{j=1}^n \left[ \max_y s^p(x^{(j)},y) - s^p(x^{(j)},y^{(j)})
+\frac{1}{n}\sum_{j=1}^m \left[ \max_y s^p(x^{(j)},y) - s^p(x^{(j)},y^{(j)})
 +1\right]_+
 \end{align}
-We optimize this problem via stochastic sub-gradient descent, and we choose
+We optimize this problem via stochastic subgradient descent, as explained in 
+\secref{learning}, and we choose
 $\lambda$ and the number of training epochs using a held-out
 development set to minimize error.
 

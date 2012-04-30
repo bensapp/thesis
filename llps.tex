@@ -173,7 +173,7 @@ notion of overlapping neighborhoods.
 
 
 
-\section{Model}\label{sec:llps-model}
+\section{\LLPS}\label{sec:llps-model}
 
 We pose the problem of 2D human pose estimation as a structured prediction 
 task.  Let $x$ represent a given input image, and $y$ represent the location of 
@@ -200,7 +200,7 @@ exponential in the number of model parts: $|\mathcal{Y}| = |\mathcal{Y}_i|^P$,
 where $\mathcal{Y}_i$ is the set of possible placements of part $i$ in the 
 image (and is the same for all $i$).
 
-\subsection{\LLPSlong~(\LLPS)}
+% \subsection{\LLPSlong~(\LLPS)}
 Instead of a single, linear model as in~\equref{llps-ps}, we model human pose 
 with a collection of linear models which describe different local 
 neighborhoods.  Let us consider $M$ such models, which we index $m = 1 \ldots 
@@ -238,6 +238,23 @@ inference process.  Each training example defines a local neighborhood model.
 Each model is run in parallel on a test image, and the argmax prediction is 
 taken as a guess. Inset: the graphical model structure.}
 \end{figure}
+
+\subsection{Image-adaptive pose priors and a non-parametric perspective}
+One important perspective of the above is as a pose-prior {\em switching 
+model}, popular in speech synthesis \citep{rosti2003switching}.  In this 
+setting, $z$ can be thought of as switching between different appearance and 
+pose priors.  The particular instantiation of $z$ depends on the image content.  
+This is related to another, locally-linear method called Adaptive Pictorial 
+Structures (APS) \citet{sapp2010}.  In this work, the pose prior terms 
+$\phi_{ij}$ were adjusted based on a kernel-weighted sum of exemplar 
+similarities to the image.  \LLPS, on the other hand, forces a discrete choice 
+from a dictionary of pose priors, and this procedure is learned 
+discriminatively.  From a more practical standpoint, APS relied on very costly 
+and heuristic nearest-neighbor computation.  APS searched densely through a 
+large number of deformations to handle articulation, rather have a decomposable 
+distance.  Each submodel of \LLPS can be thought of as a decomposable 
+similarity function, learned discriminatively to separate true poses from bad 
+locally, as we will see next.
 
 \section{Learning}\label{sec:llps-learning}
 

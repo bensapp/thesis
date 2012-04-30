@@ -1,6 +1,3 @@
-
-%--------------------------------------------------------------
-%document header info
 \documentclass[12pt]{report}%{book}
 \pagestyle{plain}
 \usepackage{PennDiss}
@@ -24,6 +21,9 @@
 
 \usepackage{algorithm}
 \usepackage{algorithmic}
+
+%\includeonly{intro,rel,ml,ps}
+
 \begin{document}
 \input{commands}
 \newcommand{\mytitle}{Efficient Human Pose Estimation with Image-dependent 
@@ -45,43 +45,50 @@ INTERACTIONS}
 \newpage
 \copyrightpage
 %\prefacesection{Acknowledgments}
-%\input{ack}
+%\include{ack}
 \newpage
+
+% abstract must be placed in abstract.tex for this to work:
 \abstractp
-\input{abstract}
-\afterpreface
+
 % \prefacesection{Preface}
-% \input{preface}
+% \include{preface}
+
+\tocstuff
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
 \pagenumbering{arabic}
 \pagestyle{plain}
 
-\input{intro}
+\include{intro}
 \part{Preliminaries}
-\input{ml}
-\input{ps}
-\input{rel}
+\include{ml}
+\include{ps}
+\include{rel}
 
 \clearpage
 \part{Models and methods}
-\input{CPS}
-\input{ensembles}
-\input{llps}
+\include{CPS}
+\include{ensembles}
+\include{llps}
 
 \clearpage
 \part{Representations of 2D human pose}
-\input{features}
+\include{features}
 
 \clearpage
 \part{Experiments}\label{sec:experiments}
-\input{experiments}
-\input{results}
+\include{experiments}
+\include{results}
 
 \clearpage
 \part{Discussion and Conclusions}
-\input{discussion}
+\include{discussion}
+
+\clearpage
+\appendix
+%\input{qual-res}
 
 \clearpage
 \bibliographystyle{plainnat}
