@@ -1,10 +1,9 @@
 \chapter{Methodology}
 The main contributions of this thesis are new models of pose which allow us to 
-incorporate new representations and features.  As such, in this part we show 
-empirically that the methods are worthwhile by comparing them to 
-state-of-the-art methods on competitive benchmark datasets.  Furthermore, we 
-also analyze the trade-offs of the different models and the feature's 
-effectiveness.
+incorporate new representations.  In this part we show empirically that the new 
+representations are worthwhile by comparing them to state-of-the-art methods on 
+competitive benchmark datasets.  Furthermore, we also analyze the trade-offs of 
+the different models and the features' effectiveness.
 
 \section{Datasets}\label{sec:datasets}
 \begin{figure}[tb]
@@ -47,7 +46,7 @@ VideoPose 2.0.  Clips in the dataset were hand-selected (before developing our
 algorithm) to highlight natural settings where state-of-the-art methods fail: a 
 highly varied (yet realistic) range of poses, rapid gesticulation, and a 
 significant portion of frames (30\%) with foreshortened lower arms.  The 
-dataset consists of 44 short clips, 2-3 seconds in length, with a total of 
+dataset consists of 44 short clips, each 2-3 seconds in length, with a total of 
 1,286 frames.  We use 26 clips for training, recycle 1 training clip for a 
 development set, and use 18 for testing.  As in the Buffy and PASCAL datasets, 
 we fix global scale and translation of the person---in this case by manual 
@@ -59,20 +58,20 @@ different biases, as can be seen in~\figref{dataset-scatterplots}.  First, note
 the distributions of joint locations.  The least varied is Buffy, followed by 
 Pascal and then VideoPose.  In VideoPose in particular, the wrist locations 
 have much more spread, and often lie on top of elbows, indicating more 
-foreshortening in this dataset, and that hands are often raised up, 
-gesticulating.  Both Buffy and Pascal were collected with the 2D pictorial 
-structure model in mind, where frames could be plucked individually to satisfy 
-some of the 2D-based assumptions of the model.  In the VideoPose dataset, we 
-collected clips only based on duration, scale and viewpoint of the person.  
-Note that Buffy and Pascal both have less than 20 examples with elbows raised 
-above shoulders, whereas VideoPose has none---this is an unusual pose in a 
-sitcoms.
+foreshortening in this dataset.  The hands are often raised up, gesticulating.  
+
+Both Buffy and Pascal were collected with the 2D pictorial structure model in 
+mind, where frames could be plucked individually to satisfy some of the 
+2D-based assumptions of the model.  In the VideoPose dataset, we collected 
+clips only based on duration, scale and viewpoint of the person.  Note that 
+Buffy and Pascal both have less than 20 examples with elbows raised above 
+shoulders, whereas VideoPose has none---this is an unusual pose for sitcoms.
 
 Second, observe the average images of these datasets in 
 \figreff{dataset-scatterplots}{bottom}.  We can see plain biases---Buffy and 
 VideoPose are darker (being primarily interior settings), the Buffy dataset is 
 primarily female, and VideoPose has fewer unique background settings (the 
-Friends' apartment, coffee shop, etc).
+Friends' apartment, coffee shop, etcetera).
 
 
 \section{Evaluation Measures}
@@ -82,12 +81,12 @@ describing the major anatomical parts''.  Ideally, we want to measure how often
 our guessed pose matches a groundtruth pose.  However, this is nearly 
 impossible in practice, even on the training set. It is very difficult to 
 achieve anything near pixel-level precision---in practice, 1 pixel is 
-approximately the size of a person's pupil at the resolution we use.  This is 
-do to uncertainty in human labeling, fixed-length limb models (in the case of 
-classical PS and CPS), and translation invariant features which cannot guide 
-limbs to extremely precise fits.
+approximately the size of a person's pupil at the resolution we use.  This lack 
+of precision is due to uncertainty in human labeling, fixed-length limb models 
+(in the case of classical PS and CPS), and translation invariant features which 
+cannot guide limbs to extremely precise fits.
 
-We consider the following relaxed measure of performance.
+We consider the following relaxed measures of performance:
 
 \subsection{Root-Mean-Square Error (RMSE)}  Because our datasets are scale 
 normalized (to the precision of an upper-body detector), pixel distances are 
@@ -109,31 +108,30 @@ a range of pixel error distance thresholds to make a performance curve.}
 
 
 \subsection{Pixel error threshold}  In light of the skewing problem of RMSE, we 
-pixel accuracy within a range of thresholds.  For a range of pixel distance 
-thresholds, we report the percent of test joint guesses that are within the 
-threshold of the groundtruth.  We explore a range of thresholds, to very 
-precise (the semantic distance of a average palm's width in pixels), to 
-somewhat loose (the semantic distance of an average head's height in pixels).  
-This is illustrated in \figref{pixel-err-demo}.
+examine pixel accuracy at a range of thresholds.  At each threshold, we report 
+the percent of test joint guesses that are within that Euclidean distance of 
+the groundtruth.  We explore a range of thresholds, from very precise (the 
+semantic distance of a average palm's width in pixels), to somewhat loose (the 
+semantic distance of an average head's height in pixels).  This is illustrated 
+in \figref{pixel-err-demo}.
 
-This range of accuracies gives us a performance curve, which gives us a good 
-idea of accuracy at different operating points.  This is useful when assessing 
-system for a range of applications---for example, it may be that for action 
-recognition only a coarse notion of pose is required~\citep{wang2011}, but for 
-automatic sign language understanding~\citep{buehler2009} we require 
-near-certainty.
+The resulting performance curve gives us a good idea of accuracy at different 
+operating points.  This is useful when assessing system for different 
+applications. For example, it may be that for action recognition only a coarse 
+notion of pose is required~\citep{wang2011}, but for automatic sign language 
+understanding~\citep{buehler2009} we require near-certainty.
 
 \subsection{Percentage of Correct Parts (PCP)}  Other works have proposed a 
 measure Percentage of Correct Parts (PCP) that is a limb-based measure of 
 correctness: a guess limb is correct if its endpoints lie within radii of the 
 groundtruth endpoints, where the radii are half the length of the groundtruth 
-limb~\citep{ferrari08,eichner09}.  In practice, the public implementation of 
-this error measure has some peculiarities: It uses a max-norm in a coordinate 
-space aligned to the groundtruth limb, and allows arbitrary matching of 
-endpoints (\eg, matching wrist to elbow is permissible).  PCP counts a guess 
-correct when it is perpendicular to the true limb, as long as the guess limb 
-length is no longer than the true limb length and intersects the groundtruth 
-limb at its midpoint.  
+limb~\citep{ferrari08,eichner09}.  The public implementation of this error 
+measure \citep{eichner09} has some peculiarities: It uses a max-norm in a 
+coordinate space aligned to the groundtruth limb, and allows arbitrary matching 
+of endpoints (\eg, matching wrist to elbow is permissible).  This even allows 
+correct matches that are perpendicular to the true limb, as long as the guess 
+limb length is no longer than the true limb length and intersects the 
+groundtruth limb at its midpoint.  
 
 We prefer not to use PCP because (1) its criteria for a matched guess is too 
 relaxed (2) is discontinuous and (3) only considers one operating point instead 
@@ -144,23 +142,22 @@ in terms of PCP, and here we do the same for compatibility.
 
 The field of 2D human pose estimation has exploded in the last 5 years.  The 
 public datasets we report numbers on are highly competitive, with absolute 
-performance improvements each year for since 2008.  We compare to many of the 
-competing models.  Whenever possible, we report numbers in~\secref{results} 
-from the publicly available implementations of competitors' code; these numbers 
-typically are different than numbers reported in papers.  When public code is 
-not available, we include PCP measures reported by the authors.
+performance rising each year since 2008.  We compare to several competing 
+models.  Whenever possible, we report numbers in~\secref{results} from the 
+publicly available implementations of competitors' code; these numbers are 
+typically different than numbers reported in papers.  When public code is not 
+available, we include PCP measures reported by the authors.
 
 Note that the numbers reported here for our models are directly from our 
 publicly available code, meaning any practitioner should be able to replicate 
-results exactly. In brackets we denote how we will refer to the methods in 
-result graphs and tables.
+results exactly.
 
 \begin{itemize}
-\item Prior pose baseline [Mean]
+\item Prior pose baseline 
 
 One reasonable sanity check is to compare with a default mean pose prior.  As 
 can be seen in~\figref{dataset-scatterplots}, there is some centrality to the 
-data, so that guessing the mean joint position will do some fraction of joints 
+data, so that guessing the mean joint position will get some fraction of joints 
 correct.  The mean pose is obtained by empirical averages of joint locations on 
 the training sets; each joint estimated independently.
 
@@ -168,8 +165,8 @@ the training sets; each joint estimated independently.
 
 This is a classical dense PS method, as described in~\secref{ps}.  The unary 
 limb detectors are trained Adaboost ensembles of Shape Context on top of Canny 
-edges.  The pairwise potentials are geometric displacement, computed 
-efficiently with distance transforms (\secref{dt}).
+edges.  The pairwise potentials are standard unimodal geometric displacement 
+costs, computed efficiently with distance transforms (\secref{dt}).
 
 \item \citet{eichner09} 
 
@@ -181,7 +178,7 @@ marginals to obtain final limb segments.
 
 \item \citet{deva2011} 
 
-This recent work uses HoG as its basic representation.  Like our models, it is 
+This recent work uses HoG as its only image cue.  Like our models, it is 
 trained jointly in a discriminative learning framework.  Contemporary with our 
 proposed Stretchable Ensemble model, \citet{deva2011} also use joints as a 
 basic unit of inference.  Their work focuses on modeling a several appearance 
@@ -191,9 +188,10 @@ during training.  \end{itemize}
 
 \section{Implementation Details}\label{sec:impl-details}
 
-Here we give various additional details about the implementation of our models, 
-for practical purposes.  All the details of the various feature implementations 
-are provided in \secref{features}.
+Here we give various additional details about the implementation of our models. 
+All the details of the various feature implementations are provided in 
+\secref{features}. Furhtermore, code is available online at \begin{center} 
+\url{http://vision.grasp.upenn.edu/video} \end{center}
 
 \subsection{CPS}
 \mypar{Coarse-to-Fine Cascade} While our fine-level state space has size $80 

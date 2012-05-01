@@ -3,22 +3,26 @@
 In this section we lay out the basic definitions and tools necessary for 
 data-driven modeling of {\em classification problems}.  In the most general 
 setting, the goal is to learn a mapping, or {\em classifier}, $h$ in a 
-hypothesis class $\cH$ from a set of input variables $x$ to a set of discrete 
-output variables $y$.   We concern ourselves with a specific setting: $x$ lies 
-in a (possibly high-dimensional) vector space (most commonly in this work, the 
-input image pixels) and the target lies in a discrete $n$-dimensional space: 
-$$y \in \{0,1,\ldots,k\}^n.$$  
+hypothesis class $\cH$ from a set of input examples $x$ to a set of discrete 
+output variables $y$.   We concern ourselves in this work with a specific 
+setting: $x$ lies in a (possibly high-dimensional) vector space (most commonly 
+in this work, the input image pixels) and the target lies in a discrete 
+$n$-dimensional space: $$y \in \{0,1,\ldots,k\}^n \defn \cY.$$  
 
-We will refer to the set $\{0,1,\ldots,k\}$ as the set of labels, {\em label 
-set}, or {\em state space} for a dimension of $y$.  The $i^{th}$ dimension of 
-$y$ will be indexed $y_i$, and referred to as {\em variable} $i$.  For example, 
-in a simple image classification task to determine whether an image has a dog 
-in it, $x$ could be an image's pixels, and $y \in \{dog, not~dog\} \cong 
-\{0,1\} $; an instance of {\em binary classification}.  In this case, $k = 2$ 
-and $n = 1$.  In {\em multiclass classification}, $k>2$ and $n = 1$, \eg, 
-predicting the handwritten digits $0,\dots,9$ or the weather $\{sunny, cloudy, 
-rainy\} \cong \{0,1,2\}$.  Finally, in {\em structured prediction}, the output 
-$y$ is a vector: $n > 1$.
+We will refer to the set $\cY = \{0,1,\ldots,k\}$ as the set of labels, {\em 
+label set}, or {\em state space} for a dimension of $y$.  The $i^{th}$ 
+dimension of $y$ will be indexed $y_i$, and referred to as {\em variable} $i$.  
+We refer to the state space of part $i$ as $\cY_i$, and the size of the state 
+space as $|\cY_i|$.  The size of the full state space is $|\cY| = |\cY_1 \times 
+\ldots \times \cY_n|$, where here $\times$ denotes a Cartesian product.
+
+For example, in a simple image classification task to determine whether an 
+image has a dog in it, $x$ could be an image's pixels, and $y \in \{dog, 
+not~dog\} \cong \{0,1\} $; an instance of {\em binary classification}.  In this 
+case, $k = 2$ and $n = 1$.  In {\em multiclass classification}, $k>2$ and $n = 
+1$, \eg, predicting the handwritten digits $0,\dots,9$ or the weather $\{sunny, 
+cloudy, rainy\} \cong \{0,1,2\}$.  Finally, in {\em structured prediction}, the 
+output $y$ is a vector: $n > 1$.
 
 We will discuss four major components necessary for learning and using machine 
 learning classifiers in this chapter.
@@ -66,7 +70,7 @@ h(x,y) = \sum_{i=1}^d w_i f_i(x,y)\ = \w \cdot \f(x,y) \end{equation}
 where $\w \in \reals^d$ is a vector of linear parameters of our model and 
 $\f(x,y) \in \reals^d$ is a vector of features that depend on the input and 
 output variables.  Thus the model is simply a weighted sum of features to 
-obtain a real valued score, and $\cH = \reals^d$.
+obtain a real-valued score, and $\cH = \reals^d$.
 
 
 \begin{figure}[tb]
@@ -108,11 +112,11 @@ rest.  \figreff{binary-multiclass-ml}{right} illustrates an example with $k =
 
 \section{Pairwise structured models}
 \label{sec:mrfs}
-In structured prediction, $|\cY| = |\{0,\ldots,k\}^n|$ is exponential in $n$ 
-and typically enormous. Due to computational and modeling considerations to be 
-discussed, we assume that the full model $\w \cdot \f(x,y)$ {\em decomposes} 
-into {\em factors}, or {\em cliques} which involve overlapping sets of 
-variables:  \begin{equation}
+In structured prediction, the output space $|\cY| = |\{0,\ldots,k\}^n|$ is 
+exponential in $n$ and typically enormous. Due to computational and modeling 
+considerations to be discussed, we assume that the full model $\w \cdot 
+\f(x,y)$ {\em decomposes} into {\em factors}, or {\em cliques} which involve 
+overlapping sets of variables:  \begin{equation}
 \w \cdot \f(x,y) = \sum_{c \in \cC} \w_c \cdot \f_c(x,y_c) = \sum_{c \in \cC} 
 \phi_c(x,y_c),
 \end{equation}
@@ -120,8 +124,8 @@ where we use the shorthand for factors $\phi_c(\cdot) \defn \w_c \cdot
 \f(\cdot)$.
 We can encode the sets of factors and their overlap relations in general using 
 a {\em factor graph} \citep{koller-book}.  The number of different settings and 
-representations for structured models is vast and varied and outside the scope 
-of this work.  
+representations for structured models is vast and varied and most are outside 
+the scope of this work.  
 
 For our purposes, we focus on structured problems with at most {\em pairwise 
 structure}, where $|c| \leq 2\;\; \forall c \in \cC$\footnote{This 
@@ -138,20 +142,20 @@ $y_i,y_j$ being involved in a pairwise factor $\phi_{ij}$.  We can then
 decompose our classifier into the special form
 \begin{align}
 \w \cdot \f(x,y) &= \sum_{i \in \cV_G} \w_i \cdot \f(x,y_i) + \sum_{i,j \in 
-\cE_G} \w_{ij} \cdot \f(x,y_{ij}) \\
+\cE_G} \w_{ij} \cdot \f(x,y_i,y_j) \\
 & = \sum_{i \in \cV_G} \phi_i + \sum_{i,j \in \cE_G} \phi_{ij}.
 \label{eq:mrf}
 \end{align} There is a huge amount of research dedicated to models of this form 
 originally stemming from statistical mechanics, where it was first used to 
 determine the spin of particles arranged in a grid. In this example, 
-\equref{mrf} describes the log of the energy of the system.  When given a 
-probabilistic interpretation as we will see in \secref{probinterp}, this type 
-of model is known as a {\em pairwise Markov Random Field} (MRF).  Because of 
-such historical intuitions as a model for energy, we refer to the different 
-terms as {\em potentials}, and \equref{mrf} as the negative of an {\em energy 
-function} which we seek to minimize.  Terms of the form $\phi_i = \w_i \cdot 
-\f_i$ we will refer to as {\em unary potentials}; $\phi_{ij} = \w_{ij} \cdot 
-\f_{ij}$ are {\em pairwise potentials}.
+\equref{mrf} describes the log of the energy of the particle system.  When 
+given a probabilistic interpretation (as we will see in \secref{probinterp})
+this type of model is known as a {\em pairwise Markov Random Field} (MRF).  
+Because of such historical intuitions as a model for energy, we refer to the 
+different terms as {\em potentials}, and \equref{mrf} as the negative of an 
+{\em energy function} which we seek to minimize.  Terms of the form $\phi_i = 
+\w_i \cdot \f_i$ we will refer to as {\em unary potentials}; $\phi_{ij} = 
+\w_{ij} \cdot \f_{ij}$ are {\em pairwise potentials}.
 
 \subsubsection{Pairwise MRF examples}\label{sec:pairwise-mrf}
 \begin{figure}[tb]
@@ -187,13 +191,13 @@ is a lot of {\em structure} to this problem, the most obvious being that many
 outputs $y$ are just not valid, due to the fact that the robot can only move to 
 an adjacent location at each step.
 
-The key insight to be made is the following: knowing where the robot was at 
-time $t$ is tremendously useful for determining the robot's next location at 
-$t+1$ .  In addition, knowing where the robot was at $t-1$ also helps localize 
-it at $t+1$, but with diminishing returns---we guess the robot is in roughly 
-the same spatial neighborhood, and can also exploit knowledge of its velocity.  
-Going further into the past, there is increasingly less information to help 
-localize where the robot is at time $t+1$ as we look further into the past.
+The key insight to be made is the following: knowing where the robot is at time 
+$t$ is tremendously useful for determining the robot's next location at 
+$t+1$---the robot must be somewhere in the vicinity.  In addition, knowing 
+where the robot is at $t-1$ also helps localize it at $t+1$, but with 
+diminishing returns---we now know its previous velocity.  Going further into 
+the past, there is increasingly less information to help localize where the 
+robot is at time $t+1$.
 In general, we can make the simplifying assumption that {\em given the recent 
 past, the future is independent of the distant past}.  Using this intuition, we 
 can model the problem as a {\em chain} MRF:
@@ -233,7 +237,7 @@ or even document.  Practitioners again typically model this as a chain, seen
 \mypar{Scene labeling} In scene labeling, the goal is to label coarse segments 
 of an image with scene types (``sky'',``grass'',``building'',``cow'', etcetera; 
 $k$ is on the order of tens of labels) given the image as $x$. The typical 
-assumption made is that adjacent regions labels directly depend on each other, 
+assumption made is that adjacent regions' labels directly depend on each other, 
 whereas the label of spatially distant segments have weak or no interactions 
 and are not modeled \citep{cour05}.  The MRF model thus connects adjacent 
 segments in the image, giving us a cyclic planar graph as in
@@ -249,34 +253,35 @@ see \figreff{mrf-examples}{d} and \secref{ps}.
 
 \mypar{Image denoising} Here the input $x$ is an image with a small set of 
 labels that are corrupted by noise; the goal is to determine the uncorrupted 
-original image $y$ the same size as $x$.  Here $k$ is typically 2 or a small 
-set of indexed colors. Practitioners typically model this problem with a grid 
-graph, where variable $y_{r,c}$ corresponding to pixel label at row $r$, column 
-$c$ is connected to (is in pairwise factors with) 
-$y_{r+1,c},~y_{r-1,c},~y_{r,c+1}, \text{ and } y_{r,c-1}$.  
-See \figreff{mrf-examples}{e}.
+original image $y$ the same size as $x$.  In this setting $k$ is typically 2 or 
+a small set of indexed colors. Practitioners typically model this problem with 
+a grid graph, where variable $y_{(r,c)}$ corresponding to pixel label at row 
+$r$, column $c$ is connected to (is in pairwise factors with) 
+$y_{(r+1,c)},~y_{(r-1,c)},~y_{(r,c+1)}, \text{ and } y_{(r,c-1)}$.  Pairwise 
+terms model the assumption that adjacent pixels are likely to have the same 
+label, \eg, $\phi_{(r,c),(r+1,c)} \propto \ind{y_{(r,c)} = y_{(r+1,c)}}$. See 
+\figreff{mrf-examples}{e}.
 
 You may object that some of the decomposition assumptions made in the above 
 examples are somewhat extreme.  However, they are typically seen as forgivable 
-thanks to the greater simplicity of modeling only local, overlapping 
-interactions. Even more enticing is the reduction in computation they allow, 
-discussed in \secref{inference}.
+thanks to the greater simplicity of modeling only local interactions. Even more 
+enticing is the reduction in computation they allow, discussed in 
+\secref{inference}.
 
 \subsection{Probabilistic interpretation}\label{sec:probinterp}
-We have motivated most of this chapter via first principles about linear 
-classifiers.  However, much of the development of models and methods originally 
-came from the probabilistic modeling and statistics literature 
-\citep{koller-book,esl-book,bishop-book}.  From another perspective, our model 
+Much of the development of machine learning models and methods originally came 
+from the probabilistic modeling and statistics literature 
+\citep{koller-book,esl-book,bishop-book}.  From this perspective, our model 
 describes a {\em log-linear} probabilistic form of the posterior probability 
 $p(y|x)$:
 \begin{equation}
 p(y|x)= \frac{\exp \left[ \w \cdot \f(x,y) \right]}{\sum_{y \in \cY} \exp \left[\w \cdot f(x,y) \right]} = \frac{1}{Z(x)} \exp \left[ \w \cdot \f(x,y) \right]
 \end{equation}
-It can be shown \citep{jaynes1963} that this particular form of $p(y|x)$ is the
+It can be shown that this particular form of $p(y|x)$ is the
 distribution with maximum entropy, subject to the constraints that feature 
-expectations with respect to $p(y|x)$ match empirical feature expectations.  
-This principle is based on the desire to have our model make as few assumptions 
-as possible (most entropic) about the observed data.
+expectations with respect to $p(y|x)$ match empirical feature expectations 
+\citep{jaynes1963}.  This principle is based on the desire to have our model 
+make as few assumptions as possible (be most entropic) about the observed data.
 
 Because we are typically only interested in the most likely $y$---here, the 
 {\em maximum a posteriori} or MAP assignment---it is sufficient to find the 
@@ -301,21 +306,22 @@ Historically and in other settings, terms $\exp \phi_c$ were assumed to be
 themselves proper joint $p(y_c,x)$ or posterior $p(y_c|x)$ distributions over 
 subsets of random variables $c$, but we assume no such restriction in our case.  
 
-Sometimes people make distinction between fitting parameters for a {\em 
+Sometimes people make distinctions between fitting parameters for a {\em 
 generative model} of the form $p(x,y)$ versus a {\em discriminative model} of 
-the form by referring to the form as a Markov Random Field, and the latter as a 
-{\em Conditional Random Field} (CRF) \citep{lafferty01crfs} or {\em 
+the form by referring to the former as a Markov Random Field, and the latter as 
+a {\em Conditional Random Field} (CRF) \citep{lafferty01crfs} or {\em 
 Discriminative Random Field} \citep{kumar2003discriminative}.  The differences 
 between MRFs and CRFs are mainly in the way in which models of the 
 form~\equref{crf} are trained, and restrictions on the form of the potentials.  
 
 In all our work, we assume no restrictions on the form of potentials, always 
 assume $x$ is given and $y$ is to be estimated, and learn a discriminative 
-model, like a CRF.  However, we never use a probabilistic interpretation of our 
-model nor compute the distribution normalizing constant.  We prefer to use the 
-generic term MRF for the rest of the paper, under the view that all these 
-models are simply general linear models in a high dimensional space, with 
-decomposable structure.  At test time, the inference algorithms are equivalent.  
+model, like a CRF (see \secref{learning}).  However, we never use a 
+probabilistic interpretation of our model nor compute the distribution 
+normalizing constant.  We prefer to use the generic term MRF for the rest of 
+the paper, under the view that all these models are simply general linear 
+models in a high dimensional space, with decomposable structure.  At test time, 
+the inference algorithms are equivalent.  
 
 \section{Inference}
 \label{sec:inference}
@@ -325,22 +331,20 @@ all possible outputs in $\cY$:
 y^\star = h(x) = \argmax_{y \in \cY} h(x,y).  
 \end{equation}
 We use the convention $h$ to mean {\em hypothesis} or {\em hypothesis class}, originating from the machine learning community.  In the spirit of optimization, we also view this as a {\em scoring function} and use the synonomous notation $s$ to denote the score:
-\begin{equation} 
-s(x) = \max_{y \in \cY} s(x,y) \defn h(x,y)
-\end{equation}
-When $\cY$ is low-dimensional, brute-force search is easy enough: evaluate 
-$h(x,y)$ for all possible $y$, and return the highest scoring.  This can be 
-done for binary classification---where we need only check which side of a 
-separating hyperplane an example lies on (\secref{binary-multi-class})---and 
-multi-class classification, where we evaluate each of $k$ labels do determine 
-the highest scoring.
+\begin{align} 
+s(x,y) &\defn h(x,y) \\
+s(x) &= \max_{y \in \cY} s(x,y)
+\end{align}
+When $\cY$ is low-dimensional, brute-force search is easy enough: 
+evaluate$s(x,y)$ for all possible $y$, and return the highest scoring.  This is 
+possible for both binary and multi-class classification, where we evaluate up 
+to $k$ possible labels to determine the highest scoring.
 
-
-However, in the most general setting, $\cY$ is exponential in 
-$k$: $|\cY| = k^n$, and we can't hope to enumerate all possible outputs in 
-$\cY$ to find the highest-scoring.  Thankfully, the decomposable structure we 
-impose on our models, discussed in \secref{mrfs}, allows us to find a solution 
-time polynomial in $k$ and linear in $n$, rather than exponential in $n$.
+However, in the most general setting, the size of $\cY$ is exponential in $k$: 
+$|\cY| = k^n$, and we can't hope to enumerate all possible outputs in $\cY$ to 
+find the highest-scoring.  Thankfully, the decomposable structure we impose on 
+our models, discussed in \secref{mrfs}, allows us to find a solution time 
+polynomial in $k$ and linear in $n$.
  
 
 As a simple example of this, consider our wandering robot problem 
@@ -364,18 +368,28 @@ our robot problem, each pairwise factor is only $100^2$ numbers to consider and
 each unary factor is of size $100$. Thus the total amount of numbers that need 
 to be examined in this problem is roughly $10^6$, an astronomical improvement 
 over the complete space of $10^{1000}$. In general the bottleneck of inference 
-is the max over the pairwise factors of size $k^2$, and thus inference is $O(n 
-\cdot k^2)$.
+is the max over the pairwise factors having size $k^2$, and thus inference is 
+$O(n \cdot k^2)$.
 
-When an MRF model forms a tree, we can always exploit the structure for exact 
-efficient inference \citep{koller-book}.  Using the same trick we used in the 
-specific example of the robot localization problem \equref{nesting}, we can 
-perform inference by nesting the $\max$ operator over pairs of variables at a 
-time, as well as storing the $\argmax$ maximizer of each $\max$ operation.  For 
-completeness, the algorithm is in \algref{max-inference}, commonly referred to 
-as max-sum {\em message passing, belief propagation}, or {\em viterbi 
-decoding}.  The algorithm results in inference that is $O(n\cdot k^2)$ 
-computation rather than $k^n$.
+When an MRF model forms a tree, we can always exploit the structure in a 
+similar way for exact efficient inference \citep{koller-book}.  Using the same 
+trick we used in the specific example of the robot localization problem 
+\equref{nesting}, we can perform inference by nesting the $\max$ operator over 
+pairs of variables at a time, as well as storing the $\argmax$ maximizer of 
+each $\max$ operation.  For completeness, the algorithm is in 
+\algref{max-inference}, commonly referred to as max-sum {\em message passing, 
+belief propagation}, or {\em viterbi decoding}.  The algorithm results in 
+inference that is $O(n\cdot k^2)$ computation rather than $k^n$.
+
+When the MRF interactions do {\em not } form a tree, inference becomes 
+$\#P$-hard.  For example, if we could determine the maximizer in a loopy MRF, 
+we could in polynomial time transform it to determine how many variable 
+assignments satisfy a given 3-SAT formula~\citep{valiant-sharpP,koller-book}.  
+Thus, no known algorithm exists in general for inference that is polynomial in 
+the number of variables.  As a sanity check, \algref{max-inference} breaks down 
+for loopy graphs: we have no topological ordering of the network for which we 
+can pass belief messages up to a root, and then backtrack in reverse to obtain 
+the best solution.
 
 \input{inference-alg}
 
@@ -404,9 +418,9 @@ assignment restricted to fixing variable $i$ to be $y_i$.
 
 A \naive way to compute $\mmi$ for all states in our model is as follows: for 
 each $i$ and each $y_i$ (in total $nk$ possibilities), set 
-$\phi_{ij}(x,y_i',y_j) \rightarrow -\infty$ for all $y_i' \neq y_i$, and all 
-$j$ attached to $i$, then run \algref{max-inference}.  This ensures that $y_i$ 
-is the ``chosen'' state for variable $i$, and we get its max-marginal score 
+$\phi_{ij}(x,y_i',y_j) \leftarrow -\infty$ for all $y_i' \neq y_i$, and all $j$ 
+attached to $i$, then run \algref{max-inference}.  This ensures that $y_i$ is 
+the ``chosen'' state for variable $i$, and we get its max-marginal score 
 $\mmi$.  This strategy would cost in total $O(nk \cdot nk^2) = O(n^2k^3)$, 
 which is not very satisfying.
 
@@ -422,10 +436,8 @@ for $\mmi$ is
 \end{equation}
 which is the maximizer which corresponds to maximum $\mmi$.  
 
-\out{
 For completeness, the algorithm to compute max-marginal values and witness 
-statistics is included in \secref{} in \algref{mm-inference}.
-}
+statistics is included in \secref{mm-inference} in \algref{mm-inference}.
 
 \section{Supervised learning}\label{sec:learning}
 In the supervised learning setting, we have access to a training set
@@ -455,10 +467,14 @@ Using a linear representation, we have the following optimization problem to lea
 &\minimize_\w \cL_{0/1}(h,S) = \\ &\minimize_\w \frac{1}{m}\sum_{j=1}^m 
 \Ind\left( \argmax_y [\w \cdot \f(x^{(j)},y)] \neq y^{(j)}\right)
 \end{align}
-The above optimization is extremely difficult to solve in high dimensions, because it is non-convex and discontinuous, leading to many poor local minima.  In light of this, we introduce a {\em convex surrogate} to the indicator loss function $\ell(\cdot)$ to replace $\Ind(\cdot)$ with an upper-bound \citep{bishop-book}:
+The above optimization is extremely difficult to solve in high dimensions 
+because it is non-convex and discontinuous, leading to many poor local minima.  
+In light of this, we introduce a {\em convex surrogate} to the indicator loss 
+function $\ell(\cdot)$ to replace $\Ind(\cdot)$ with an upper-bound 
+\citep{bishop-book}:
 \begin{align}
 &\minimize_\w \cL_{\ell}(h,S) = \\ &\minimize_\w \frac{1}{m}\sum_{j=1}^m 
-\ell\left( \w \cdot \f(x^{(j)},y), y^{(j)}\right)
+\ell\left( \max_y \w \cdot \f(x^{(j)},y), y^{(j)}\right)
 \label{eq:convex-loss}
 \end{align}
 There are many common choices for $\ell(\cdot)$, shown in \figref{surrogates}, 
@@ -468,7 +484,8 @@ leads to a simple and intuitive stochastic optimization algorithm.  The hinge
 loss is of the form $\ell(u) = \max (0,1-u) \defn [1-u]_+$, giving us the 
 following optimization problem:
 \begin{align}
-\minimize_\w \frac{1}{m}\sum_{j=1}^m \left[ \argmax_y \w \cdot \f(x^{(j)},y) - \w \cdot \f(x,y^{(j)}) + 1\right]_+
+\minimize_\w \frac{1}{m}\sum_{j=1}^m \left[ \max_y \w \cdot \f(x^{(j)},y) - \w 
+\cdot \f(x,y^{(j)}) + 1\right]_+
 \label{eq:svm-noreg}
 \end{align}
 Depending on the training set, this form of learning function may have issues.  
@@ -480,7 +497,7 @@ a simple $\w$---one whose weights are small. To this effect, a regularized form
 is
 \begin{align}
 \minimize_\w \frac{\lambda}{2}||\w||_2^2 + \frac{1}{m}\sum_{j=1}^m \left[ 
-\argmax_y \w \cdot \f(x^{(j)},y) - \w \cdot \f(x,y^{(j)}) + 1\right]_+
+\max_y \w \cdot \f(x^{(j)},y) - \w \cdot \f(x,y^{(j)}) + 1\right]_+
 \label{eq:svm}
 \end{align}
  which encourages $\w$ to be small in an $L_2$-norm sense.  The meta-parameter 
@@ -500,10 +517,10 @@ global optimum (modulo numerical precision and computation constraints), we
 focus on choosing a method that is quick and simple.  Stochastic first-order 
 descent methods estimate the gradient of the function one data point at a time, 
 and are attractive due to their low memory requirements and fast convergence 
-rates~\citep{shalev07}.
+rates per example examined~\citep{shalev07}.
 
-Using \equref{svm}, the second term is piecewise-linear, and we take a 
-stochastic subgradient approach to optimize it, also known as structured 
+Using \equref{svm}, the second term is piecewise-linear, and we take stochastic 
+subgradient steps to optimize it, also known as structured 
 perceptron~\citep{Collins2002}. Given a single supervised example $(x,y)$, we 
 make the following update if the second, hinge loss term of~\equref{svm} (\ie, 
 the subgradient) is non-zero:

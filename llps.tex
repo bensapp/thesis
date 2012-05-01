@@ -240,9 +240,9 @@ taken as a guess. Inset: the graphical model structure.}
 \end{figure}
 
 \subsection{Image-adaptive pose priors and a non-parametric perspective}
-One important perspective of the above is as a pose-prior {\em switching 
-model}, popular in speech synthesis \citep{rosti2003switching}.  In this 
-setting, $z$ can be thought of as switching between different appearance and 
+One important perspective of the above is as a pose {\em switching model}, 
+popular in speech synthesis \citep{rosti2003switching}.  In this setting, $z$ 
+can be thought of as a switch which chooses between different appearance and 
 pose priors.  The particular instantiation of $z$ depends on the image content.  
 This is related to another, locally-linear method called Adaptive Pictorial 
 Structures (APS) \citet{sapp2010}.  In this work, the pose prior terms 
@@ -250,11 +250,11 @@ $\phi_{ij}$ were adjusted based on a kernel-weighted sum of exemplar
 similarities to the image.  \LLPS, on the other hand, forces a discrete choice 
 from a dictionary of pose priors, and this procedure is learned 
 discriminatively.  From a more practical standpoint, APS relied on very costly 
-and heuristic nearest-neighbor computation.  APS searched densely through a 
-large number of deformations to handle articulation, rather have a decomposable 
-distance.  Each submodel of \LLPS can be thought of as a decomposable 
-similarity function, learned discriminatively to separate true poses from bad 
-locally, as we will see next.
+and heuristic nearest-neighbor computation.  It searched densely through a 
+large number of deformations to handle articulation, rather than making use of 
+have a decomposable distance.  Each submodel of \LLPS can be thought of as a 
+decomposable similarity function, learned discriminatively to separate true 
+poses from bad locally, as we will see next.
 
 \section{Learning}\label{sec:llps-learning}
 
@@ -277,8 +277,8 @@ model scores higher than other models that are not part of its local
 neighborhood, on the correct pose configuration.  For submodel $m$ centered 
 about training sample $(x^m,y^m)$, we would like the large-margin constraints:
 \begin{align}
-s^m(x^t,y^t) \geq 1 + s^{m}(x^t,y), \label{c1}\\
-s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y),\label{c2}\\
+s^m(x^t,y^t) \geq 1 + s^{m}(x^t,y), \label{eq:c1}\\
+s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y),\label{eq:c2}\\
 \forall y \in \mathcal{Y}\setminus \{y^t\},~\forall t \in 
 \mathcal{N}(m),~\forall m' \notin \mathcal{N}(m) \nonumber
 \end{align}

@@ -1,6 +1,6 @@
 \begin{algorithm} 
 \caption[max-sum inference]{Max-sum message passing to solve 
-$$\argmax_{y \in \cY} h(x,y) = \argmax \sum_{i \in \cV} \phi_i + \sum_{ij \in \cE} \phi_{ij}$$} 
+$$\argmax_{y \in \cY} s(x,y) = \argmax \sum_{i \in \cV} \phi_i + \sum_{ij \in \cE} \phi_{ij}$$} 
 \label{alg:max-inference} 
 \begin{algorithmic} 
 
@@ -8,7 +8,7 @@ $$\argmax_{y \in \cY} h(x,y) = \argmax \sum_{i \in \cV} \phi_i + \sum_{ij \in \c
 Factors $\{\phi_i\}, \{\phi_{ij}\}$\\
 Tree graph $G$ with (arbitrary) root node index $r$ and topological ordering $\pi$, where $\pi_n = r$.
 
-\ENSURE $y^\star = \argmax_{y} h(x,y)$ 
+\ENSURE $y^\star = \argmax_{y} s(x,y)$ 
 \FOR{$i = \pi_1, \pi_2, \ldots, \pi_n $ }
 \STATE
 $m_i = \phi_i + \sum_{j \in \text{kids}(i)} m_{j \rightarrow i}$

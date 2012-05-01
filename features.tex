@@ -40,8 +40,7 @@ In all our work, and many others, we use an unsigned histogram of gradients
 cells, and measures the edge energy discretized into the uniform grid of 
 spatial bins (cells) and $9$ unsigned orientation bins.  HoG was originally 
 proposed by~\citet{dalal-triggs} for pedestrian detection, and has been hugely 
-popular as the representation of choice for the object recognition community as 
-a whole, \eg~\cite{pff-dpm}.  We use a modified version of the implementation 
+popular in the object recognition community as a whole, \eg~\cite{pff-dpm}.  We use a modified version of the implementation 
 by~\citet{pff-dpm}, changed to use only unsigned orientations and no color.  
 See~\figreff{feature-sources}{b}.
 
@@ -49,7 +48,7 @@ See~\figreff{feature-sources}{b}.
 Color is a tricky cue to exploit, being highly variable from image to image.  
 However, having knowledge of the foreground and/or background color is powerful 
 information that enables us to separate unlikely poses from likely ones---we 
-can exploit such assumptions as figure/ground color separation, and foreground 
+can exploit such assumptions as figure/ground color separation and foreground 
 constancy across the body and through time. 
 
 \begin{figure}[tb]
@@ -69,12 +68,12 @@ for every pixel. }
 \mypar{Foreground/Background modeling}
 It is difficult to model the foreground or background color without first {\em 
 knowing} where the foreground and background are---``a chicken and egg 
-problem''.  Some works such as~\citep{devacrf,eichner09} focus on this issue 
+problem''.  Some works such as~\citet{devacrf,eichner09} focus on this issue 
 directly by iteratively re-estimating color and re-estimating pose.  
 
 We choose a simple and effective method inspired by~\citet{strikeapose} to 
 obtain foreground skin and clothing color models in a single pre-processing 
-step.  We exploit the fact that humans are quite well localized by people 
+step.  We exploit the fact that humans are quite well-localized by people 
 detectors~\citep{ferrari08}, and assume we have samples of pixels from the 
 face, torso and (importantly) background.  \figref{fg-color} shows a mask of 
 pixels which we sample and corresponding labels.  Treating these samples as 
@@ -102,7 +101,7 @@ distances that are robust to fluctuations in lighting, hue and saturation.
 Because we are only concerned with local color similarity here (between patches 
 in a single or consecutive frames), we choose a vector quantization to 
 partition the colorspace into a coarse colormap.  Specifically, we choose the 
-method of~\citet{heckbert1982color}---\texttt{rgb2ind($\cdot$)}---which 
+method of~\citet{heckbert1982color}---\texttt{rgb2ind($\cdot$)} in {\sc Matlab}---which 
 greedily chooses bisections of RGB space to minimize variance.  This 
 representation is not only robust to color fluctuations, it is also fast to 
 compute and lends itself easily to robust histogram comparison distances, as 
@@ -113,7 +112,7 @@ model very generic yet discriminative descriptions of objects.  However, they
 have seen limited success in the object recognition community, typically 
 because the representations are fragile and confounded by real-world clutter, 
 \eg~\citet{shock-graphs}.  Furthermore, much of the shape community is inspired 
-by the study of early biological vision and pyschophysics, where the focuses is 
+by the study of early biological vision and psychophysics, where the focus is 
 on {\em bottom-up processing}: finding objects or pieces of objects in a 
 generic way---without an explicit model of any specific object---based on 
 perceptual grouping principles such as symmetry, contour continuity and
@@ -127,7 +126,7 @@ machine learning machinery to distinguish foreground from background clutter,
 but the rigid edge template representation is brittle to intrinsic deformations 
 and extrinsic rotation, translation and scale.
 
-We seek to leverage the representational power of bottom-up grouping models in 
+We seek to leverage the representational power of bottom-up grouping cues in 
 our top-down model of human pose.  We look at shape descriptors based on region 
 and contour information.  Recently other works have focused on using purely 
 bottom-up shape representations in a top-down matching framework, such 
@@ -135,7 +134,7 @@ as~\citet{toshev2010,zhu2008contour,sminch11}.  Also, some of the early work on
 human pose estimation was purely bottom-up driven, based on heuristics and 
 hand-crafted rules to propose and connect limbs, \eg~\citet{mori04,praveen07}.
 
-We choose to use Multiscale Normalize Cut (Ncut)~\citep{cour05} to obtain 
+We choose to use Multiscale Normalized Cut (Ncut)~\citep{cour05} to obtain 
 regions.  Ncut seeks a balanced partitioning of the image into meaningful 
 regions via a spectral decomposition of a graph over image pixels, based on 
 pairwise pixel affinities. See~\figreff{feature-sources}{d}.
@@ -159,7 +158,7 @@ function of the displacement between parts of the form $d(y_i - y_j -
 \delta_{ij})$, where $\delta_{ij}$ is the expected displacement between parts, 
 and $d(\cdot)$ is typically squared Euclidean distance in a linearly 
 transformed space.  In our models we are not bound to any analytical form.  
-Thus we make encode features based on limb lengths (Euclidean distance in pixel 
+Thus we encode features based on limb lengths (Euclidean distance in pixel 
 coordinates), relative angles between parts, absolute angles that limbs make 
 with the horizontal, and absolute locations of limbs and joints.  The 
 ``absolute'' measurements are really with respect to the detected person 
@@ -167,7 +166,7 @@ bounding box, which can be thought of as a simple virtual ``root'' part which
 is always instantiated (observed) in our models.  
 See~\figreff{feature-sources}{c}.
 
-\section{Motion}\label{sec:motion} Motion gives us cues separate foreground 
+\section{Motion}\label{sec:motion} Motion gives us cues to separate foreground 
 from background, and fast moving parts (\eg, hands) from more stationary ones 
 (\eg head).  When consecutive frames of video are available, we obtain motion 
 estimation from optical flow.  Specifically, we use the fast implementation 
@@ -179,7 +178,7 @@ from~\citet{liu-optflow}.  See~\figreff{feature-sources}{f}.
 \chapter{Features}
 
 There are several possible ways to organize the list of features we use in our 
-systems - by model, by modality, by importance.  We choose here to group them 
+systems---by model, by modality, by importance.  We choose to group them 
 here by variable interactions, in keeping with the story of this thesis.  To 
 make clear which features are used in which models, we mark each feature with 
 [CPS] (\secref{CPS}), [ESM] (\secref{stretchable}), [LLPS] (\secref{llps}), or 
@@ -202,10 +201,14 @@ of each bin are unconstrained.  The sparse representation allows us to compute
 $\w_i \cdot \f_i(x,y_i)$ and $\w_{ij} \cdot \f(x,y_i,y_j)$ quickly for all 
 factors.
 
+The last stage of CPS uses its own form of discretization, by way of learning 
+decision tree stumps on raw feature values in a boosting procedure.  Details 
+are in \secref{impl-details}.
+
 
 \section{Limb-pair features}\label{sec:limb-limb}
 \mypar{Color similarity [CPS:]}: We measure the color similarity of 
-kinematically-connected upper and lower arms as via $\chi^2$-distance between 
+kinematically-connected upper and lower arms via $\chi^2$-distance between 
 histograms of quantized RGB color, described in~\secref{color}.  The histograms 
 are accumulated within rectangles describing the limb extent. For histograms 
 $q$ and $p$, with bins indexed by $p_i$ and $q_i$, the distance is defined as
@@ -292,8 +295,9 @@ skin and torso color (\secref{color}), we measure the likelihood that a limb is
 present at a particular location by a mean heatmap value inside the rectangular 
 extent of a part, for each color model (face and torso). This can be computed 
 efficiently densely via convolution with an all-ones filter, separable over 
-dimensions, for a fixed rotation.  The feature can be computed efficiently over 
-a sparse set of locations using integral images~\citep{viola02}.
+dimensions, for each orientation.  If desired, the feature can be computed 
+efficiently over a sparse set of locations using integral 
+images~\citep{viola02}.
 
 \mypar{Geometry [CPS, ESM, LLPS]:} To describe the geometry of a limb in CPS, 
 we use as features its absolute position and orientation with respect to the 
@@ -338,7 +342,7 @@ jointly quantize each pair of consecutive images into a small number of color
 indices, using minimum variance quantization (\secref{color})---here with 32 
 colors.  We then compare patches (of side length 10\% of the image dimensions) 
 around the joint in each frame using an $L_0$-norm (Hamming loss) distance 
-function.  Let $P_{t}$ and $P_{t+1}$ represent quantized color image patches 
+function:  Let $P_{t}$ and $P_{t+1}$ represent quantized color image patches 
 around the joint in frame $t$ and $t+1$, with $N$ pixels.  Then the color 
 tracking distance feature is $ 
 ||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind{P_{t}(r,c)~=~P_{t+1}(r,c)}$ 
@@ -389,7 +393,7 @@ model.  (e)  Figure-ground estimation by estimating two flow clusters.}
 In ESM we have no specific learned model of joints, so we project down trained 
 limb detectors from~\secref{joint-joint}, taking a max over all possible angles 
 and over 3 possible limb lengths (not foreshortened, somewhat foreshortened, 
-extremely foreshortened, estimated by quantiles of dataset groundtruth limbs).
+extremely foreshortened; estimated by quantiles of dataset groundtruth limbs).
 
 In LPPS, we represent joints with $5 \times 5$ cell Histogram of Gradients 
 descriptors around each joint, using the implementation from~\cite{dpm}, 
@@ -407,9 +411,9 @@ fail at this task due to hands' high variability in appearance, pose, and
 motion blur.  We instead learn discriminative linear filters~\citep{liblinear} 
 from two different input modalities:  (1) Skin detection heatmaps.  
 (\secref{color}).  (2) The gradient of the magnitude of the optical flow field 
-between consecutive images (\secref{motion}).  This exploits the fact that 
-hands are often in motion (and naturally the fastest moving body part).  Both 
-linear filters can be evaluated efficiently densely via convolution.  
+between consecutive images (\secref{motion}).  The latter exploits the fact 
+that hands are often in motion (and naturally the fastest moving body part).  
+Both linear filters can be evaluated efficiently densely via convolution.  
 See~\figreff{misc-features}{a}.
 
 \mypar{Figure from flow [ESM]:}

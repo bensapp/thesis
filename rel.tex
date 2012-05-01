@@ -23,21 +23,22 @@ descriptors~\citep{andriluka09} and color \citep{eichner09}.
 \mypar{Beyond tree structure}
 A few past works have looked at going beyond a tree model of pose in a single 
 image.  In a cyclic, or loopy, graph, inference is 
-$\#P$-complete`~\citep{koller-book}, exponential in the number of variables.  
-\citet{ddtran} consider a fully connected graph of limb interactions, and local 
-greedy search as an approximate inference technique. \citet{wang2008multiple} 
-consider multiple, different trees over parts, where different edges can 
-express different geometric constraints, and the union of all edges forms a 
-cyclic graph.  They use a learned weighted-sum of individual tree beliefs at 
-test time.  Quite recently \citet{min-bb} use a fully-connected graph using the 
-output of our cascade system (\secref{CPS}), and improves upon our results 
-which use a tree model.  They use branch-and-bound techniques and orders of 
-magnitude more time for inference to obtain exact solutions.
+$\#P$-complete~\citep{koller-book}, without a known polynomial-time algorithm.  
+\citet{ddtran} consider a fully connected graph of limb interactions, and use 
+local greedy search as an approximate inference technique.  
+\citet{wang2008multiple} consider multiple trees over parts, where different 
+edges can express different geometric and occlusion constraints, and the union 
+of all edges forms a cyclic graph.  They use a learned weighted sum of 
+individual tree beliefs at test time.  Quite recently \citet{min-bb} use a 
+fully-connected graph using the output of our cascade system (\secref{CPS}), 
+and improve  upon our results which use a tree model.  They use 
+branch-and-bound techniques and an order of magnitude more time for inference 
+to obtain exact solutions (roughly 20 minutes versus 10 seconds).
 
 %time graphs, approximate inference
 \mypar{Temporal models}
 In temporal processing, pairwise models resort to approximate inference 
-techniques to deal with intractable inference.  \citet{ferrari08} uses loopy 
+techniques to deal with intractable inference.  \citet{ferrari08} use loopy 
 belief propagation, with temporal interactions expressing spatial continuity 
 between consecutive frames.  In 3D, \citet{sigal2004tracking} use 
 non-parametric belief propagation with learned motion distributions for 
@@ -46,21 +47,21 @@ temporal edges.
 %hierarchical & multi-modla
 \mypar{Hierarchical and multi-modal models}
 Another extension to basic tree models are hierarchical models of pose, where 
-the hierarchy is over part granularity (\eg lower arm, full arm, left half 
-body, full body). \citet{wang2011,sun2011} both developed such models, targeted 
-towards activity recognition.  These models discretize the coarser granularity 
-parts into a set of possible modes to better model variations of larger 
-deformable parts.  Learning different modes is also done by~\citet{deva2011}, a 
-non-hierarchical model over joints and limb midpoints, as well 
-as~\citet{everingham2011}, who clusters global pose into modes to learn 
+the hierarchy is over part granularity (\eg left lower arm, left upper and 
+lower arm, left half body, full body). \citet{wang2011,sun2011} both developed 
+such models, targeted towards activity recognition.  These models discretize 
+the coarser parts into a set of possible modes to better model variations of 
+larger deformable parts.  Learning different modes is also done 
+by~\citet{deva2011}, a non-hierarchical model over joints and limb midpoints, 
+as well as~\citet{everingham2011}, who clusters global pose into modes to learn 
 different tree models.
 
 \mypar{Non-discrete models}
 An alternative approach is to use a continuous state space instead of a 
 discrete one.  In order to make inference tractable, such methods require 
-restricted models with analytical normalization (such as a Gaussian), or 
-approximate inference frameworks, such as non-parametric belief propagation, a 
-sampling process~\citep{sigal-thesis}.  
+restricted models with analytical normalization (such as a Gaussian 
+distributions), or approximate inference frameworks, such as non-parametric 
+belief propagation, a form of sampling~\citep{sigal-thesis}.  
 
 \mypar{Bottom-up and greedy methods}
 All of the above approaches deal with the combinatorially-many possible poses 
@@ -69,7 +70,7 @@ different approach is to instead propose a small set of likely hypotheses based
 on bottom-up perceptual grouping principles \citep{mori04,praveen07}.  
 \citet{mori04} use bottom-up saliency cues, for example strength of supporting 
 contours, to generate limb hypotheses. They then prune via hand-set rules based 
-on part-pair geometry and color consistency.  \citet{ren07} tracks people 
-without a model of a person, using a segmentation model in each frame, and a 
+on part-pair geometry and color consistency.  \citet{ren07} track people 
+without a model of a person, using a region segmentation of each frame, and a 
 one-to-many segment assignment optimization problem between frames to make 
 greedy tracking decisions.

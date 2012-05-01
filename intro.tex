@@ -91,29 +91,30 @@ makes the task much more challenging than when using additional sensors, such
 as in Microsoft's Kinect capture system~\citep{kinect} where depth information 
 and hence reliable knowledge of the background can be used.  However, our 
 limited-sensor problem also means it can be applied in more general settings: 
-pose estimation outdoors and the wealth of archival images and footages already 
-stored on personal computers, libraries, and photo and video sharing web sites.  
+pose estimation outdoors and on the wealth of archival images and footages 
+already stored on personal computers, libraries, and photo and video sharing 
+web sites.  
 
 Furthermore, we do not assume any additional information, such as knowledge of 
-the foreground, background, clothing, lighting, indoor or outdoor, etcetera.  
-All these factors work to confound estimation by introducing appearance 
-artifacts.  We casually refer to out general setting as pose estimation {\em in 
-the wild}, to stress the fact that the data sets we consider feature 
-unconstrained foreground and background (or nearly unconstrained, when the 
-input is from TV shows).
+the foreground, background, clothing, lighting, indoor versus outdoor, 
+etcetera.  All these factors work to confound estimation by introducing 
+appearance artifacts.  We refer to our general setting as pose estimation {\em 
+in the wild}, to stress the fact that the data sets we consider are from 
+unconstrained foreground and backgrounds settings (or nearly unconstrained, 
+when the input is from TV shows).
 
 Also of note, we only consider the upper body, although all methods and models 
 discussed in this work can be extended to full body processing (\ie including 
-hips and upper and lower legs).  In fact, most of the models and tools develope 
-in this work can be applied to other articulated objects, and in general, other 
-domains in which estimating the instantiation of interacting parts (\eg, 
-handwriting recognition, or gene sequencing). We focus on the upper body human 
-pose in this work because (1) most interesting pose variation occurs in the 
-upper body, (2) there is a vast amount data of people's upper bodies from TV 
-shows, movies and images where lower halves are not visible, and (3) there is 
-little extra knowledge to be learned about pose estimation by including the 
-lower body parts, while increasing the computation time of all models at least 
-linearly.  
+hips and upper and lower legs).  In fact, most of the models and tools 
+developed in this work can be applied to other articulated objects, and in 
+general, other domains in which estimating the instantiation of interacting 
+parts (\eg, handwriting recognition, or gene sequencing). We focus on the upper 
+body human pose in this work because (1) most interesting pose variation occurs 
+in the upper body, (2) there is a vast amount of data of people's upper bodies 
+from TV shows, movies and images where lower halves are not visible, and (3) 
+there is little extra knowledge to be learned about pose estimation by 
+including the lower body parts, while increasing the computation time of all 
+models at least linearly.  
 
 Finally, we restrict ourselves to polynomial running time.  The space of all 
 possible poses is exponential in the number of parts. The 
@@ -122,16 +123,17 @@ possibilities and score them all using any scoring function of arbitrary
 complexity. However, this is simply not feasible, and we are forced to make 
 conditional independence assumptions between certain parts to achieve 
 tractability.  In practice, we wish to estimate pose on the order of a few 
-minutes per frame.
+minutes per frame or less.
 
 \section{Intrinsic difficulties}
 Human pose estimation in the wild is an extremely challenging problem.  It 
 shares all of the difficulties of object detection, such as confounding 
-background clutter, lighting, viewpoint, and scale, in addition to
+background clutter, lighting, viewpoint, and scale. In addition, there are 
 significant difficulties unique to human poses.  We are forced to reason over 
 an enormous number of plausible poses for each image, making this a very 
 compuationally demanding problem.  In this section we go over the intrinsic 
-difficulties of this problem, both from a vision and computational standpoint.
+difficulties of this problem, both from perceptual and computational 
+standpoints.
 
 \subsection{Perceptual issues}\label{sec:perceptual}
 \begin{figure}[tb]
@@ -203,8 +205,8 @@ trees, etcetera.
 \includegraphics[width=1.05\textwidth]{figs/dataset-multimodal.pdf}
 \caption[Variations in appearance]{Some illustrations of variation in 
 appearance in the PASCAL Stickmen dataset.  (a) An average of the dataset in 
-grayscale.  (b) Average of sobel edges over dataset.  (c) Distribution of inner 
-angle made between upper and lower arm, with examples for 
+grayscale.  (b) Average of Sobel edges over dataset.  (c) Polar histogram of 
+the inner angle made between upper and lower arm, with examples for 
 $0^\circ,45^\circ,90^\circ,135^\circ,180^\circ,225^\circ,270^\circ$ and 
 $315^\circ$. (d) A random sampling of 100 left elbows from the Buffy Stickmen 
 pose dataset,	removing color and intensity bias, to illustrate the huge variety 
@@ -253,10 +255,11 @@ computational complexity.  A typical discretization of the state space of human
 poses is an $80 \times 80$ spatial grid of part locations at $24$ possible 
 angles~\citep{felz05}, resulting in an output space that is roughly $150000$ 
 possibilities for each part, and thus $150000^6 \approx 10^{30}$ for the joint 
-output space of all $6$ parts~\footnote{In the case of continuous spaces, the 
-output space is infinite (infinitely precise), and to maintain tractability the 
-form of $s(x,y)$ is typically analytical with a closed-form maximum, mean 
-and/or mode, or approximate sampling techniques are used for inference.}.
+output space of all $6$ upper body parts~\footnote{In the case of continuous 
+spaces, the output space is infinite (infinitely precise), and to maintain 
+tractability the form of $s(x,y)$ is typically analytical with a closed-form 
+maximum, mean and/or mode, or approximate sampling techniques are used for 
+inference.}.
 
 Enumerating all possibilities for a joint configuration of all parts is clearly 
 not feasible.  At the other extreme, we could ignore part interactions, and 
@@ -269,10 +272,10 @@ discriminating features.
 Between the two extremes of (1) estimating parts in isolation and (2) 
 enumerating all possible joint pose configurations, there lies a family of 
 models $s(x,y)$ that consider {\em some} part interactions, but not all.  The 
-simplest of these is a {\em first-order or pairwise model}, which looks at 
-pairs of part interactions at a time, and the graph of part interactions forms 
-a tree structure.  This compromise between a full model of every part and a 
-decoupled model of independent parts will be the basic model building block 
+simplest of these is a {\em first-order}, or {\em pairwise model}, which looks 
+at pairs of part interactions at a time, and the graph of part interactions 
+forms a tree structure.  This compromise between a full model of every part and 
+a decoupled model of independent parts will be the basic model building block 
 throughout this work.
 
 In such a pairwise model, the basic bottleneck operation is to evaluate the 
@@ -288,13 +291,13 @@ detailed in~\secref{ps}.
 \begin{figure}[t!]
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/puzzle.pdf}
-\caption[Puzzle analogy to pose estimation.]{Puzzle analogy to pose estimation.  
+\caption[Puzzle analogy of pose estimation.]{Puzzle analogy of pose estimation.  
 Classical approaches only use individual part detectors and geometric 
 plausibility to determine the pose of a person.  This is analogous to 
 attempting to put together a puzzle without looking at appearance of the pieces 
 ---only the plausibility of them fitting together. On the other hand, models 
 with data-dependent interactions are analogous to using the appearance of the 
-puzzle piece faces as well as there fit when constructing the puzzle.  Even for 
+puzzle piece faces as well as their fit when constructing the puzzle.  Even for 
 humans, it is easier to spot the correct pair of upper/lower arms when they are 
 examined jointly.}
 \label{fig:puzzle}
@@ -324,10 +327,10 @@ backgrounds, foregrounds, articulation, and environment.
 As a result, the above model is effectively trying to piece together parts of a 
 person, when the parts themselves are extremely ambiguous. As an extreme 
 analogy of this, it is similar to attempting to put together a jigsaw puzzle in 
-which the pieces themselves are very generic.  You have many plausible 
-candidates for where each piece should go individually (unary scores), but to 
-determine whether two pieces are adjacent, you can only see how well they fit 
-together, and {\em not } the  image content on their faces; see 
+which the pieces themselves are very generic.  One have many plausible 
+candidates for where each puzzle piece should go individually (unary scores), 
+but to determine whether two pieces are adjacent, one can only see how well 
+they fit together, and {\em not } the  image content on their faces; see 
 \figreff{puzzle}{top row}.
 
 
@@ -348,18 +351,23 @@ To this effect, we propose a more general model of human pose, of the form
 \cE_{\tree}} \phi_{ij}(x,y_i,y_j)}
 \label{eq:contrib1}
 \end{equation}
-This turns out to be computational infeasible using standard tools and techniques.  In light of this, we propose a {\em cascade} of models to focus computation on portions of the state space that are more promising.  The key insight is that there are many pose possibilities that are easy to reject as incorrect with a simple model, and we are then able to freely apply a richer model on the possibilities that remain.  This is illustrated in~\figref{cps-overview}.
+This turns out to be computationally infeasible using standard tools and 
+techniques.  In light of this, we propose a {\em cascade} of models to focus 
+computation on portions of the state space that are more promising. There are 
+many pose possibilities that are easy to reject as incorrect with a simple 
+model, and we are then able to freely apply a richer model on the possibilities 
+that remain.  This is illustrated in~\figref{cps-overview}.
 
-We develop and analyze {\em structured prediction cascades}, and apply them to 
-the problem of 2D pose estimation, allowing us to use a model in the form 
-of~\equref{contrib1} at every level of the cascade.  Importantly, we provide a 
-novel learning objective for the cascade of models so that parameters of the 
-model are tuned to specifically to filter out a significant proportion of 
-states at any intermediate level. 
+To employ a cascade approach, develop and analyze {\em structured prediction 
+cascades}, and apply them to the problem of 2D pose estimation, allowing us to 
+use a model in the form of~\equref{contrib1} at every level of the cascade.  
+Importantly, we provide a novel learning objective for the cascade of models so 
+that parameters of the model are tuned to specifically to filter out a 
+significant proportion of states at any intermediate level. 
 
 \subsection{Image-dependent interactions in a general 
 graph,~\secref{stretchable}}
-The model we propose in the previous section works for any tree-structured 
+The model we proposed in the previous section works for any tree-structured 
 model.  However, in any tree model, we fail to capture important interactions 
 between parts, both {\em within} a single frame (\eg, color constancy between 
 left/right symmetric parts to model clothing) and {\em across} frames when 
@@ -377,10 +385,10 @@ We provide an approximate approach which decomposes~\equref{contrib2} into a
 collection of subtree graphs, whose union of edges is equal to $\cE_G$.  This 
 allows us to exploit all the interesting interaction terms in the original 
 model with efficient inference in each subtree, thanks to the structure and the 
-use of our cascade approach developed in~\secref{contrib1}.  This allows us to 
-exploit all the cues we used in the tree-based model, and in addition, cues 
-based on color symmetry across the body, and temporal appearance and location 
-persistence information.  We propose and investigate empircally different 
+use of our cascade approach developed in~\secref{contrib1}.  Then, we can 
+exploit all cues used in the tree-based model, and in addition, cues based on 
+color symmetry across the body, and temporal appearance and location 
+persistence information.  We propose and investigate empirically different 
 methods of reaching a consensus between the subtrees.
 
 We evaluate our approach on a new video dataset, the first of it's kind in 
@@ -421,8 +429,7 @@ fields of machine learning and computer vision, and especially their
 intersection for human pose estimation:
 \begin{itemize}
 
-\item New models of human pose that model interactions between parts as a 
-function of image data.
+\item New models of human pose that capture image-dependent interactions.
 
 \item Computational innovations that enable learning and inference in these 
 models, which are \naively intractable: structured cascades and tree ensemble 

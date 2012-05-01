@@ -27,8 +27,7 @@ In order to enable richer appearance models, we propose to learn a cascade of
 pictorial structures (\CPS) of increasing pose resolution which 
 progressively filter the pose state space.  Conceptually, the idea is similar 
 to the work on cascades for face detection~\cite{geman2001,viola02}, but the 
-key difference is the use of structured models. Each level of the cascade at a 
-given spatial/angular resolution refines the set of candidates from the 
+key difference is the use of structured models. Each level of the cascade works on a certain spatial and angular resolution.  A level refines the set of candidates from the 
 previous level and then runs inference to determine which poses to filter out.  
 For each part, the model selects poses with the largest {\em max-marginal}
 scores, subject to a computational budget.  Unlike conventional pruning 
@@ -86,20 +85,9 @@ y_{j}$ without requiring that their corresponding weights can be combined into
 a positive semi-definite covariance matrix.
 
 In this general form (\equref{cps}), inference can {\em not} be performed 
-efficiently with distance transforms or convolution as discussed 
+efficiently with distance transforms as discussed 
 in~\secref{dt}, and we rely on standard $O(nk^2)$ dynamic programming 
-techniques to compute the best scoring assignment $\argmax_y s(x,y)$.  Many 
-highly effective pairwise features one might design would be intractable to 
-compute in this manner for a reasonably-sized state space---for example an $80 
-\times 80$ spatial grid with a part angle discretization of $24$ bins yields 
-$k^2 \approx 1$ billion part-part hypotheses.
-
-In~\secref{SPC}, we describe how we circumvent this issue via a cascade of 
-models which aggressively prune the state space at each stage typically without 
-discarding the correct sequence.  After the state space is pruned, we are left 
-with a small enough number of states to be able to incorporate powerful 
-data-dependent pairwise and unary features into our model.
-
+techniques to compute the best scoring assignment $\argmax_y s(x,y)$.  However, this remains efficient and sub-quadratic in practice through the use of cascades.
 
 \section{Related work}
 For unstructured, binary classification, cascades of classifiers have been 
@@ -166,7 +154,7 @@ The procedure for CPS described above is as follows.  Two intermediate steps of 
 
 \begin{itemize}
 \item For an input $x$, initialize a coarse state space $\cS_0 = \cY_0$ by 
-spatially pooling states in the original space (downsampling the state space 
+spatially pooling states in the original space (downsampling the original state space 
 volume).
 
 \item Repeat for each cascade level $t = 0,\ldots,T-1$:
@@ -191,12 +179,12 @@ a part $i$ at location $y_i$ is the score of the highest scoring pose with part 
 global} quantity of a complete model of pose, rather than a local one: A part 
 could have weak individual image evidence of being at location $y_i$ but still 
 have a high max-marginal score if the rest of the model believes this is a 
-likely location. 
+likely location for the part. 
 
 \subsection{Filtering threshold}\label{sec:cps-thresh}
 
 When applying a cascade, we have two competing objectives that we must trade 
-off, accuracy and efficiency: we want to minimize the number of errors incurred 
+off: accuracy and efficiency. We want to minimize the number of errors incurred 
 by each level of the cascade  and maximize the number of filtered 
 max-marginals.  A natural strategy is to prune away the lowest ranked states 
 based on max-marginal scores. Instead, we prune the states whose max-marginal 
@@ -215,7 +203,7 @@ where $\alpha\in[0,1]$ is a parameter to be chosen that
 determines how aggressively to prune. When $\alpha = 1$, only the best state is 
 kept, which is equivalent to finding the best, unconstrained assignment.  When $\alpha = 0$ 
 approximately half of the states are pruned (if the median of max-marginals is 
-equal to the mean).  The reasons for choosing $t_x(s,\alpha)$ are (1) it is a 
+equal to the mean).  The reasons for choosing this particular form of $t_x(s,\alpha)$ are (1) it is a 
 function of the image $x$, which allows a threshold that adapts to the 
 difficulty of the problem, and (2) it leads to a convex learning formulation 
 with additional guarantees, as opposed to sorting max-marginals and choosing a 
@@ -266,8 +254,8 @@ property: $p(y|x)$ being above a threshold does not guarantee that $p(y_i|x)$
 are above a threshold for all $i$.
 
 We solve \eqref{eq:cps-learn-hinge} using stochastic
-sub-gradient descent. Given an example $(x,y)$, we apply the following when the 
-term $\left[ t_x(s,\alpha) - s(x,y) + 1 \right]_+$ (and the sub-gradient) is 
+subgradient descent. Given an example $(x,y)$, we apply the following when the 
+term $\left[ t_x(s,\alpha) - s(x,y) + 1 \right]_+$ (and the subgradient) is 
 non-zero:
 \begin{equation} \label{eq:spf_update}
 \w  \leftarrow \w + \eta \left[-\lambda \w + \f(y,x) - \alpha \f(y^\star,x)  - 
@@ -326,9 +314,9 @@ of the dense classical PS.  This is illustrated in~\figref{cascade-pruning}.
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/cascade-pruning.pdf}
 \caption[Cascade filtering example]{Cascade filtering example. Detector-based 
-pruning (0th order model) by thresholding yields many hypotheses far way from 
+pruning ($0^{th}$-order model) by thresholding yields many hypotheses far way from 
 the true one for the lower right arm. The CPS (bottom row), however, exploits 
-global information (such as certainty of the shoulder location) to perform 
+global information (such as certainty in the shoulder location) to perform 
 better state pruning.}
 \label{fig:cascade-pruning}
 \end{center}
