@@ -31,44 +31,40 @@ collection of {\em locally} linear models.}
 \end{figure}
 
 
-As a motivating example, consider the multitude of variations of left elbows, 
-ignoring color and lighting variations.  First, there are a range of body 
-types, yielding infant elbows and adult elbows, male elbows and female elbows, 
-fat elbows and skinny---a conservative estimate would say there are 5 coarse 
-body type modes.  Considering clothing, there are baggy long sleeves, tight 
-long sleeves, stripes, solids, bare arms, and short sleeves ending near the 
-elbow---let's assume we can summarize clothing variation around elbows with 5 
-appearance modes (also overly optimistic).  Finally, given body type and 
-clothing, we still must consider articulation.  A typical discretization of 
-angles to model human pose~\citep{felz05,devacrf,eichner09} uses $15^\circ$ 
-increments for a total of 24 possible relative angles.  As a rough 
-back-of-the-envelope calculation, this already amounts to $5 \times 5 \times 24 
-= 600$ major appearance modes, just for the elbow.  See~\figref{lelbs} for an 
-illustration.
-
-
-Clearly, some degree of sharing between appearance modes is warranted and 
-beneficial, in particular because it is easier to estimate fewer model 
-parameters.  However, most models developed for this problem take sharing to an 
-extreme, and use {\em just a single, linear model}---\eg, 
+Most models developed for this use {\em only a single, linear model}---\eg, 
 \citet{devacrf,eichner09,andriluka09,ddtran} and the models developed 
 in~\secref{CPS} and~\secref{stretchable}.
 Such models make it very difficult to capture the part variations discussed.  
-Most researchers focus attention on improving features in hopes that a better 
-feature space will make a linear model fit well.  Only recently, several papers 
-studied increasing the number of modes in pose models. However, these works 
-used at most only tens of modes per part, and struggle with discovery of latent 
-modes and/or defining an effective discrete quantization of the pose space.  
-See \secref{llps-rel} for details.
+Instead, most researchers focus attention on improving features in hopes that a 
+better feature space will make a linear model discriminate correct poses from 
+incorrect ones well.  
 
-\begin{figure}[tb!]
-\centering
-\includegraphics[width=0.99\linewidth]{figs/lelbs.jpg}
-\caption[Elbow sample patches.]{ \label{fig:lelbs} A random sampling of 100 
-left elbows from the Buffy Stickmen pose dataset, removing color and intensity 
-bias, to illustrate the huge variety of appearance due to clutter, motion blur, 
-clothing, body type, and pose.}
-\end{figure}
+Recently, especially the past two years, there have been an explosion of work 
+focused on increasing the number of modes in pose models, with much success.  
+This line of work can generally be described as instantiations of a {\em family 
+} of compositional, hierarchical pose models.  The family of models can be 
+parametrized by the number of part levels (\eg, {\em \{ wrist, lower arm, full 
+arm, half-body, full body \}} are example parts in a 5-level hierarchy) and the 
+number of modes captured per part.  Part modes can capture different poses 
+(\eg, elbow crooked, lower arm sideways) and appearance (\eg, thin arm, baggy 
+pants).
+
+
+ \begin{table}[tb]
+\begin{center}
+{\tiny
+\input{rel-work-hps-table}
+}
+\caption[Coarse-to-fine cascade progression analysis.]{Coarse-to-fine cascade 
+progression analysis. We show the progression of state spaces in the cascade, 
+as well as reduction in the state space at each level (measuring efficiency), 
+and in the last column, how many arm hypotheses remain closely matched, 
+considering the closest match to groundtruth remaining from the unpruned 
+hypotheses (measuring accuracy). }
+\label{tab:rel-work-ps} \end{center}
+\end{table}
+
+
 
 \mypar{Our approach:} In this chapter, we propose a model of human pose that 
 defines a mode {\em per training example}, to capture a local neighborhood of
