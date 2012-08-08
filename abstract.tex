@@ -1,1 +1,7 @@
-Heyyyy abstract...
+Human pose estimation from 2D images is one of the most challenging and computationally demanding problems in computer vision. Standard models such as Pictorial Structures consider interactions between kinematically connected joints or limbs, leading to inference cost that is quadratic in the number of pixels. As a result, researchers and practitioners have restricted themselves to simple models which only measure the quality of limb-pair possibilities by their 2D geometric plausibility.
+
+In this talk, we propose novel methods which allow for efficient inference in richer models with data-dependent interactions. First, we introduce structured prediction cascades, a structured analog of binary cascaded classifiers, which learn to focus computational effort where it is needed, filtering out many states cheaply while ensuring the correct output is unfiltered. Second, we propose a way to decompose models of human pose with cyclic dependencies into a collection of tree models, and provide novel methods to impose model agreement.  Finally, we propose a local linear approach that learns overlapping bases centered around each training example, giving us image-dependent local models.  
+
+These techniques allow for sparse and efficient inference on the order of minutes per image or video clip. As a result, we can afford to model pairwise interaction potentials much more richly with data-dependent features such as contour continuity, segmentation alignment, color consistency, optical flow and multiple modes. We show empirically that these richer models are worthwhile, obtaining significantly more accurate pose estimation on popular datasets.
+
+

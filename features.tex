@@ -1,190 +1,365 @@
-The introduced \CPS model allows us to capture appearance, geometry and shape information of parts and pairs of parts in the final level of the cascade---much richer than the standard geometric deformation costs and texture filters of previous PS models~\cite{felz05,devacrf,ferrari08,andriluka09}.  
-%Table~\ref{feat_table} lists all features that we use and will describe in this section.  
-Each part is modeled as a rectangle anchored at the part joint with the major axis defined as the line segment between the joints (see Figure~\ref{fig:ps}).  For training and evaluation, our datasets have been annotated only with this part axis.
+\chapter{Feature Sources}\label{sec:features}
 
-%The side of a part is defined as the longer side of part rectangle.  
-%Further, the major axis of a part is the line segment starting at the part joint parallel to the part side.
+\out{
+\myquotation{Do not call me a computer vision engineer \ldots  I am a 
+perceptual scientist!}{Yiannis Alimonous}
+}
 
-%In the following, we will use the support of each part $l_i$ in the image defined as a rectangle anchored at the part joint position position $(l_{ix}, l_{iy})$ and aligned with the part orientation $(l_{iu}, l_{iv})$  (see Fig.~\ref{fig:ps}). The dimensions $(h_i, w_i)$ of the support rectangle for each part are predefined, where the width is set $0.25$ of the length. The side of the part is defined as the longer side of the supporting rectangle. Further, the main axis of a part is the line segment starting at the part joint parallel to the part side.
+A major goal of this work was to introduce rich features into models of human 
+pose.  The standard approach is to represent limbs with an edge-based rigid 
+template invariant to color, lighting, and minor deformations. In addition to 
+this, we use color, shape and geometry. 
 
-\begin{figure}[t!]
+
+\begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.9\textwidth]{figs/empty.jpg}
-\caption{\label{cc_fig} Left: input image; Middle left: segmentation with segment boundaries and their touching points in red. 
-%A long sequence of boundaries form a contour if the angle at each touching point is small.
-Middle right: contour edges which support part $y_i$ and have normals which do not deviate from the part axis normal by more than $\omega$. 
-%Small $\omega$ results in edges which are parallel and close to the part axis.
-Right: first and second order moments of the region lying under the major part axis.}
+\includegraphics[width=1.05\textwidth]{figs/feature-sources.pdf}
+\caption[Feature sources.]{Feature sources. (a) Running example input image.  
+(b) Coarse HoG representation. (c) Different geometric quantities we compute 
+for our models. (d) Normalized cuts.  (e) Long contours derived from Ncut 
+segment boundaries. (f) Optical flow field shown sparsely as a quiver plot over 
+the dense magnitude of the optical flow field at every pixel.}
+\label{fig:feature-sources}
 \end{center}
-\vskip -0.4in
 \end{figure}
-\mypar{Shape}
-We express the shape of limbs via region and contour information. We use contour cues to capture the notion that limbs have a long smooth outline connecting and supporting both the upper and lower parts.  Region information is used to express coarse global shape properties of each limb, attempting to express the fact the limbs are often supported by a roughly rectangular collection of regions---the same notion that drives the bottom-up hypothesis generation in~\cite{mori04,Srinivasan07}.
-% of segments A second shape feature captures the notion that arms tend to have the shape of rectangles.
 
-\mypar{Shape/Contour} We detect long smooth contours from sequences of image segmentation boundaries obtained via NCut~\cite{cour05}.
-%sequences of boundaries of image segments.
-We define a graph whose nodes are all boundaries between segments with edges linking touching boundaries. Each contour is a path in this graph (see Fig.~\ref{cc_fig}, middle left). To reduce the number of possible paths, we restrict ourselves to all shortest paths. To quantify the smoothness of a contour, we compute an angle between each two touching segment boundaries\footnote{This angle is computed as the angle between the lines fitted to the segment boundary ends, defined as one third of the boundary. }. The smoothness of a contour is quantified as the maximum angle between boundaries along this contour. Finally, we find among all shortest paths those whose length exceeds $\ell_{\textrm{th}}$ pixels and whose smoothness is less then $s_{\textrm{th}}$ and denote them by $\{c_1,\dots c_m\}$.\footnote{We set $\ell_{\textrm{th}} = 60$ pixels, $s_{\textrm{th}} = 45^\circ$ resulting in $15$ to $30$ contours per image.}
 
-% To define the above features, we extract segments using NCut \cite{cour05}. For the contour features, we extract long smooth contours, each defined as a sequence of linked segment boundaries, such that the transitions between boundaries are smooth (see Fig.~\ref{cc_fig}, middle left). To obtain such sequences, we define a graph, whose nodes are all boundaries between segments with edges linking touching boundaries. For each pair of segment boundaries, we compute the shortest path between them, which represents a contour in the image. We retain contours which are longer than $l_{\textrm{th}}$ pixels and are smooth. To quantify the smoothness of a contour, we compute an angle between each two touching segment boundaries. This can be done by fitting a line to the segment boundary end, defined as one third of the boundary, and compute the angle between the the boundary ends at the touching point.  The smoothness of a contour is quantified as the maximum angle between boundaries along this contour. We retain contours whose smoothness is less than $s_{\textrm{th}}$. In our implementation we use $30$ segments and set $l_{\textrm{th}} = 60$ pixels, $s_{\textrm{th}} = 45^\circ$, which results in $m$ contours per image $\{c_1,\dots c_m\}$ for $m$ usually between $15$ and $30$.
 
-We can use the above contours to define features for each pair of lower and upper arms, which encode the notion that those two parts should share a long smooth contour, which is parallel and close to the part boundaries. For each arm part $l_i$ and a contour $c_k$ we can estimate the edges of $c_k$ which lie inside one of the halves of the supporting rectangle of $l_i$ and whose edge normals build an angle smaller than $\omega$ with the normal of the part axis (see Fig.~\ref{cc_fig}, right). We denote the number of those edges by $q_{ik}(\omega)$. Intuitively, a contour supports a limb if it is mostly parallel and enclosed in one of the limb sides, i.e.~the value $q_{ik}(\omega)$ is large for small angles $\omega$. A pair of arm limbs $l_i$, $l_j$ should have a high score if both parts are supported by a contour $c_k$, which can be expressed as the following two scores
+\section{Edges}\label{sec:edges}
+The standard cue for pictorial structures is rigid templates based on 
+edges~\citep{ferrari08,eichner09,andriluka09,ddtran,devacrf,deva2011}.  Edges 
+provide invariance to lighting bias and color.  Robust descriptors on top of 
+edges provide additional invariance to lighting changes and slight 
+translations, by coarsely binning edge magnitude and orientation, possibly with 
+local edge energy normalization.  \citet{andriluka09} used Shape 
+Context~\citep{belongie2001} on top of Canny edge detection for a sparse 
+representation which handles angular deformation well by binning radially.  
+
+In all our work, and many others, we use an unsigned histogram of gradients 
+(HoG) descriptor, which partitions the image into a coarse uniform grid of 
+cells, and measures the edge energy discretized into the uniform grid of 
+spatial bins (cells) and $9$ unsigned orientation bins.  HoG was originally 
+proposed by~\citet{dalal-triggs} for pedestrian detection, and has been hugely 
+popular in the object recognition community as a whole, \eg~\cite{pff-dpm}.  We use a modified version of the implementation 
+by~\citet{pff-dpm}, changed to use only unsigned orientations and no color.  
+See~\figreff{feature-sources}{b}.
+
+\section{Color}\label{sec:color}
+Color is a tricky cue to exploit, being highly variable from image to image.  
+However, having knowledge of the foreground and/or background color is powerful 
+information that enables us to separate unlikely poses from likely ones---we 
+can exploit such assumptions as figure/ground color separation and foreground 
+constancy across the body and through time. 
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/fg-color.pdf}
+\caption[Foreground color estimation.]{Foreground color estimation.  (a) Masks 
+obtained from groundtruth locations of face, torso and background {\em a 
+priori}, overlaid on an example image. (b,c) Output of classifier learned to 
+discriminate face versus background and torso versus background independently 
+for every pixel. }
+\label{fig:fg-color}
+\end{center}
+\end{figure}
+
+
+
+\mypar{Foreground/Background modeling}
+It is difficult to model the foreground or background color without first {\em 
+knowing} where the foreground and background are---``a chicken and egg 
+problem''.  Some works such as~\citet{devacrf,eichner09} focus on this issue 
+directly by iteratively re-estimating color and re-estimating pose.  
+
+We choose a simple and effective method inspired by~\citet{strikeapose} to 
+obtain foreground skin and clothing color models in a single pre-processing 
+step.  We exploit the fact that humans are quite well-localized by people 
+detectors~\citep{ferrari08}, and assume we have samples of pixels from the 
+face, torso and (importantly) background.  \figref{fg-color} shows a mask of 
+pixels which we sample and corresponding labels.  Treating these samples as 
+{\em groundtruth}, we model color using a supervised binary classifier 
+(\secref{ml}) for skin and torso color separately, using the assumed \{face, 
+torso\} pixels as positive examples, and assumed background pixels as negative 
+examples.  Each pixel is its own example, classified independently.
+
+Because we have few samples that do not completely describe the range of 
+foreground and background colors, and because the feature space is relatively 
+small (the space of colors), it is quite easy to overfit a discriminative 
+foreground/background color model to the training samples. This leads to poor 
+generalization when we apply the learned model.  Using validation data, we 
+found that a scheme of learning the models using an Adaboost classifier 
+composed of 10 decision trees each of maximum depth 2~\citep{esl-book} worked 
+well in practice.  To complete our input foreground/background color estimation 
+feature source, we apply the learned face and torso color classifiers to all 
+pixels in the image independently (including the training sample pixels).
+
+\mypar{Color similarity and tracking}
+It is also useful to {\em compare } the color of parts in a relative sense, for 
+the purposes of color constancy between limbs and joints within a frame and 
+across time.  For this, we need a description of color and a notion of 
+distances that are robust to fluctuations in lighting, hue and saturation.  
+Because we are only concerned with local color similarity here (between patches 
+in a single or consecutive frames), we choose a vector quantization to 
+partition the colorspace into a coarse colormap.  Specifically, we choose the 
+method of~\citet{heckbert1982color}---\texttt{rgb2ind($\cdot$)} in {\sc Matlab}---which 
+greedily chooses bisections of RGB space to minimize variance.  This 
+representation is not only robust to color fluctuations, it is also fast to 
+compute and lends itself easily to robust histogram comparison distances, as 
+explained below.
+
+\section{Shape}\label{sec:shape}  Shape representations have the potential to 
+model very generic yet discriminative descriptions of objects.  However, they 
+have seen limited success in the object recognition community, typically 
+because the representations are fragile and confounded by real-world clutter, 
+\eg~\citet{shock-graphs}.  Furthermore, much of the shape community is inspired 
+by the study of early biological vision and psychophysics, where the focus is 
+on {\em bottom-up processing}: finding objects or pieces of objects in a 
+generic way---without an explicit model of any specific object---based on 
+perceptual grouping principles such as symmetry, contour continuity and
+parallelism, \eg~\citet{biederman-geons}.
+
+In contrast, the object recognition community has relied heavily on data-driven 
+discriminative models on top of edge template representations~\citep{voc}, such 
+as the HoG representation discussed in~\secref{edges}, and 
+others~\citep{dalal-triggs,viola02,dpm}.  These models leverage powerful 
+machine learning machinery to distinguish foreground from background clutter, 
+but the rigid edge template representation is brittle to intrinsic deformations 
+and extrinsic rotation, translation and scale.
+
+We seek to leverage the representational power of bottom-up grouping cues in 
+our top-down model of human pose.  We look at shape descriptors based on region 
+and contour information.  Recently other works have focused on using purely 
+bottom-up shape representations in a top-down matching framework, such 
+as~\citet{toshev2010,zhu2008contour,sminch11}.  Also, some of the early work on 
+human pose estimation was purely bottom-up driven, based on heuristics and 
+hand-crafted rules to propose and connect limbs, \eg~\citet{mori04,praveen07}.
+
+We choose to use Multiscale Normalized Cut (Ncut)~\citep{cour05} to obtain 
+regions.  Ncut seeks a balanced partitioning of the image into meaningful 
+regions via a spectral decomposition of a graph over image pixels, based on 
+pairwise pixel affinities. See~\figreff{feature-sources}{d}.
+
+We obtain long continuous contours in the image from the regions obtained by 
+Ncut, as follows.  We define a graph whose nodes are all boundaries between 
+Ncut segments with edges linking touching boundaries. Each contour is a path in 
+this graph. To reduce the number of possible paths, we restrict ourselves to 
+all shortest paths. To quantify the smoothness of a contour, we compute an 
+angle between each two touching segment boundaries\footnote{The angle computed 
+is between straight lines fit to the last third of each segment boundary}. The 
+smoothness of a contour is quantified as the maximum angle between boundaries 
+along this contour. Finally, we find among all shortest paths those whose 
+length exceeds $18\%$ of the estimated person's upper body and whose smoothness 
+angle is less then $45^\circ$ to obtain a final set of contours, typically 15 
+to 30 per image. See~\figreff{feature-sources}{e}.
+
+\section{Geometry}\label{sec:geom}
+As discussed in~\secref{ps}, most models of human pose consider only a unimodal 
+function of the displacement between parts of the form $d(y_i - y_j - 
+\delta_{ij})$, where $\delta_{ij}$ is the expected displacement between parts, 
+and $d(\cdot)$ is typically squared Euclidean distance in a linearly 
+transformed space.  In our models we are not bound to any analytical form.  
+Thus we encode features based on limb lengths (Euclidean distance in pixel 
+coordinates), relative angles between parts, absolute angles that limbs make 
+with the horizontal, and absolute locations of limbs and joints.  The 
+``absolute'' measurements are really with respect to the detected person 
+bounding box, which can be thought of as a simple virtual ``root'' part which 
+is always instantiated (observed) in our models.  
+See~\figreff{feature-sources}{c}.
+
+\section{Motion}\label{sec:motion} Motion gives us cues to separate foreground 
+from background, and fast moving parts (\eg, hands) from more stationary ones 
+(\eg head).  When consecutive frames of video are available, we obtain motion 
+estimation from optical flow.  Specifically, we use the fast implementation 
+from~\citet{liu-optflow}.  See~\figreff{feature-sources}{f}.
+
+
+
+
+\chapter{Features}
+
+There are several possible ways to organize the list of features we use in our 
+systems---by model, by modality, by importance.  We choose to group them 
+here by variable interactions, in keeping with the story of this thesis.  To 
+make clear which features are used in which models, we mark each feature with 
+[CPS] (\secref{CPS}), [ESM] (\secref{stretchable}), [LLPS] (\secref{llps}), or 
+some combination of the three.
+
+\section{Discretization}
+All the features described in this chapter come in a variety of units, types 
+and ranges, both categorical and real.  Typically in linear models performance 
+suffers significantly when features are at very different 
+scales~\citep{liblinear}.  In order to incorporate these into a linear pairwise 
+MRF model in a flexible manner, we {\em uniformly discretize} all the features 
+discussed, mapping them to one of $b$ bins.  When a feature is real-valued, $b 
+= 10$ with bin boundaries uniformly spaced between the $10^{th}$ and $90^{th}$ 
+percentile of the feature's value over the training set.  When a feature is 
+categorical, $b$ is equal to the number of categories.  In all cases, each 
+scalar feature gets mapped to a binary vector of length $b$, with exactly one 
+entry that is $1$, indicating bin membership, and the rest $0$.   This allows 
+us to learn non-linear, multi-modal mappings of scalar features, as the weights 
+of each bin are unconstrained.  The sparse representation allows us to compute 
+$\w_i \cdot \f_i(x,y_i)$ and $\w_{ij} \cdot \f(x,y_i,y_j)$ quickly for all 
+factors.
+
+The last stage of CPS uses its own form of discretization, by way of learning 
+decision tree stumps on raw feature values in a boosting procedure.  Details 
+are in \secref{impl-details}.
+
+
+\section{Limb-pair features}\label{sec:limb-limb}
+\mypar{Color similarity [CPS:]}: We measure the color similarity of 
+kinematically-connected upper and lower arms via $\chi^2$-distance between 
+histograms of quantized RGB color, described in~\secref{color}.  The histograms 
+are accumulated within rectangles describing the limb extent. For histograms 
+$q$ and $p$, with bins indexed by $p_i$ and $q_i$, the distance is defined as
+$$\chi^2(p,q) = \frac{1}{2} \frac{\sum_i (p_i - q_i)^2}{\sum_i p_i + q_i}.$$  
+We discretize the colorspace into only $8$ bins to histogram, giving us a 
+stable but crude representation of color.  The coarseness of the quantization 
+is permissible because we only need to model a local region of a single image 
+around a detected person.
+
+
+\mypar{Contour support [CPS]:} We can use the set of contours $\{c_k\}$ 
+obtained as described in~\secref{shape} to define features for each pair of 
+lower and upper arms, which encode the notion that those two parts should share 
+a long smooth contour, which is parallel and close to the part boundaries. For 
+each arm part $y_i$ and a contour $c_k$ we can estimate the edges of $c_k$ 
+which lie inside one of the halves of the supporting rectangle of $y_i$ and 
+whose edge normals build an angle smaller than $\omega$ with the normal of the 
+part axis.  We denote the number of those edges by $q_{ik}(\omega)$.  
+Intuitively, a contour supports a limb if it is mostly parallel and enclosed in 
+one of the limb sides, i.e.~the value $q_{ik}(\omega)$ is large for small 
+angles $\omega$. A pair of arm limbs $y_i$, $y_j$ should have a high score if 
+both parts are supported by a contour $c_k$, which can be expressed as the 
+following two scores
 \[
   \textrm{cc}_{ijk}^{(1)}(\omega, \omega') = \frac{1}{2}\left(\frac{q_{ik}(\omega)}{h_i} + \frac{q_{jk}(\omega')}{h_j}\right)\quad\textrm{and}\quad\textrm{cc}_{ijk}^{(2)}(\omega, \omega') = \min\left\{\frac{q_{ik}(\omega)}{h_i}, \frac{q_{jk}(\omega')}{h_j}\right\}
 \]
-where we normalize $q_{ik}$ by the length of the limb $h_i$ to ensure that the score is in $[0,1]$. The first score measures the overall support of the parts, while the second measures the minimum support. Hence, for $l_i$, $l_j$ we can find the highest score among all contours, which expresses the highest degree of support which this pair of arms can receive from any of the image contours:
+where we normalize $q_{ik}$ by the length of the limb $h_i$ to ensure that the 
+score is in $[0,1]$. The first score measures the overall support of the parts, 
+while the second measures the minimum support. Hence, for $y_i$, $y_j$ we can 
+find the highest score among all contours, which expresses the highest degree 
+of support which this pair of arms can receive from any of the image contours:
 \[
-\textrm{cc}_{ij}^{(t)}(\omega, \omega') = \max_{k\in\{1, \dots , m\}}\textrm{cc}_{ijk}^{(t)}(\omega, \omega'), \quad\textrm{for} \quad t\in\{1,2\}
+\textrm{cc}_{ij}^{(t)}(\omega, \omega') = \max_{k} \textrm{ 
+cc}_{ijk}^{(t)}(\omega, \omega'), \quad\textrm{for} \quad t\in\{1,2\}
 \]
-By varying the angles $\omega$ and $\omega'$ in a set of admissible angles $\Omega$ defining parallelism between the part and the contour, we obtain $|\Omega|^2$ contour features\footnote{We set $\Omega=\{10^\circ, 20^\circ, 30^\circ\}$, which results in $18$ features for both scores.}.
-% For the left limbs we use the right half of the supporting rectangle, viewed from the part joint, while for the right limbs we use the left half. This corresponds to the outer contour of each arm
+By varying the angles $\omega$ and $\omega'$ in a set of admissible angles 
+$\Omega$ defining parallelism between the part and the contour, we obtain 
+$|\Omega|^2$ contour features\footnote{We set $\Omega=\{10^\circ, 20^\circ, 
+30^\circ\}$, which results in $18$ features for both scores.}  The features are 
+illustrated in~\figreff{contour-feature}{(b)}.
 
-\mypar{Shape/Region Moments} We compute the first and second order moments of 
-the segments lying under the major part axis (see Fig.~\ref{cc_fig}, 
-right)\footnote{We select segments which cover at least $25\%$ of the part 
-axis.} to coarsely express shape of limb hypotheses as a collection of 
-segments, $R_i$. To achieve rotation and translation invariance, we compute the 
-moments in the part coordinate system.  We include convexity information 
-$|conv(R_{i})|/|R_{i}|$, where $conv(\cdot)$ is the convex hull of a set of 
-points, and $|R_{i}|$ is the number of points in the collection of segments.  
-We also include the number of points on the convex hull, and the number of part 
-axis points that pass through $R_{i}$ to express continuity along the part 
-axis. 
- 
- Note that contour feature is a pure bottom-up cue which does not capture the 
-precise arm shape but encodes figural properties of the arm -- smoothness and 
-continuity of its boundary. It is a mid-level cue related to a configuration of 
-two parts. The part shape, however, encodes a more precise shape but only of a 
-single part.
- 
-\mypar{Appearance/Texture} Following the edge-based representation used in 
-\cite{latentsvm}, we model the appearance the body parts using Histogram of 
-Gradient (HoG) descriptor.  For each of the 6 body parts -- head, torso, upper 
-and lower arms -- we learn an individual Gentleboost classifier 
-\cite{friedman00} on the HoG features using the Limbs Annotated in Movies 
-Dataset\footnote{LAMDa is available at 
-\textit{http://vision.grasp.upenn.edu/video}}.  %The output of the classifier 
-is our first appearance feature.
+\mypar{Geometry [CPS]:} We measure the interior angle made between parts, 
+keeping the part identity so that the angle is in the full range $[0,2\pi]$.  
+We also look at difference from the expected position $\delta_{ij}$ for a pair 
+of parts, using the signed $x$ and $y$ components as features.
 
-\mypar{Appearance/Color}  As opposed to HoG, color drastically varies between people. We use the same assumptions as \cite{eichner09} and build color models assuming a fixed location for the head and torso at run-time for each image.  We train Adaboost classifiers using these pre-defined regions of positive and negative example pixels, represented as RGB, Lab, and HSV components.  For a particular image, a 5-round Adaboost ensemble~\cite{freund1997decision} is learned for each color model (head, torso) and reapplied to all the pixels in the image.  A similar technique is also used by~\cite{strikeapose} to incorporate color.  
-%Face and torso can reveal information about skin and clothing color of all other parts.  
-Features are computed as the mean score of each discrimintative color model on the pixels lying in the rectangle of the part.
-
-% on positive examples drawn from fixed rectangles, which roughly localize the person torso and head, and negative examples drawn from the background of training images. We use the color channels in RGB, Lab and HSV spaces for each pixels as features. Then we can use those models on unknown part hypotheses from the same image -- head and torso reveal information about the skin and clothing color which are same for the arm clothing and hand color. For an arm hypothesis, the two color features $f_2, f_3$ are computed as the mean score of the pixels lying in the support of the part using both models. 
-
-We use similarity of appearance between lower and upper arms as features for 
-the pairwise potentials of \CPS. Precisely, we use the $\chi^2$ distance 
-between the color histograms of the pixels lying in the part support.  The 
-histograms are computed using minimum-variance quantization of the RGB color 
-values of each image into $8$ colors.
-% Precisely, we use two features, the first $f_4$ being the $\chi^2$ distance between the color histograms of the pixels lying in the part support. The histograms are computed using minimum-variance quantization of the RGB color values of each image into $8$ colors. The second feature $f_5$ is defined in terms of the spectral embedding obtained from NCuts segmentation \cite{cour05}. NCuts is defined in terms of a pixel affinity matrix which encodes color and intervening contour similarities (see~\cite{cour05} for details). The final segmentation is obtained through discretization of the top eigenvectors (we use the top $30$) of the affinity matrix. These vectors define for each pixel an embedding vector (in our case of dimension $30$) with the property that the vectors in this embedding space are clearly clustered according to the NCut segmentation criterion and the cues used in the affinity matrix. Thus, the mean embedding vector of all pixels in the support of a body part can be interpreted as an segmentation embedding vector of the part. FInally, the dot product of two such vectors representing two arm parts can be interpreted as similarity score, which is our last appearance feature $f_5$.
-
-\mypar{Geometry} The body part configuration is encoded in two set of features. 
-The location $(l_{ix}, l_{iy})$ and orientation $(l_{iu}, l_{iv})$, included in 
-the state of a part, are used added as absolute location prior features.  We 
-express the relative difference between part $i$ its parent $j$ in the 
-coordinate frame of the parent part as $T_{ij}(y_i) - y_j$.
-% parent's coordinate frame, and $\lpart_{i\omega}$ is simply the angular 
-%representation of $\lpart_i$'s direction.
-%same quantities as in the original ps structure, but expanded out intThe relative positions between two parts $l_i$ and its parent $l_j$ are captured by the difference and the products of differences between the state components of the two parts: 
-%\[
-%f_7=(dl_x, dl_y, dl_x^2, dl_y^2, dl_xdl_y, dl_u, dl_v, dl_u^2, dl_v^2, dl_udl_v)
-%\]
-%where $dl_k = l_{ik} - l_{jk}$ is the difference of the state component $k$. Note that we include second order terms to model non-linear geometric interactions. 
-Note we could introduce second-order terms to model a quadratic deformation cost akin to the classical PS, but we instead adopt more flexible binning or boosting of these features (see Section~\ref{implementation}).
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/contour-feature.pdf}
+\caption[Shape features.]{Shape features.  (a) Input image.  (b) Measuring a 
+pair of limbs co-likelihood by checking attachment to long contours in the 
+image, as described in the ``Contour support'' feature.  (c)  Measuring the 
+likelihood of a single limb's region support, as described in the ``Region 
+support'' feature. (d) Examples of right lower arm hypotheses that have poor 
+support from underlying regions (top), and good support (bottom).}
+\label{fig:contour-feature}
+\end{center}
+\end{figure}
 
 
-\begin{figure*}[tb!]
-\centering
-\includegraphics[width=0.90\linewidth]{figs/empty.jpg}
-\caption{\small \label{fig:features} Overview of features described in 
-Section~\ref{sec:features}. \textbf{(a)} Two discriminative hand detector 
-filters from optical flow and skin color. \textbf{(b)} Quantized color is 
-matched within a frame (comparing color distributions) and over time (comparing 
-$L_0$-norm patch distance). \textbf{(c)} Limb hypotheses are scored based on 
-aligment to nearby contours.  \textbf{(d)} We use a few simple geometric 
-features between joints in a frame, and joint persistence over time.  
-\textbf{(e)} We form an estimate of foreground and background likelihood from 
-dense optical flow.}
-\end{figure*}
+\section{Joint-pair features}\label{sec:joint-joint}
+\mypar{HoG limb detectors [CPS, ESM]:} For each of the 6 body parts -- head, 
+torso, upper and lower arms -- we learn an individual Gentleboost 
+classifier~\cite{friedman00} on HoG features (\secref{edges}) using the Limbs 
+Annotated in Movies Dataset\footnote{LAMDa is available at 
+\textit{http://vision.grasp.upenn.edu/video}}.  We then apply these detectors 
+densely over all orientations and locations and downsample by max-pooling or 
+upsample via nearest-neighbor to get a heatmap of beliefs over our state space.
 
-As described in Section~\ref{sec:model}, our model represents human pose and 
-motion with an ensemble of tree models which capture relationships between 
-different joint locations within a frame and the relationships between the same 
-joint across time.  Due to the tractable nature of our tree decomposition, and 
-the sparse set of states provided by a single frame cascaded 
-PS~\cite{sapp10cascades}, we can afford to combine a variety of effective 
-features for all unary joint and pairwise joint-joint relationships we wish to 
-model.  Figure~\ref{fig:features} illustrates most of the features described 
-here.
+\mypar{Region support [CPS, ESM]:}
+We compute the first and second order moments of the segments lying under the 
+major part axis\footnote{We select segments which cover at least $25\%$ of the 
+part axis.} to coarsely express shape of limb hypotheses as a collection of 
+segments $R$, the union of all segments that support the part hypothesis. To 
+achieve rotation and translation invariance, we compute the moments in the part 
+coordinate system.  We include convexity information $|conv(R)|/|R|$, where 
+$conv(\cdot)$ is the convex hull of a set of points, and $|R|$ is the number of 
+points in the collection of segments.  We also include the number of points on 
+the convex hull, and the number of part axis points that pass through $R$ to 
+express continuity along the part axis.  See~\figreff{contour-feature}{b,c}.
 
+\mypar{Foreground color [CPS, ESM]:} Using likelihood heatmaps of estimated 
+skin and torso color (\secref{color}), we measure the likelihood that a limb is 
+present at a particular location by a mean heatmap value inside the rectangular 
+extent of a part, for each color model (face and torso). This can be computed 
+efficiently densely via convolution with an all-ones filter, separable over 
+dimensions, for each orientation.  If desired, the feature can be computed 
+efficiently over a sparse set of locations using integral 
+images~\citep{viola02}.
 
-\subsection{Single-frame features}
+\mypar{Geometry [CPS, ESM, LLPS]:} To describe the geometry of a limb in CPS, 
+we use as features its absolute position and orientation with respect to the 
+image axes.  Position is discretized into a coarse spatial grid, and 
+orientation is discretized into 24 possible values; both categorical features.
 
-\mypar{Geometry.} Unlike previous single-frame geometry features used in PS 
-representations, we purposefully only include coarse geometric relationships 
-into our model, and rely more heavily on image-based cues to estimate pose.  
-This is inspired by the observation that state-of-the-art PS implementations 
-learned on existing datasets tend to learn very rigid geometric priors upon 
-which they rely heavily~\cite{tran10}. These models generalize poorly, 
-especially to important application domains with a high degree of pose 
-variation, such as action recognition.
+In the Stretchable Ensemble Model, we use the following pairwise geometric 
+features for limbs in a single frame: (i) length of arms, (ii) unsigned 
+difference in angle that the upper arm makes with respect to the vertical axis, 
+(iii) difference in x-coordinate between left-right symmetric joints, from 
+which our model can learn a type of repulsion behavior (e.g., the left shoulder 
+should be far from the right shoulder) as well as a left-right order of parts 
+(e.g., the left shoulder should be to the left of the right shoulder). Note 
+that we do {\em not} express features describing the angle of the lower arm, 
+leaving it free to rotate and stretch.
+See~\figreff{misc-features}{d}.
 
-In light of this, we use the following pairwise geometric features: (i) length 
-of arms, (ii) unsigned difference in angle that the upper arm makes with 
-respect to the vertical axis, (iii) difference in x-coordinate between 
-left-right symmetric joints, from which our model can learn a type of repulsion 
-behavior (e.g., the left shoulder should be far from the right shoulder) as 
-well as a left-right order of parts (e.g., the left shoulder should be to the 
-left of the right shoulder).  These features are coarsely discretized into 10 
-bins.  Note that we do {\em not} express features describing the angle of the 
-lower arm, leaving it free to rotate and stretch. See 
-Figure~\ref{fig:features}d. 
+To express joint motion continuity through time in ESM, we use one simple 
+geometric feature: the Euclidean distance between the joint in consecutive 
+frames, discretized into 10 binary values.   In LLPS, the only geometric 
+constraint is the box distance described in~\secref{boxdist}.
 
-\mypar{Color-based hand detector.}  Detecting the hand location is an extremely 
-useful cue in anchoring all joint locations.  Unfortunately, traditional 
-template-based part detectors such as Histogram of Gradient (HoG) detectors fail at this task due to 
-hands' high variability in appearance, pose, and motion blur.  We instead learn 
-a linear SVM filter on skin detection response maps computed from the publicly 
-available code from~\cite{sapp10cascades} on the training data.  This can be 
-evaluated efficiently using convolution at test time.  See 
-Figure~\ref{fig:features}a.
+\mypar{Contour support [ESM]:}  For each arm joint-pair, we measure its support 
+from long contours extracted in the image (~\secref{shape}) as follows: we take 
+the number of contour points that are roughly parallel to the joint-pair line 
+segment (angle less than $12^\circ$) and within a spatial support region 
+(approximately 25\% of the length of the average limb).  We then use as a 
+feature the number of supporting contour points, normalized by the length of 
+the limb hypothesis.  Due to the sparse contour set, this feature can be 
+computed extremely efficiently, by quickly discarding hypotheses whose 
+endpoints are not near any contour.  See~\figreff{misc-features}{c}.
 
-\out{
- We train this filter discriminatively via linear SVM using our groundtruth 
-hand locations, and it learns to encourage likely skin color in the center of 
-the hand area, and discourage skin color nearby (to discourage it from firing 
-in the middle of the arm, face, etc.).  See Figure~\ref{fig:features}a, bottom 
-row.  Due to the linear representation, we can evaluate this detector 
-efficiently at all angles via convolution.
-}
-
-\mypar{Contour support.}  For each arm joint-pair, we measure 
-its support from long contours extracted in the image as follows: we take the 
-number of contour points that are roughly parallel to the joint-pair line 
-segment (angle less than 12 degrees) and within a spatial support region 
-(approximately 25\% of the length of the average groundtruth limb).  We then 
-use as a feature the number of supporting contour points, normalized by the 
-length of the limb hypothesis.  Due to the sparse contour set, 
-this feature can be computed extremely efficiently, by quickly discarding 
-hypotheses whose endpoints are not near any contour. See Figure~\ref{fig:features}c.
-
-\out{
-%: even when the number of limb hypotheses is large (in practice, about 150K 
-%possibilities for all joint pairs), we can compute all limb contour support 
-%scores in less than half a second by quickly discarding ones whose endpoints 
-%are not near any contour.  
-The sparse contour set also makes this a low-recall, high-precision feature, 
-and complements the less localized-features well when support is found.  
-}
-
-\mypar{Color consistency.} To capture the fact that the color of pairs of 
+\mypar{Color consistency [ESM]:} To capture the fact that the color of pairs of 
 joints is often similar due to clothing and/or skin color, we describe the 
 color consistency of pairs of joints via the $\chi^2$-distance between color 
 histograms obtained from small image patches (with side length 10\% of image 
-dimensions) extracted around each joint.  See Figure~\ref{fig:features}b.
+dimensions) extracted around each joint.  See~\figreff{misc-features}{b}.
 
-\mypar{Figure from flow.}
+\mypar{Color tracking [ESM]:}  We capture the persistence of appearance over 
+time with a simple and effective patch-based color tracker for each joint.  We 
+jointly quantize each pair of consecutive images into a small number of color 
+indices, using minimum variance quantization (\secref{color})---here with 32 
+colors.  We then compare patches (of side length 10\% of the image dimensions) 
+around the joint in each frame using an $L_0$-norm (Hamming loss) distance 
+function:  Let $P_{t}$ and $P_{t+1}$ represent quantized color image patches 
+around the joint in frame $t$ and $t+1$, with $N$ pixels.  Then the color 
+tracking distance feature is $ 
+||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind{P_{t}(r,c)~=~P_{t+1}(r,c)}$ 
+where (r,c) indexes rows and columns in the patch.  
+See~\figreff{misc-features}{b}.
+
+The coarse quantization gives us a robust way to compare the color in 
+consecutive frames that is tolerant to changes in lighting and pixel 
+fluctuation.  The $L_0$ distance is more robust than Euclidean distance/radial 
+basis similarity scores often used (\eg~\citet{gould08ijcv}), in which the 
+distance grows with the distance in the color space and can thus be corrupted 
+by a few large outlying pixels.  Furthermore, it is a much more discriminative 
+cue than color histogram distances across time (as used in \eg~\citet{ren07}) 
+because it requires that the {\em pixel structure} of the patch be similar in 
+consecutive frames.  
+
+\mypar{Figure from flow [ESM]:}
 We use several features based on dense optical flow from~\cite{optflow}, which we compute between 
 adjacent frames. We obtain a rough estimate of the foreground of each clip by 
 assuming there are only 2 planes of motion: foreground (figure) and background.  
@@ -192,82 +367,56 @@ Given a detected person, we estimate the background motion by computing the
 median flow vector $\mu_{bg}$ outside the detected person bounding box, and not 
 considering outlier flow with magnitude greater than the $75^{th}$ percentile.  
 We then subtract off $\mu_{bg}$ from the flow field and take the magnitude of 
-the flow as an estimate of foreground likelihood, as in 
-Figure~\ref{fig:features}e.  We incorporate this as a unary feature for each 
-joint, and a pairwise feature by computing the average sampled evenly along 
-the line segment between joint pairs.
+the flow as an estimate of foreground likelihood.  We incorporate this as a
+limb feature by computing the average foreground likelihood sampled at 5 points 
+evenly spaced along the line segment between joint pairs.
+See~\figreff{misc-features}{e}.
 
-\mypar{Flow-based hand detector.}  We exploit the fact that hands are often in 
-motion (and naturally the fastest moving body part) by building a hand detector 
-based on hand-shaped motion discontinuity. We extract motion discontinuities by 
-computing the gradient magnitude of the flow field, and learn a linear filter 
-via SVM using this motion discontinuity magnitude cue specific to hands, 
-similar to the single frame hand detector based on skin-color likelihood maps.  
-See Figure~\ref{fig:features}a, top row.
+\section{Single joint features} \label{sec:single-joint}
 
-
-\mypar{Joint contour and flow support.}  We include an additional contour 
-feature restricting our single-frame contour feature to only 
-count support from contour points that are consistent with a large magnitude 
-optical flow discontinuity.  This serves to reduce background clutter and 
-restricts support to only contours that are salient both spatially and 
-temporally. 
-
-%------------------------- eccv stuff --------------------------------------
-\mypar{Single-frame features from~\cite{sapp10cascades}.} We make use of 
-several feature computations provided by the public implementation 
-of Cascaded PS~\cite{sapp10cascades}, a state-of-the-art single frame pose estimation model; see paper for details.
-
-We incorporate HoG limb detectors as unary features for each shoulder and elbow 
-joint by taking the max response of the detector over all possible angles.  We 
-also incorporate the detectors as pairwise terms for (shoulder, elbow) and 
-(elbow, wrist) pairs for which we can index the detector at the appropriate 
-angle.
-The image-adaptive discriminative color models of clothing and skin color are 
-incorporated as unary features.  Finally, we discretize our state space 
-relative to the initial detected upper body into a 5x5 grid, and use membership 
-in each grid cell as a feature.  This is a particularly effective feature for 
-the shoulders, whose detection-relative location is relatively peaked, but not 
-very informative for elbows and wrist locations in our highly articulated dataset (summarized in Figure~\ref{fig:dataset}).
-
-\begin{figure}[]
-\centering
-\includegraphics[width=0.99\linewidth]{figs/empty.jpg}
-\caption{\small \label{fig:dd} Sample predictions on the VideoPose2.0 test set. 
-Dashed line indicates centering of torso. Magenta:
-  Single-frame \cite{sapp10cascades}. Red: Dual Decomposition. Cyan:
-  Single-frame agreement. Yellow: Single-variable agreement.}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/misc-features.pdf}
+\caption[Joint and joint-pair features.]{Joint and joint-pair features. See 
+\secref{joint-joint} and \secref{single-joint}. (a)  Hand detectors.  (b) Color 
+distances for left-right symmetry and tracking, using a quantized color space 
+(shown).  (c) Visualization of arm hypotheses that are supported by contours in 
+the image.  (d) Joint-joint geometry we employ in our Stretchable Ensemble 
+model.  (e)  Figure-ground estimation by estimating two flow clusters.}
+\label{fig:misc-features}
+\end{center}
 \end{figure}
 
 
-\subsection{Between-frame features}
-\mypar{$L_0$-norm quantized color tracking.}  We capture the persistence of 
-appearance over time with a simple and effective patch-based color tracker for 
-each joint.  We jointly quantize each pair of consecutive images into a small 
-number of color indices, using minimum variance quantization\footnote{In 
-practice we use MATLAB's \texttt{rgb2ind($\cdot$)} using 32 colors}.  We then 
-compare patches (of side length 10\% of the image dimensions) around the joint 
-in each frame using an $L_0$-norm (Hamming loss) distance function.  Let 
-$P_{t}$ and $P_{t+1}$ represent quantized color image patches around the joint 
-in frame $t$ and $t+1$, with $N$ pixels.  Then the color tracking distance 
-feature is $ ||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind{P_{t}(r,c)~=~P_{t+1}(r,c)}$ 
-where (r,c) indexes rows and columns in the patch.  This patch distance is robust to pixel value fluctuations and outliers, and encourages the {\em pixel structure} to be similar, unlike in color histogram distance tracking methods (e.g.,~\cite{ren07}).
+\mypar{Histogram of Gradients [ESM, LLPS]:} 
 
-\out{
-The coarse quantization gives us a robust way to compare the color in 
-consecutive frames that is tolerant to changes in lighting and pixel 
-fluctuation.  The $L_0$ distance is more robust than Euclidean distance/radial 
-basis similarity scores often used (e.g.,~\cite{gould08ijcv}), in which the distance grows with the distance in the color space and can thus be corrupted by a few large outlying pixels.  
-Furthermore, it is a much more discriminative cue than color histogram 
-distances across time (as used in, e.g.,~\cite{ren07}) because it requires that 
-the {\em pixel structure} of the patch be similar in consecutive frames.  
-}
-%This is also in contrast to the color histogram distance we employ in a single 
-%frame to compare color similarity of joints.  See Figure~\ref{fig:features}b.
+In ESM we have no specific learned model of joints, so we project down trained 
+limb detectors from~\secref{joint-joint}, taking a max over all possible angles 
+and over 3 possible limb lengths (not foreshortened, somewhat foreshortened, 
+extremely foreshortened; estimated by quantiles of dataset groundtruth limbs).
 
+In LPPS, we represent joints with $5 \times 5$ cell Histogram of Gradients 
+descriptors around each joint, using the implementation from~\cite{dpm}, 
+modified to use only 9 un-signed edge orientations.  Using these features, 
+learned parameters capture the local shape around each joint, {\em specific to} 
+the variations of pose and appearance in a small local neighborhood.  We 
+supplement the HoG channels with an extra ``out-of-image'' channel, to jointly 
+learn if it's likely that a body part lies at least partially outside the image 
+coordinates.
 
-\mypar{Geometry.} To express joint motion continuity, we use one simple 
-geometric feature: the Euclidean distance between the joint in consecutive 
-frames, discretized into 10 binary values (Figure~\ref{fig:features}d).
+\mypar{Color and motion-based hand detectors [ESM, LLPS]:}  Detecting the hand 
+location is an extremely useful cue in anchoring all joint locations.  
+Unfortunately, traditional template-based part detectors such as HoG detectors 
+fail at this task due to hands' high variability in appearance, pose, and 
+motion blur.  We instead learn discriminative linear filters~\citep{liblinear} 
+from two different input modalities:  (1) Skin detection heatmaps.  
+(\secref{color}).  (2) The gradient of the magnitude of the optical flow field 
+between consecutive images (\secref{motion}).  The latter exploits the fact 
+that hands are often in motion (and naturally the fastest moving body part).  
+Both linear filters can be evaluated efficiently densely via convolution.  
+See~\figreff{misc-features}{a}.
 
-
+\mypar{Figure from flow [ESM]:}
+We again use an estimate of foreground via optical flow magnitude as 
+in~\secref{joint-joint}, and \figreff{misc-features}{e}.  Here we report a mean 
+foreground likelihood in a small window around the joint as a feature.
