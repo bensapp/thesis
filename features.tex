@@ -157,7 +157,7 @@ As discussed in~\secref{ps}, most models of human pose consider only a unimodal
 function of the displacement between parts of the form $d(y_i - y_j - 
 \delta_{ij})$, where $\delta_{ij}$ is the expected displacement between parts, 
 and $d(\cdot)$ is typically squared Euclidean distance in a linearly 
-transformed space.  In our models we are not bound to any analytical form.  
+transformed space.  In our \CPS and Stretchable Ensembles models we are not restricted to any analytical form.  
 Thus we encode features based on limb lengths (Euclidean distance in pixel 
 coordinates), relative angles between parts, absolute angles that limbs make 
 with the horizontal, and absolute locations of limbs and joints.  The 
@@ -317,8 +317,7 @@ See~\figreff{misc-features}{d}.
 
 To express joint motion continuity through time in ESM, we use one simple 
 geometric feature: the Euclidean distance between the joint in consecutive 
-frames, discretized into 10 binary values.   In LLPS, the only geometric 
-constraint is the box distance described in~\secref{boxdist}.
+frames, discretized into 10 binary values.   In LLPS, we use standard quadratic deformation features as in~\secref{dt} \citep{felz05}.
 
 \mypar{Contour support [ESM]:}  For each arm joint-pair, we measure its support 
 from long contours extracted in the image (~\secref{shape}) as follows: we take 
@@ -345,7 +344,7 @@ around the joint in each frame using an $L_0$-norm (Hamming loss) distance
 function:  Let $P_{t}$ and $P_{t+1}$ represent quantized color image patches 
 around the joint in frame $t$ and $t+1$, with $N$ pixels.  Then the color 
 tracking distance feature is $ 
-||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind{P_{t}(r,c)~=~P_{t+1}(r,c)}$ 
+||P_t~-~P_{t+1}||_0~=~\frac{1}{N}~\sum_{(r,c)}~\Ind[P_{t}(r,c)=P_{t+1}(r,c)]$ 
 where (r,c) indexes rows and columns in the patch.  
 See~\figreff{misc-features}{b}.
 

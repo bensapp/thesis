@@ -1,18 +1,19 @@
 \begin{tabular}{| r | c | c |c | c | c | c | c |}
 \hline
-model &	atomic unit & part levels & training obj. & \# global modes	& \# part modes	& graph type & latent modes?	\\
+&	\# part & \# global & \# part & training  & graph & latent \\
+model &	levels & modes	& modes	& obj. & type & modes?	\\
 \hline
-basic ps	& limbs	& 1 &	parsing	& 1	& 1	& tree & no \\
-\cite{wang2008multiple} & limbs & 1 &	parsing &	3	& 1	& tree &	no \\
-\cite{everingham2011} &	limbs &	1 &	parsing &	16 & 4* &	tree &	yes \\
-\cite{deva2011} &	joints & 1	& detection &	1 &	4 to 6 & tree	& yes \\
-\cite{wang2011} & limbs & 4	& parsing	& 1 &	5 to 20 & cyclic & no \\
-\cite{sun2011} & limbs	& 4	&	parsing	& 1	& 4	& tree & yes \\
-\cite{ramanan-faces} &	joints &	1	& detection &	18	& 1** &	tree	& yes \\
-\cite{batra2012} & joints	& 4	&	detection &	9 &	4 to 6 & cyclic &	no \\
-\cite{tianexploring} & limbs & 3 & detection	& 5 &	5 to 15 &	tree & yes \\
+basic ps	& 1 &	1	& 1	& parsing & tree & no \\
+\cite{wang2008multiple} & 1 &	3	& 1	&parsing& tree &	no \\
+\cite{everingham2011} &	1 &	16 & 4* &parsing&	tree &	yes \\
+\cite{deva2011} &	1	& 1 &	4 to 6 &detection& tree	& yes \\
+\cite{wang2011} & 4	& 1 &	5 to 20 &parsing& cyclic & no \\
+\cite{sun2011} & 4	&	1	& 4	&parsing& tree & yes \\
+\cite{ramanan-faces} &	1	& 18	& 1** &detection&	tree	& yes \\
+\cite{batra2012} & 4	&	9 &	4 to 6 &detection& cyclic &	no \\
+\cite{tianexploring} & 3 & 5 &	5 to 15 &detection&	tree & yes \\
 \hline
-OURS & joints & 2 & both & 32 & 1 & tree & no \\
+\LLPS (ours) & 2 & 32 & 1 & both &tree & no \\
 \hline
 \end{tabular}
 

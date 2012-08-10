@@ -35,37 +35,29 @@ Most models developed for this use {\em only a single, linear model}---\eg,
 \citet{devacrf,eichner09,andriluka09,ddtran} and the models developed 
 in~\secref{CPS} and~\secref{stretchable}.
 Such models make it very difficult to capture the part variations discussed.  
-Instead, most researchers focus attention on improving features in hopes that a 
-better feature space will make a linear model discriminate correct poses from 
-incorrect ones well.  This comes at a price of considerable feature computation 
-cost.  
+Instead researchers have focused attention on improving features in hopes that 
+a better feature space will make a linear model discriminate correct poses from 
+incorrect ones well.  However, this comes at a price of considerable feature 
+computation cost---\CPS, for example, requires computation of Pb contour 
+detection and Normalized Cuts, each of which takes minutes.
 
-Recently, especially the past two years, there has been an explosion of  successful work 
-focused on increasing the number of modes in pose models, with much success.  
-This line of work in general can be described as instantiations of a {\em 
-family of compositional, hierarchical pose models}.  The family of models can 
-be parametrized by the number of {\em part levels } and the number of {\em part 
+Recently, especially the past two years, there has been an explosion of  
+successful work focused on increasing the number of modes in pose models. This 
+line of work in general can be described as instantiations of a {\em family of 
+compositional, hierarchical pose models}.  The family of models can be 
+parametrized by the number of {\em part levels } and the number of {\em part 
 modes} captured per part.  The part levels can encode different granularities 
 and scope of pose---\eg, {\em \{ wrist, lower arm, full arm, half-body, full 
 body \}} are example parts in a 5-level hierarchy.  The higher-level parts can 
-leverage more image context but must generalize larger variations in pose.  
-They serve to inform lower-level parts of likely locations.  Part modes at any 
-level can capture different poses (\eg, elbow crooked, lower arm sideways) and 
-appearance (\eg, thin arm, baggy pants).  Also of crucial importance are 
-details such as how models are trained, the computational demands of inference, 
-and how modes are defined or discovered.  Details for all recent work is in 
-\tabref{rel-work-ps}, which we discuss at length in \secref{llps-rel}.
+leverage more image context but must generalize larger within-mode variations 
+in pose.  They serve to inform lower-level parts of likely locations.  Part 
+modes at any level can capture different poses (\eg, elbow crooked, lower arm 
+sideways) and appearance (\eg, thin arm, baggy pants).  Also of crucial 
+importance are details such as how models are trained, the computational 
+demands of inference, and how modes are defined or discovered.  Details for all 
+recent work is in \tabref{rel-work-ps}, which we discuss at length in 
+\secref{llps-rel}.
 
-
- \begin{table}[tb]
-\begin{center}
-{\tiny
-\input{rel-work-hps-table}
-}
-\caption[Family of multimodal pose models.]{In the past few years, there have 
-been many instantiations of the family of multimodal models. }
-\label{tab:rel-work-ps} \end{center}
-\end{table}
 
 \mypar{Our approach:} In this chapter, we propose a particular instantiation of 
 a multimodal model with a focus on simplicity, speed and accuracy.  We capture 
@@ -89,14 +81,83 @@ outperform all previous work on part localization accuracy.
  
 
 \section{Related work}\label{sec:llps-rel}
-Here we take a particular perspective on some of the popular recent 
-approaches~\citet{devacrf,eichner09,sapp2010cascades,sapp2011,andriluka09,ddtran}.  
-Recently, there have been two major approaches to advance the performance of 
-pictorial structures models:
+ \begin{table}[bt!]
+\begin{center}
+{\small
+\input{rel-work-hps-table}
+}
+\caption[Family of multimodal pose models.]{In the past few years, there have 
+been many instantiations of the family of multimodal models. }
+\label{tab:rel-work-ps} \end{center}
+\end{table}
 
-\mypar{Throwing features at the problem:}  Equipped with a linear model of 
-human pose, most researchers focus attention instead on increasing the quality 
-of features, to be robust to the variety of modes discussed 
+We discuss here in depth the differences in recent works concerning multimodel 
+part level models of pose.  We then briefly go into other related models.
+
+\subsection{Multimodal modeling}
+As can be seen in \tabref{rel-work-ps}, compositional, hierarchical modeling of 
+pose has seen a lot of interest as of late.  In general works either consider 
+only global modes, local modes, or several multimodal levels of parts.
+
+\mypar{Global modes but local cues.} Some works consider a number of distinct 
+global model modes \citep{everingham2011,ramanan-faces,wang2008multiple}, 
+enumerating over tens of disjoint models and taking the highest scoring.  One 
+characteristic of all previous models in this category is that they only employ 
+local part cues (\eg wrist patch, elbow patch), making it difficult to 
+adequately represent and predict the best global mode.  A second issue that 
+some sort of model calibration is required, so that scores of the different 
+models are comparable.  One way to do this is to train the models jointly by 
+explicitly reasoning over a mode variable, as we do in our model.  
+\citet{everingham2011} instead calibrates the models post-hoc using 
+cross-validation data, similar to \citet{esvm}.
+
+\mypar{Local modes.} A second approach is to focus on modeling modes only at 
+the part level, \eg \citet{deva2011}.  If $n$ parts each use $k$ modes, this 
+effectively gives up to $k^n$ different instantiations of modes for the 
+complete model through mixing-and-matching part modes.  Although 
+combinatorially rich, this approach also lacks the ability to reason about 
+larger structure, not just from lack of global cues, but the inability of the 
+representation to reason about larger structures such as global modes.  A 
+second issue is that to reason about a pair of neighboring nodes, one must 
+consider a quadratic number of local mode combinations---\eg for each of $k$ 
+wrist types, $k$ elbow types must be considered, resulting in inference message 
+passing that is $k^2$ larger than unimodal inference.
+
+\mypar{Additional part levels.}
+A third category of models consider both global, local and intermediate level 
+modes \citep{wang2011,sun2011,batra2012,tianexploring}.  At all levels, cues 
+for the level are used, allowing the model to effectively capture mode 
+information at different levels of part granularity.  The biggest downside to 
+this approach is that it is slow.  For one, quadratic mode inference is 
+necessary, as with any local mode modeling.  Second, inference is more costly 
+due to the increased number of parts, and possibly cyclic composition of the 
+model, which makes exact inference intractable.
+
+\mypar{Defining modes.}
+The mode definitions are typically obtained by clustering in the space of part 
+configurations.  \citet{everingham2011} includes appearance in his mode 
+definition space.  In roughly half of the previous literature, local modes are 
+considered latent variables to be re-estimated during training.  This renders 
+otherwise convex learning formulations non-convex, iterative learning 
+procedures, where good mode initialization is crucial to converge to a good 
+local minima.
+
+
+\mypar{Contrast with our model.}
+In contrast to the above, our model supports multimodal reasoning at the global 
+level, as in \citep{everingham2011,ramanan-faces,wang2008multiple}.  Unlike 
+those, we explictly reason about, represent cues for, and jointly learn to 
+predict the correct global mode as well as location of parts.  Unlike local 
+mode models such as \citet{deva2011}, we do not require quadratic part-mode 
+inference and can reason about larger structures.  Finally, unlike models with 
+additional part levels, ours is fast: a simple two-level model with no local 
+modes and tractable inference.  This also relieves us of the guesswork inherent 
+in learning latent modes. 
+
+\subsection{Other models}
+\mypar{Throwing features at the problem:} Equipped with a linear model of human 
+pose, most researchers focus attention instead on increasing the quality of 
+features, to be robust to the variety of modes discussed 
 above---lighting-invariant texture modeling~\citep{andriluka09}, foreground and 
 skin color~\citep{devacrf,eichner09}, left-right appearance 
 similarity~\citep{ddtran,sapp2011}, contour and segmentation 
@@ -106,42 +167,6 @@ models is that a linear model in a larger-dimensional feature space will be
 better able to separate the true pose configurations from false alarms, and 
 mitigate the issue of non-linearity in lower-dimensional feature spaces, \eg, 
 using only edge orientation information.
-
-\mypar{Less features, more modes:} The cost of feature computation often 
-dominates the computation time of pose estimation, \eg 
-in~\citep{devacrf,sapp2010}.  Instead of attempting to add more and more 
-features into one linear model there has been a recent line of work that has 
-begun to look at modeling multiple appearance modes.  Possibly the most famous 
-example of this for rigid, non-articulated objects is the deformable parts 
-model by Felzenszwalb et al.~\citep{dpm}, in which parameters for 6 different 
-global modes (referred to as ``components'') are learned.  Analogously in the 
-pose estimation literature, Johnson and Everingham~\citep{johnson11} cluster 
-training data based on joint locations into 16 full-body modes, and learn a 
-pictorial structures model separately for each.  Increasing refinement, Yang 
-and Ramanan~\citep{deva2011} introduced up to 5 modes per part (referred to as 
-part ``types'') in a pictorial structures model, allowing, \eg, 25 mode 
-combinations for an elbow and wrist together.  Finally, Yang et 
-al.~\citep{wang2011} proposed a hierarchical model of pose, in which each 
-sub-pose is modeled with 5-20 modes (referred to as ``poselets'', inspired 
-by~\citep{bourdev09}).
-
-Of critical importance is how to choose modes to summarize the combined pose 
-and appearance space of human bodies.  Having many modes gives a richer 
-description and low intra-mode variability, but is difficult to estimate given 
-finite training sets.  Having too few modes leads to high intra-mode 
-variability and again leads to poor estimation via linear models. 
-
-When a clear definition of a mode is not available, researchers have resorted 
-to treating mode as a discrete latent variable to be estimated during 
-learning~\citep{dpm,deva2011}.  This leads to non-convex optimization, in which 
-careful initialization is important to avoid getting stuck in bad local minima.  
-An alternative approach has been to define modes based on geometry, typically 
-by clustering the space of joint locations into disjoint 
-partitions~\citep{johnson11,wang2011}.  This has its own issues in choosing the 
-right level of quantization, and how to cover the space of poses correctly.  
-Importantly, {\em no} human pose estimation work considers defining modes as a 
-function of appearance, which, as discussed, is the source of much of the 
-nonlinearity in the space of 2D human poses. 
 
 \mypar{Other local modeling methods:}
 In the machine learning literature, there is a vast array of local methods for 
@@ -159,14 +184,6 @@ to learn local distance functions---~\citep{frome07} and the recent
 Exemplar-SVM~\citep{esvm} both learn distance functions per example.  These 
 works are quite similar in spirit to ours, but focus on object classification 
 and detection, not structured, articulated part localization.
-
-At the core of our method is a definition of a local neighborhood.  Our 
-definition uses some of the same information used to define 
-poselets~\citep{bourdev09}, which are clusters of subsets of pose 
-configurations.  However, their model is a simple voting scheme for person 
-detection.  There is no structure between parts (poselets), and no sharing or 
-notion of overlapping neighborhoods.
-
 
 
 \section{\LLPS}\label{sec:llps-model}
@@ -212,7 +229,7 @@ simplicity; it is easy to extend this to a heterogenous collection of tree
 models.  Note the pairwise term we express only as a function of the 
 state-space, which allows us to perform inference linear in each part's 
 state-space using a distance transform (\secref{dt}).  The $M$ models' 
-parameters $\w^M = [\w^m_i;~\w^m_{ij}]$ are learned to fit a local neighborhood 
+parameters $\w^z = [\w^z_i;~\w^z_{ij}]$ are learned to fit a local neighborhood 
 around each mode center, discussed in~\secref{llps-learning}.
 
 At test time, the full \LLPS models infers both the best local model $z$ to 
@@ -231,9 +248,9 @@ next section we show a superlinear speedup using cascaded prediction.
 
 \subsection{Cascaded mode filtering}
 
-The use of structured prediction cascades has been an successful principled 
-tool for drastically reducing state spaces in structured problems.  In 
-\secref{CPS} and \secref{stretchable}, the cascade method was used to reduce
+The use of structured prediction cascades has been a successful tool for 
+drastically reducing state spaces in structured problems.  In \secref{CPS} and 
+\secref{stretchable}, the cascade method was used to reduce
 the number of locations to consider for human parsing.  Here we employ a simple 
 multiclass cascade step to reduce the number of modes considered in the full 
 $\LLPS$ model. We employ a cascade model of the form \begin{align}
@@ -250,10 +267,10 @@ Following the cascade framework, we retain a set of mode possibilities $\bar{M}
 \frac{\alpha-1}{M} \sum_{z \in [1,M]} c(x,z) \}
 \end{align}
 
-The metaparameter $\alpha \in [0,1)$ is determined via cross-validation and 
-determines how aggressively to prune---between pruning everything but the max 
-scoring mode to pruning everything below the mean score.  Applying this cascade 
-before running the final level \LLPS model results in the inference task
+The metaparameter $\alpha \in [0,1)$ is set via cross-validation and dictates 
+how aggressively to prune---between pruning everything but the max scoring mode 
+to pruning everything below the mean score.  Applying this cascade before 
+running the final level \LLPS model results in the inference task
 \begin{align}
 z^\star,y^\star &= \argmax_{z \in \bar{M},~y \in \mathcal{Y}} s(x,y,z) 
 \end{align}
@@ -298,20 +315,19 @@ due to pose.
 \mypar{Mode definitions.}
 Modes are obtained from the data by finding centers $\{\mu_i \}_{i=1}^M$ and 
 example-mode membership sets $S = \{S_i\}_{i=1}^M$ in pose space that minimize 
-reconstruction error in a Euclidean sense:
+reconstruction error under squared Euclidean distance:
 \begin{align}
 S^\star = \argmin_{S} \sum_{i=1}^M \sum_{t \in S_i} ||y^{t} - \mu_i||^2
 \end{align}
 where $\mu_i$ is the Euclidean mean of the examples in mode cluster $S_i$.  We 
-approximately minimize this object with the $k$-means algorithm with 100 random 
-restarts.  We take the cluster membership as our supervised definition of mode 
-membership in each training example, so that we augment the training set to be 
-$\cD = \{(x^t,y^t,z^t)\}$. Once examples are grouped into modes, we would like 
-to learn to correctly identify the mode {\em and } location of parts in each 
-example.  
+approximately minimize this objective with the $k$-means algorithm with 100 
+random restarts.  We take the cluster membership as our supervised definition 
+of mode membership in each training example, so that we augment the training 
+set to be $\cD = \{(x^t,y^t,z^t)\}$. 
 
-\mypar{Parsing constraints.} Intuitively, for each example this gives us hard 
-constraints of the form \begin{align}
+ \mypar{Parsing constraints.} We seek to learn to correctly identify the 
+correct mode {\em and } location of parts in each example.  Intuitively, for 
+each example this gives us hard constraints of the form \begin{align}
 s^{z^t}(x^t,y^t) - s^{z^t}(x^t,y') &\geq 1,\; &\forall y' \neq y^t 
 \label{eq:c1} \\
 s^{z^t}(x^t,y^t) - s^{z'}(x^t,y) &\geq 1 ,\; &\forall z' \neq z, \forall y 
@@ -326,8 +342,8 @@ configuration in example $t$.  We refer to these constraints as {\em parsing
 constraints} as they deal with scoring the correct parse $y^t$ above others in 
 a single example $t$.
 
-\mypar{Detection constraints.} A popular variant recently in the detection 
-literature is to use detection-style constraints instead of parsing 
+\mypar{Detection constraints.} A popular variant recently in the pose 
+estimation literature is to use detection-style constraints instead of parsing 
 constraints; enforcing the notion that the model score should be low when no 
 valid parse exists in images without people 
 \citep{deva2011,batra2012,tianexploring}.  These are typically encoded as
@@ -343,7 +359,7 @@ different submodels $z$ from each other as in \equref{c2}.  This type of
 calibration is typically done in a post-hoc heuristic manner, \eg 
 \citep{everingham2011,esvm}.  
 
-Detection type constraints are easily put into our framework by adding a 
+Detection-style constraints are easily put into our framework by adding a 
 negative class mode $z^{neg}$ modeled with a single constant feature.  Then 
 $s^{z^{neg}}(x,y) = \tau^{neg}$ is a learned scalar threshold for the negative 
 class, and for cases when $z^t = z^{neg}$, \equref{c2} can be interpreted as a 
@@ -353,112 +369,37 @@ s^{z^t}(x^{neg},y) + 1 \leq \tau^{neg},\;\; \forall x^{neg} \in \cD^{neg},
 \forall y,z\label{eq:cneg}
 \end{align}
 
-\mypar{Learning objective}
+\mypar{Learning formulation.}
 We consider all constraints from \equref{c1} and \equref{c2}, and include a 
 negative mode $z^{neg}$ to incorporate detection constraints of the form in 
 \equref{cneg}.  Adding slack and regularization on the parameters, we get a 
 convex, large-margin structured loss jointly over all $M$ local models
 
 \begin{align}\label{eq:full-learn}
-&\min_{\{w^z\}, \{\xi_{t}\}} \;\; \frac{1}{2} \sum_{z=1}^M ||w^z||_2^2 + 
+&\min_{\{\w^z\}, \{\xi_{t}\}} \;\; \frac{1}{2} \sum_{z=1}^M ||\w^z||_2^2 + 
 \frac{C}{T} \sum_{t=1}^T \xi_t \\
 &\text{\bf{subject to:} } \\
 &s^{z^t}(x^t,y^t) - s^{z^t}(x^t,y') \geq 1 - \xi_t\;\; &\forall y' \neq y^t \\
-&s^{z^t}(x^t,y^t) - s^{z'}(x^t,y)  \geq 1 - \xi_t\;\; &\forall z' \neq z, 
-\forall y \end{align}
+&s^{z^t}(x^t,y^t) - s^{z'}(x^t,y)  \geq 1 - \xi_t\;\; &\forall z' \neq z \in 
+\bar{M}^t, \forall y \end{align}
+Note the use of $\bar{M}^t$, the subset of modes unfiltered by our mode 
+prediction cascade for each example.  This is considerably faster than 
+considering all $M$ modes in each training example. 
 
 The number of constraints listed here is prohibitively large: in even a single 
-image, the number of possible $y' \in \cY$ is exponential in the number of 
-parts.  Standard techniques to minimize such objects are stochastic gradient 
-descent and cutting plane methods.  We use a cutting plane technique where we 
-find the most violated constraint in every training example via structured 
-inference.  We then solve \equref{full-learn} under the active set of 
-constraints using fast off-the-shelf QP solver LIBLINEAR~\citep{liblinear}.
-
-\subsection{Decomposable approximate learning}
-The learning objective in~\equref{full-learn} couples all models together to 
-train them jointly.  While this has attractive properties, it is unwieldy for 
-large training sets.  We now propose a series of modifications to the form of 
-the model and~\equref{full-learn} to significantly simplify and parallelize 
-training.
-
-\mypar{A simpler pairwise cost:}\label{sec:boxdist}
-Traditionally, the pairwise cost in PS models has been a simple geometric 
-displacement cost: $f_{ij}(x,y_i,y_j) = d(y_i - y_j - \delta_{ij})$, where 
-$\delta_{ij}$ is the mean pixel displacement vector between parts $i$ and $j$, 
-and $d(\cdot)$ is either a quadratic penalty~\citep{felz05} or a binning 
-function~\citep{devacrf}.  These restricted forms of $d(\cdot)$ allow for fast 
-inference message passing techniques via convolution or distance transforms.  
-We use instead a uniform {\em box deformation cost} defined by 
-$f_{ij}(x,y_i,y_j) = 0$ when $|y_i - y_j - \delta_ij| < b$, and $-\infty$ 
-otherwise, where $b$ specifies the size of the box in which, given $y_j$, $y_i$ 
-is free to deviate from $\delta_{ij}$ in pixel units.  This yields a new form 
-for our local model \begin{align}\label{eq:boxdist}
-s^m(x,y) = 
-\begin{cases}
- \sum_i \w^m_i \cdot \f_i(x,y_i), & |y_i - y_j - \delta_{ij}| < b,\;\; \forall 
-(i,j) \in \mathcal{E} \\
- -\infty & \text{otherwise}
- \end{cases}
-\end{align}
-
-This formulation has attractive properties: (1) It leads to even faster inference than a quadratic stretching cost, using a 2D min transform instead of a distance transform, (2) less parameters to learn in each local neighborhood.
-
-\mypar{Decoupling local models:} Next, we drop the constraints
-$$s^m(x^t,y^t) \geq 1 + s^{m'}(x^t,y), \forall m, \forall m'\notin 
-\mathcal{N}(m),\forall t$$ which decouples model $m$'s parameters from all 
-other models $m'$.  Model $m$ no longer has to score the correct configuration 
-$y^t$ higher than other models' beliefs in the correct configuration.  Instead, 
-it only has to score the correct configuration higher than the exponentially 
-many incorrect configurations in its local neighborhood of training images.  
-This is equivalent to training a single PS model on a subset of the training 
-data, independent of other models trained on other, overlapping subsets of the 
-training data.  The inherent problem with this is that now different local 
-model scores may not be comparable.  We address this with a calibration step 
-described in~\secref{calib}.
-
-\mypar{Psuedolikelihood} A final approximation is to assume, for training, that the structured functions $s^m(x,y)$ decompose into independent cliques, and can thus be trained independently.  That is,
-$$ s^m(x,y) = \sum_{i} s^m(x,y_i | y_{\mathcal{E}(i)}) $$ 
-where $\mathcal{E}(i) = \{j \;|\; (i,j) \in \mathcal{E}\}$.  This is a common 
-trick that greatly simplifies structured learning, at the cost of approximation 
-error.  Combined with the pairwise cost described in~\equref{boxdist}, this 
-amounts to
-$$s^m(x,y_i| y_{\mathcal{E}(i)}) = 
-\begin{cases}
- \w^m_i \cdot \f_i(x,y_i), & |y_i - y_j - \delta_{ij}| < b,\;\; \forall j \in 
-\mathcal{E}(i) \\
- -\infty & \text{otherwise}
-\end{cases}
-$$
-which means we can learn parameters $\w_i^m$ separately for each part $i$ in 
-each local model $m$.
-
-In summary, by using a box deformation cost, decoupling the local models and using pseudolikelihood, we train part detectors individually.  The structured SVM learning objective for each part $i$ in each model $m$ is now:
-
-\begin{align}
-\min_{\w_i^m}&~||\w_i^m||_2^2 + C \sum_{t} \xi_t\\
-\text{subject to: }
-& \w_i^m \cdot \f_i(x^t,y_i^t) \geq 1+\w_i^m \cdot \f_i(x^t,y_i)-\xi_t 
-\nonumber \\
-& \w_i^m \cdot \f_i(x^t,y_i^t) \geq 1+\w_i^m \cdot \f_i(x^{t'},y_i)-\xi_t 
-\nonumber \\
-&\forall y_i \in \mathcal{Y}_i\setminus \{y_i^t\}, \forall t \in 
-\mathcal{N}(m), \forall t' \notin \mathcal{N}(m) \nonumber
-\end{align}
-We can optimize this using an off-the-shelf standard binary SVM solver.  We 
-handle the enormous number of constraints---$O(M \cdot |\mathcal{Y}_i|)$, the 
-number of pixel locations in our dataset---by employing a cutting plane method, 
-which starts from a random sampling of constraints, and iteratively finds 
-violated constraints by mining for false positives, then re-optimizing.
-
-	
+image, the number of possible outputs $y' \in \cY$ is exponential in the number 
+of parts.  Standard techniques to minimize structured SVM objectives like this 
+are stochastic gradient descent and cutting plane methods.  We use a cutting 
+plane technique where we find the most violated constraint in every training 
+example via structured inference.  We then solve \equref{full-learn} under the 
+active set of constraints using fast off-the-shelf QP solver 
+LIBLINEAR~\citep{liblinear}.  
 
 \section{Modeling human pose with \LLPS}
 In~\secref{llps-model} and~\secref{llps-learning}, we detailed a general 
-learning and inference framework for local linear structured models, with 
-overlapping and decomposable neighborhood structure.  We now fill in necessary 
-details on the graph structure, neighborhood function, and features to describe 
-how we apply this model to human pose estimation.
+learning and inference framework for local linear structured models.  We now 
+fill in necessary details on the graph structure, neighborhood function, and 
+features to describe how we apply this model to human pose estimation.
 \subsection{Local graph structure}
 In order to effectively use training data, we model only one side of a human--- 
 the nose, left shoulder, left elbow and left wrist. This allows us to re-use 
@@ -475,71 +416,22 @@ datasets is near-perfect, thus there is virtually no useful signal for the left
 side of a person to send to the right side through the torso and head, 
 regarding beliefs of where parts should go.  In other words, variables on the 
 left and right side of the person are d-separated given the torso and head 
-variables, which are observed almost deterministically.
+variables, which are observed essentially deterministically.
 
-\subsection{Local Neighborhoods}\label{sec:nbhd}
+\subsection{Features}
 
-As laid out in~\secref{llps-learning}, we define a neighborhood function 
-$\mathcal{N}(x,y)$ which takes as input the appearance $x$ and human pose $y$ 
-and returns a set of training example indices which are considered part of the 
-neighborhood of example $(x,y)$.  We allow our neighborhood function to 
-decompose at the level of parts, so that we can mix and match training examples 
-when we train models for different joints.  For example, when learning 
-parameters centered around example $t$, a different set of other examples may 
-be used to train the elbow than are used to train the shoulder parameters.  We 
-define our part-based neighborhood as follows, leveraging both appearance and 
-geometry:
+\mypar{Appearance.}
+Unlike our previous \CPS and Stretchable Ensemble models, we utilize only 
+histogram of gradients (HoG) descriptors, using the implementation from
+\citet{dpm}.  For local cues $\f_i(x,y_i,z)$ we use a $5 \times 5$ grid of HoG 
+cells, with a cell size of $8 \times 8$ pixels. For global cues $\f(x,z)$ we 
+capture larger structure with a $9 \times 9$ grid and a cellsize of 
+$16 \times 16$ pixels.   The cascade mode predictor uses the same features ...
 
-\mypar{Geometric neighborhood $\mathcal{N}_{geom}(y_i)$:} Around a joint $y_i$, 
-we consider two angles and two limb lengths which we use to define our 
-geometric neighborhood: the angle that limb $y_i$,$y_{i+1}$ makes with the 
-horizontal axis, the inner angle between limbs $y_{i-1}$,$y_i$ and 
-$y_{i}$,$y_{i+1}$, and the Euclidean length of limbs $y_{i-1}$,$y_i$ and 
-$y_{i}$,$y_{i+1}$.  Stacking these $4$ geometric features into a vector $g_i$, 
-we define our geometric neighborhood as $$ \mathcal{N}_{geom}(y_i) = \{\; t 
-\text{ s.t. } |g_{ij} - g^t_{ij}| < \tau_j \text{ for $j=1...4$}\;\},$$ 
-thresholding on differences of angles and limbs between the example center 
-$y_i$ and all other examples $y_i^t$.  In practice we set $\tau_j$ to be a 
-tolerance of $5^\circ$ for the two angles, and a tolerance of 6\% of the height 
-of a detected upper body for the limb length (more intuitively, approximately 
-the palm size of a human hand).
-
-
-\mypar{Appearance neighborhood $\mathcal{N}_{app}(x,y_i)$:}  While there are 
-many examples that are pose similar, we really wish to fit model parameters for 
-a set of examples that {\em appears} similar, \eg, to avoid trying to model
-different clothing or body types with one linear model.  In light of this, we 
-consider a patch centered around joint $y_i$, represented as a HoG descriptor 
-vector $h_i$.  We measure the similarity to other examples' HoG descriptor 
-patches via normalized cross-correlation, and threshold to obtain our 
-appearance neighborhood definition: $$  \mathcal{N}_{app}(x,y_i) = \{\; t 
-\text{ s.t. } \frac{h_i}{||h_i||} \cdot \frac{h_i^t}{||h_i^t||} < \tau_h 
-\;\},$$ where in practice we set $\tau_h = 0.2$ (normalized cross-correlation's 
-range is $[-1,1]$).
-Finally, we combine our appearance and geometry neighborhood definitions to 
-obtain our neighborhood function $\mathcal{N}(x,y_i) = \mathcal{N}_{geom}(y_i) 
-\cap \mathcal{N}_{app}(x,y_i).$
-
-\subsection{Inter-Model Calibration}\label{sec:calib}  As described 
-in~\secref{llps-learning}, we decouple the training of our local models, which 
-allows us to efficiently train models in parallel.  The downside of this is 
-that the bias and variance of the output of each model might vary greatly.  One 
-very overconfident local model may always dominate the prediction step.  The 
-problem of combining separately-trained models is also an issue in other recent 
-works---\citet{johnson11} uses multinomial logistic regression on validation 
-data to predict which of 16 PS models to believe per test example, and
-Exemplar-SVM~\citep{esvm}, lacking validation data, estimates posterior 
-probabilities from already-seen training data. In our implementation, we 
-perform inference for each local model on every training example---this data 
-was seen during pseudo-likelihood training, but not in full model inference.  
-We then estimate a linear scale and offset to map the range of scores of each 
-local model on the training set to $[0,1]$.  \\
-\mypar{Mode selection:} In an additional step, we also remove redundant or 
-malevolent models---ones whose addition to the set of local models hurts 
-performance.  On training data, after calibration, we start with an empty set 
-of models, and then iteratively greedily choose to add a new local model that 
-increases the accuracy of the inlier set.  If we consider each local model as a 
-basis, this is a form of basis pursuit.  In practice this results in a 
-significantly smaller set of local models at test time, which speeds up 
-inference. Details are in~\secref{experiments}.  
+\mypar{Geometry.} We use the same quadratic deformation cost features as \citet{felz05}, allowing us to use
+distance transforms for message passing (\secref{dt}):
+$$
+\f_{ij}(y_i,y_j,z) = \left[(y_i(r) - y_j(r) - \delta_{ij}^z(r))^2~~(y_i(c) - y_j(c) - \delta_{ij}^z(c))^2\right]^T
+$$
+where $(y_i(r),y_i(c))$ denote the row and column represented by state $y_i$, and $\delta_{ij}^z$ is the mean displacement between parts $i$ and $j$ in mode $z$.  In order to make the deformation a convex, unimodal penalty (and thus solvable with distance transforms), we need to ensure that the corresponding parameters on these features $\w_{ij}^z$ are positive. We enforce this by adding additional positivity constraints in our learning objective: $\w_{ij}^z \geq \epsilon$, for small $\epsilon$ strictly positive.  It may still be the case that the constraints are not respected (due to slack variables), but this is rare.  In the unlikely event that this occurs, we project the deformation parameters onto the feasible set:$\w_{ij}^z \leftarrow \max(\epsilon,\w_{ij}^z)$ 
 

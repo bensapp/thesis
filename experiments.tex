@@ -1,6 +1,6 @@
 \chapter{Methodology}
 The main contributions of this thesis are new models of pose which allow us to 
-incorporate new representations.  In this part we show empirically that the new 
+incorporate new image representations.  In this part we show empirically that the new 
 representations are worthwhile by comparing them to state-of-the-art methods on 
 competitive benchmark datasets.  Furthermore, we also analyze the trade-offs of 
 the different models and the features' effectiveness.
@@ -153,11 +153,11 @@ publicly available code, meaning any practitioner should be able to replicate
 results exactly.
 
 \begin{itemize}
-\item Prior pose baseline 
+\item Mean pose baseline 
 
 One reasonable sanity check is to compare with a default mean pose prior.  As 
 can be seen in~\figref{dataset-scatterplots}, there is some centrality to the 
-data, so that guessing the mean joint position will get some fraction of joints 
+data, such that guessing the mean joint position will get some fraction of joints 
 correct.  The mean pose is obtained by empirical averages of joint locations on 
 the training sets; each joint estimated independently.
 
