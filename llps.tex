@@ -10,12 +10,13 @@ confounding background clutter, lighting, viewpoint, and scale, in addition to
 significant difficulties unique to human poses. 
 }
 
-In this chapter, we focus explicitly on the multimodal aspect of the 2D pose 
-estimation problem.  As discussed in~\secref{perceptual}, there is an enormous 
-variation in foreground and background color and texture, and even given 
-viewpoint and pose, the shape of body parts is highly variable due to clothing, 
-relative scale variations, and articulation (causing foreshortening, 
-self-occlusion and physically different body contours).
+In this chapter, we focus explicitly on the multimodal nature of the 2D pose 
+estimation problem.  As discussed in~\secref{perceptual}, there are enormous 
+appearance variations in images of humans.  This is due to foreground and 
+background color, texture, viewpoint, and body pose.  The shape of body parts 
+is further varied by clothing, relative scale variations, and articulation 
+(causing foreshortening, self-occlusion and physically different body 
+contours).
 
 \begin{figure}[t!]
 \centering
@@ -31,15 +32,17 @@ using a collection of {\em locally} linear models.}
 \end{figure}
 
 
-Most models developed for this use {\em only a single, linear model}---\eg, 
-\citet{devacrf,eichner09,andriluka09,ddtran} and the models developed 
+Most models developed to estimate human pose in these varied settings use {\em 
+only a single, linear model}---\eg, 
+\citet{devacrf,eichner09,andriluka09,ddtran} and the models described
 in~\secref{CPS} and~\secref{stretchable}.
 Such models make it very difficult to capture the part variations discussed.  
-Instead researchers have focused attention on improving features in hopes that 
-a better feature space will make a linear model discriminate correct poses from 
-incorrect ones well.  However, this comes at a price of considerable feature 
-computation cost---\CPS, for example, requires computation of Pb contour 
-detection and Normalized Cuts, each of which takes minutes.
+Instead, many researchers have focused attention on improving features in hopes 
+that a better feature space will make a linear model discriminate correct poses 
+from incorrect ones well.  However, this comes at a price of considerable 
+feature computation cost---\CPS, for example, requires computation of Pb 
+contour detection and Normalized Cuts (see~\secref{features} for details), each 
+of which takes minutes.
 
 Recently, especially the past two years, there has been an explosion of  
 successful work focused on increasing the number of modes in pose models. This 
@@ -64,7 +67,7 @@ a multimodal model with a focus on simplicity, speed and accuracy.  We capture
 multimodality at the global level, which gives us the ability to capture a 
 variety of pose modes, each modeled as a discriminative linear classifier.  
 Thanks to the rich, multimodal nature of the model, we see performance 
-improvements even with only computationally cheap image gradient features.  
+improvements even with only computationally-cheap image gradient features.  
 
 The model features an explicit mode selection variable, the value of which is 
 jointly inferred along with the best layout of body parts in the image at test 
@@ -72,12 +75,12 @@ time.  Unlike some previous work, our method is trained jointly (thus avoiding
 difficulties calibrating different submodel confidences) and includes both 
 holistic and local part-level cues (thus allowing it to effectively predict 
 which mode to use).  Finally, we employ an initial structured cascade mode 
-selection step which cheaply discards unlikely modes up front, yielding a 5x 
-speedup in inference and learning over considering all modes for every example.  
-This makes our model faster than state-of-the-art approaches (on average, 1.34 
-seconds vs. 1.75 seconds for \citet{deva2011}), and suggests a way to scale up 
-to even more modes as larger datasets become available.  In addition, we 
-outperform all previous work on part localization accuracy.  
+selection step which cheaply discards unlikely modes up front, yielding a 
+$5\times$ speedup in inference and learning over considering all modes for 
+every example.  This makes our model faster than state-of-the-art approaches 
+(on average, 1.31 seconds vs. 1.76 seconds for \citet{deva2011}), while being 
+significantly more accurate.  It also suggests a way to scale up to even more 
+modes as larger datasets become available.
  
 
 \section{Related work}\label{sec:llps-rel}
@@ -91,24 +94,25 @@ been many instantiations of the family of multimodal models. }
 \label{tab:rel-work-ps} \end{center}
 \end{table}
 
-We discuss here in depth the differences in recent works concerning multimodel 
-part level models of pose.  We then briefly go into other related models.
+We discuss here in depth the differences in recent works concerning multimodal 
+models of pose.  We then briefly go into other related models in the computer 
+vision and machine learning communities.
 
 \subsection{Multimodal modeling}
 As can be seen in \tabref{rel-work-ps}, compositional, hierarchical modeling of 
-pose has seen a lot of interest as of late.  In general works either consider 
+pose has seen a lot of interest as of late.  In general, works either consider 
 only global modes, local modes, or several multimodal levels of parts.
 
-\mypar{Global modes but local cues.} Some works consider a number of distinct 
-global model modes \citep{everingham2011,ramanan-faces,wang2008multiple}, 
+\mypar{Global modes but local cues.} Some works consider models with a number 
+of distinct global modes \citep{everingham2011,ramanan-faces,wang2008multiple}, 
 enumerating over tens of disjoint models and taking the highest scoring.  One 
 characteristic of all previous models in this category is that they only employ 
-local part cues (\eg wrist patch, elbow patch), making it difficult to 
-adequately represent and predict the best global mode.  A second issue that 
+local part cues (\eg wrist patch or lower arm patch), making it difficult to 
+adequately represent and predict the best global mode.  A second issue is that 
 some sort of model calibration is required, so that scores of the different 
 models are comparable.  One way to do this is to train the models jointly by 
 explicitly reasoning over a mode variable, as we do in our model.  
-\citet{everingham2011} instead calibrates the models post-hoc using 
+\citet{everingham2011} instead calibrate the models post-hoc using 
 cross-validation data, similar to \citet{esvm}.
 
 \mypar{Local modes.} A second approach is to focus on modeling modes only at 
@@ -128,31 +132,31 @@ A third category of models consider both global, local and intermediate level
 modes \citep{wang2011,sun2011,batra2012,tianexploring}.  At all levels, cues 
 for the level are used, allowing the model to effectively capture mode 
 information at different levels of part granularity.  The biggest downside to 
-this approach is that it is slow.  For one, quadratic mode inference is 
-necessary, as with any local mode modeling.  Second, inference is more costly 
-due to the increased number of parts, and possibly cyclic composition of the 
-model, which makes exact inference intractable.
+this approach is that it is slow:  First, quadratic mode inference is 
+necessary, as with any local mode modeling.  Second, inference grows linearly 
+with the number of additional parts, and becomes intractable when part 
+relations are cyclic, as in \citet{wang2011, batra2012}.
 
 \mypar{Defining modes.}
 The mode definitions are typically obtained by clustering in the space of part 
-configurations.  \citet{everingham2011} includes appearance in his mode 
-definition space.  In roughly half of the previous literature, local modes are 
-considered latent variables to be re-estimated during training.  This renders 
-otherwise convex learning formulations non-convex, iterative learning 
-procedures, where good mode initialization is crucial to converge to a good 
-local minima.
+configurations.  \citet{everingham2011} include appearance in the definition of 
+a mode.  In roughly half of the previous literature, local modes are considered 
+latent variables to be re-estimated during training.  This renders otherwise 
+convex learning formulations non-convex, iterative learning procedures, where 
+good mode initialization is crucial to converge to a good local minima.
 
 
 \mypar{Contrast with our model.}
 In contrast to the above, our model supports multimodal reasoning at the global 
 level, as in \citep{everingham2011,ramanan-faces,wang2008multiple}.  Unlike 
 those, we explictly reason about, represent cues for, and jointly learn to 
-predict the correct global mode as well as location of parts.  Unlike local 
-mode models such as \citet{deva2011}, we do not require quadratic part-mode 
-inference and can reason about larger structures.  Finally, unlike models with 
-additional part levels, ours is fast: a simple two-level model with no local 
-modes and tractable inference.  This also relieves us of the guesswork inherent 
-in learning latent modes. 
+predict the correct global mode as well as location of parts.  Unlike local mode models such as 
+\citet{deva2011}, we do not require quadratic part-mode inference and can 
+reason about larger structures.  Finally, unlike models with additional part 
+levels, ours is fast: a simple two-level model with no local modes and 
+tractable inference.  This also relieves us of the guesswork inherent in 
+learning latent modes. We also apply a structured prediction mode filtering 
+step to reduce the number of modes considered for each test image. 
 
 \subsection{Other models}
 \mypar{Throwing features at the problem:} Equipped with a linear model of human 
@@ -239,12 +243,12 @@ s(x,y,z) &= s^z(x,y) \\
 z^\star,y^\star &= \argmax_{z \in [1,M],~y \in \mathcal{Y}} s(x,y,z) 
 \end{align}
 Thus, given a test example, the test time inference procedure is 
-straightforward (see~\figref{llps-inference}): evaluate all $M$ local submodels 
-(in practice, up to thousands of them), via max-sum inference 
-(\secref{inference}), saving the score and highest scoring output sequence of 
-each.  Then, we take the highest scoring of the $M$ local models and its output 
-sequence as a prediction of the pose.  This procedure is linear in $M$.  In the 
-next section we show a superlinear speedup using cascaded prediction.
+straightforward: evaluate all $M$ local submodels (in practice, we use 32 modes 
+for upper body pose estimation), via max-sum inference (\secref{inference}), 
+saving the score and highest scoring output sequence of each.  Then, we take 
+the highest scoring of the $M$ local models and its output sequence as a 
+prediction of the pose.  This procedure is linear in $M$.  In the next section 
+we show a superlinear speedup using cascaded prediction.
 
 \subsection{Cascaded mode filtering}
 
@@ -279,36 +283,42 @@ average $5$ times smaller, giving us a $5\times$ speedup.
 
 \begin{figure}[tb!]
 \centering
-\includegraphics[width=0.99\linewidth]{figs/llps-inference.pdf}
+\includegraphics[width=0.99\linewidth]{figs/llps-overview-example.pdf}
 \caption[LLPS inference.]{\label{fig:llps-inference} An illustration of the 
-inference process.  Each training example defines a local neighborhood model.  
-Each model is run in parallel on a test image, and the argmax prediction is 
-taken as a guess. Inset: the graphical model structure.}
+inference process. First, modes are cheaply filtered via a cascaded prediction 
+step.  Then each remaining local submodel can be run in parallel on a test 
+image, and the argmax prediction is taken as a guess. }
 \end{figure}
+The full system pipeline is laid out in \figref{llps-inference}.  Given an 
+input image, we first quickly discard most of the possible modes via the 
+cascade model.  The remaining  modes are then each applied independently on the 
+test image.  The models are trained jointly and thus their inference scores are 
+well-calibrated.  We take the highest scoring position of part layout $y$ from 
+submodel/mode $z$ as the final prediction.
 
 \subsection{Image-adaptive pose priors and a non-parametric perspective}
-One important perspective of the above is as a pose {\em switching model}, 
+One important perspective of the above is as a mode {\em switching model}, 
 popular in speech synthesis \citep{rosti2003switching}.  In this setting, $z$ 
 can be thought of as a switch which chooses between different appearance and 
 pose priors.  The particular instantiation of $z$ depends on the image content.  
 This is related to another, locally-linear method called Adaptive Pictorial 
-Structures (APS) \citet{sapp2010}.  In this work, the pose prior terms 
-$\phi_{ij}$ were adjusted based on a kernel-weighted sum of exemplar 
-similarities to the image.  \LLPS, on the other hand, forces a discrete choice 
-from a dictionary of pose priors, and this procedure is learned 
-discriminatively.  From a more practical standpoint, APS relied on very costly 
-and heuristic nearest-neighbor computation.  It searched densely through a 
-large number of deformations to handle articulation, rather than making use of 
-a structured decomposable similarity (\ie, the \LLPS submodel scores).  Each 
-submodel of \LLPS can be thought of as a decomposable similarity function, 
-learned discriminatively to separate true poses from wrong ones locally, as we 
-will see next.
+Structures (APS) \citep{sapp2010}.  In this work, the pose prior terms 
+$\f_{ij}$ were adjusted based on a kernel-weighted sum of exemplar similarities 
+to the image.  \LLPS, on the other hand, forces a discrete choice from a 
+dictionary of pose priors, and this procedure is learned discriminatively.  
+From a more practical standpoint, APS relied on very costly and heuristic 
+nearest-neighbor computation.  It searched densely through a large number of 
+deformations to handle articulation, rather than making use of a structured 
+decomposable similarity (\ie, the \LLPS submodel scores).  Each submodel of 
+\LLPS can be thought of as a decomposable similarity function, learned 
+discriminatively to separate true poses from wrong ones locally, as we will see 
+next.
 
 \section{Learning}\label{sec:llps-learning}
 
 During training, we have access to a training set of images with labeled poses 
 $\cD = \{(x^{t},y^{t})\}_{t=1}^T$.  As described, we choose to model a local 
-neighborhood in pose and appearance centered around pre-defined modes in pose 
+neighborhood in pose and appearance centered around predefined modes in pose 
 space.  This allows us to capture fine variations of appearance and part layout
 due to pose.
 
@@ -348,31 +358,32 @@ constraints; enforcing the notion that the model score should be low when no
 valid parse exists in images without people 
 \citep{deva2011,batra2012,tianexploring}.  These are typically encoded as
 \begin{align}
-s^{z^t}(x^t, y^t) &\geq 1 &\forall t \\
+s^{z^t}(x^t, y^t) &\geq +1 &\forall t \\
 s^{z}(x^{neg}, y) &\leq -1 &\forall x^{neg} \in \cD^{neg}, \forall y,z
 \end{align}
-where $\cD^{neg}$ is a database of unannotated images with no people in them.  
+where now $\cD = \cD^{pos} \cup \cD^{neg}$, with $\cD^{neg}$ a database of unannotated images with no people in them.  
 Simply put, these constraints enforce that groundtruth parses should have a 
 score at least 1, and parses on negative images from any model should score at 
-most -1.  Notably absent from these constraints is any way to calibrate 
-different submodels $z$ from each other as in \equref{c2}.  This type of 
+most $-1$.  Notably absent from these constraints is an explicit way to calibrate 
+different submodels $z$ with each other as in \equref{c2}.  This type of 
 calibration is typically done in a post-hoc heuristic manner, \eg 
 \citep{everingham2011,esvm}.  
 
 Detection-style constraints are easily put into our framework by adding a 
 negative class mode $z^{neg}$ modeled with a single constant feature.  Then 
 $s^{z^{neg}}(x,y) = \tau^{neg}$ is a learned scalar threshold for the negative 
-class, and for cases when $z^t = z^{neg}$, \equref{c2} can be interpreted as a 
-detection constraint
+class, and for cases when $z^t$ or $z^{t'} = z^{neg}$, \equref{c2} can be interpreted as
+detection constraints
 \begin{align}
-s^{z^t}(x^{neg},y) + 1 \leq \tau^{neg},\;\; \forall x^{neg} \in \cD^{neg}, 
-\forall y,z\label{eq:cneg}
+s^{z^t}(x^t,y^t) &\geq \tau^{neg}+1,\;\; &\forall t \in \cD^{pos}, \label{eq:cneg1} \\
+s^{z}(x^{neg},y) &\leq \tau^{neg}-1,\;\; &\forall x^{neg} \in \cD^{neg}, \label{eq:cneg2}
+\forall y,z
 \end{align}
 
 \mypar{Learning formulation.}
 We consider all constraints from \equref{c1} and \equref{c2}, and include a 
 negative mode $z^{neg}$ to incorporate detection constraints of the form in 
-\equref{cneg}.  Adding slack and regularization on the parameters, we get a 
+\equref{cneg1} and \equref{cneg2}.  Adding slack and regularization on the parameters, we get a 
 convex, large-margin structured loss jointly over all $M$ local models
 
 \begin{align}\label{eq:full-learn}
@@ -415,8 +426,9 @@ Localization accuracy for detecting the torso and head of a person in pose
 datasets is near-perfect, thus there is virtually no useful signal for the left 
 side of a person to send to the right side through the torso and head, 
 regarding beliefs of where parts should go.  In other words, variables on the 
-left and right side of the person are d-separated given the torso and head 
-variables, which are observed essentially deterministically.
+left and right side of the person are {\em d-separated} \citep{koller-book} 
+given the torso and head variables, which are observed essentially 
+deterministically.
 
 \subsection{Features}
 
@@ -433,5 +445,15 @@ distance transforms for message passing (\secref{dt}):
 $$
 \f_{ij}(y_i,y_j,z) = \left[(y_i(r) - y_j(r) - \delta_{ij}^z(r))^2~~(y_i(c) - y_j(c) - \delta_{ij}^z(c))^2\right]^T
 $$
-where $(y_i(r),y_i(c))$ denote the row and column represented by state $y_i$, and $\delta_{ij}^z$ is the mean displacement between parts $i$ and $j$ in mode $z$.  In order to make the deformation a convex, unimodal penalty (and thus solvable with distance transforms), we need to ensure that the corresponding parameters on these features $\w_{ij}^z$ are positive. We enforce this by adding additional positivity constraints in our learning objective: $\w_{ij}^z \geq \epsilon$, for small $\epsilon$ strictly positive.  It may still be the case that the constraints are not respected (due to slack variables), but this is rare.  In the unlikely event that this occurs, we project the deformation parameters onto the feasible set:$\w_{ij}^z \leftarrow \max(\epsilon,\w_{ij}^z)$ 
+where $(y_i(r),y_i(c))$ denote the row and column represented by state $y_i$, 
+and $\delta_{ij}^z$ is the mean displacement between parts $i$ and $j$ in mode 
+$z$.  In order to make the deformation cue a convex, unimodal penalty (and thus 
+computable with distance transforms), we need to ensure that the corresponding 
+parameters on these features $\w_{ij}^z$ are positive. We enforce this by 
+adding additional positivity constraints in our learning objective: $\w_{ij}^z 
+\geq \epsilon$, for small $\epsilon$ strictly positive.  It may still be the 
+case that the constraints are not respected (due to slack variables), but this 
+is rare.  In the unlikely event that this occurs, we project the deformation 
+parameters onto the feasible set:$\w_{ij}^z \leftarrow 
+\max(\epsilon,\w_{ij}^z)$ 
 

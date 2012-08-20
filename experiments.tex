@@ -6,20 +6,21 @@ competitive benchmark datasets.  Furthermore, we also analyze the trade-offs of
 the different models and the features' effectiveness.
 
 \section{Datasets}\label{sec:datasets}
-\begin{figure}[tb]
+\begin{figure}[tb!]
 \begin{center}
 \includegraphics[width=1.05\textwidth]{figs/dataset-scatterplots.pdf}
 \caption[Dataset joint scatterplots and pixel averages.]{Dataset joint 
 scatterplots and pixel averages.  Here we show the spatial distribution of 
 wrist, elbow and shoulder joints for our three datasets, both training and 
-test, top row.  Bottom row, the average images from each of the datasets.}
+test, top row.  Bottom row, the average images from each of the datasets, with 
+manually enhanced brightness and contrast for better visualization.}
 \label{fig:dataset-scatterplots}
 \end{center}
 \end{figure}
 
 
 
-We evaluate our methods on three publicly available datasets.
+We evaluate our methods on four publicly available datasets; two developed through the course of this research.
 
 \subsection{Buffy Stickmen}
 This dataset was first introduced in \citet{ferrari08}.  We use version 2.1 in 
@@ -36,8 +37,45 @@ simulate test time behavior.
 \citet{eichner09} and contains 360 examples (version 1.0) obtained from amateur 
 photographs culled from the PASCAL VOC 2008 challenge~\citep{voc09}.  This is 
 purely a test dataset; the standard protocol is to train a model on Buffy 
-images and test on PASCAL Stickmen. We follow this protocol for CPS, but for 
-LLPS we have different needs, discussed in \secref{impl-details}.
+images and test on PASCAL Stickmen. We follow this protocol for CPS, and for 
+LLPS we train using the larger MoviePose dataset, discussed next.
+
+\subsection{MoviePose}
+Large datasets are crucial when we want to learn rich models of realistic pose.
+The Buffy and PASCAL Stickmen datasets contain only a few hundred examples for 
+training pose estimation models.  Other datasets exist with a few thousand 
+images, but are lacking in certain ways. The H3D \citep{poselets} and PASCAL 
+VOC \citep{voc09} datasets have thousands of images of people, but most are of 
+insufficient resolution, significantly non-frontal or occluded.  The UIUC 
+Sports dataset \citep{wang2011} has 1299 images but consists of a skewed 
+distribution of canonical sports poses, \eg croquet, bike riding, badminton.  
+
+Due to these shortcomings, we collected a $5003$ image dataset automatically 
+from popular Hollywood movies, which we dub MoviePose.  The images were 
+obtained by running a state-of-the-art person detector~\citep{poselets} on 
+every tenth frame of $30$ movies, see \figref{movielist}.  People detected with 
+high confidence were then sent to the crowdsourcing marketplace Amazon 
+Mechanical Turk to obtain groundtruth labeling.  Each image was annotated by 
+five Turk users for $\$0.01$ each to label 10 upperbody joints.  The median 
+labeling was taken in each image to be robust to outlier annotation.  Finally, 
+images were rejected manually by us if the person was occluded or severely 
+non-frontal.  We set aside $20\%$ ($1016$ images) of the data for testing.
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=1.00\textwidth]{figs/movie-list.png}
+\caption[List of MoviePose movies]{A sampling of the 30 movies used in 
+MoviePose.  The full list: {\em 12 O'Clock High, 2 Fast 2 Furious, Along Came 
+Polly, American Wedding Unrated, Basic Instinct, Batman Returns, Battle Cry, 
+Bend Of The River, Bourne Supremacy, Casino Royale, Collateral, Daredevil, 
+Diehard 2, Flight Plan, Funny Girl, Giant Side, Goldeneye, Hitch, Irma La 
+Douce, Italian Job, Million Dollar Baby, Monster In Law, Mr. \& Mrs.  Smith, 
+National Treasure, Ocean's Eleven, Princess Diaries, Schindler's List, Ten 
+Commandments, The Departed.}} \label{fig:movielist}
+\end{center}
+\end{figure}
+
+
 
 \subsection{VideoPose}
 
@@ -53,25 +91,31 @@ we fix global scale and translation of the person---in this case by manual
 annotation.
 
 
-\subsection{Discussion}  The datasets Buffy, Pascal and VideoPose have 
-different biases, as can be seen in~\figref{dataset-scatterplots}.  First, note 
-the distributions of joint locations.  The least varied is Buffy, followed by 
-Pascal and then VideoPose.  In VideoPose in particular, the wrist locations 
-have much more spread, and often lie on top of elbows, indicating more 
-foreshortening in this dataset.  The hands are often raised up, gesticulating.  
+\subsection{Discussion}  The datasets Buffy, Pascal, MoviePose and VideoPose 
+have different biases, as can be seen in~\figref{dataset-scatterplots}.  First, 
+note the distributions of joint locations.  The least varied is Buffy, followed 
+by Pascal, MoviePose and then VideoPose.    In VideoPose in particular, the 
+wrist locations have much more spread, and often lie on top of elbows, 
+indicating more foreshortening in this dataset.  The hands are often raised up, 
+gesticulating.  MoviePose has 5 to 10 times more exmaples than the other 
+datasets.
 
 Both Buffy and Pascal were collected with the 2D pictorial structure model in 
 mind, where frames could be plucked individually to satisfy some of the 
 2D-based assumptions of the model.  In the VideoPose dataset, we collected 
-clips only based on duration, scale and viewpoint of the person.  Note that 
-Buffy and Pascal both have less than 20 examples with elbows raised above 
-shoulders, whereas VideoPose has none---this is an unusual pose for sitcoms.
+clips only based on duration, scale and viewpoint of the person.  MoviePose 
+frames were selected automatically via a person detector.  Note that Buffy and 
+Pascal both have less than 20 examples with elbows raised above shoulders, 
+whereas VideoPose has none---this is an unusual pose for sitcoms and amateur 
+photographs.
 
 Second, observe the average images of these datasets in 
 \figreff{dataset-scatterplots}{bottom}.  We can see plain biases---Buffy and 
 VideoPose are darker (being primarily interior settings), the Buffy dataset is 
 primarily female, and VideoPose has fewer unique background settings (the 
-Friends' apartment, coffee shop, etcetera).
+Friends' apartment, coffee shop, etcetera) which bias the average image.  
+MoviePose has a significantly smoother average image than the rest, as it 
+contains $5$ to $10$ times more data.
 
 
 \section{Evaluation Measures}
@@ -88,13 +132,13 @@ cannot guide limbs to extremely precise fits.
 
 We consider the following relaxed measures of performance:
 
-\subsection{Root-Mean-Square Error (RMSE)}  Because our datasets are scale 
-normalized (to the precision of an upper-body detector), pixel distances are 
-meaningful across examples, and semantically meaningful.  As such, we could 
-report the root-mean-square error, the average euclidean distance between 
-predicted joints and the groundtruth joints on the test set.  However, when a 
-guess is incorrect, it can be arbitrarily far away from the groundtruth, and 
-arbitrarily skew the RMSE.  
+\subsection{Root-Mean-Square Error (RMSE)}  Because our datasets can be scale 
+normalized (to the precision of an upper-body detector or groundtruth torso), 
+pixel distances are meaningful across examples, and semantically meaningful.  
+As such, we could measure accuracy via root-mean-square error, \ie the average 
+Euclidean distance between predicted joints and the groundtruth joints on the 
+test set.  However, when a guess is incorrect, it can be arbitrarily far away 
+from the groundtruth, and arbitrarily skew the RMSE.  
 
 
 \begin{figure}[t]
@@ -107,13 +151,14 @@ a range of pixel error distance thresholds to make a performance curve.}
 \end{figure}
 
 
-\subsection{Pixel error threshold}  In light of the skewing problem of RMSE, we 
-examine pixel accuracy at a range of thresholds.  At each threshold, we report 
-the percent of test joint guesses that are within that Euclidean distance of 
-the groundtruth.  We explore a range of thresholds, from very precise (the 
-semantic distance of a average palm's width in pixels), to somewhat loose (the 
-semantic distance of an average head's height in pixels).  This is illustrated 
-in \figref{pixel-err-demo}.
+\subsection{Pixel error threshold}  In light of the outlier skewing problem of 
+RMSE, we examine pixel accuracy at a range of thresholds.  At each threshold, 
+we report the percent of test joint guesses that are within that Euclidean 
+distance of the groundtruth, scaled by the size of the groundtruth torso.  We 
+explore a range of thresholds, from very precise (the semantic distance of a 
+average palm's width in pixels), to somewhat loose (the semantic distance of an 
+average head's height in pixels).  This is illustrated in 
+\figref{pixel-err-demo}.
 
 The resulting performance curve gives us a good idea of accuracy at different 
 operating points.  This is useful when assessing system for different 
@@ -134,9 +179,11 @@ limb length is no longer than the true limb length and intersects the
 groundtruth limb at its midpoint.  
 
 We prefer not to use PCP because (1) its criteria for a matched guess is too 
-relaxed (2) is discontinuous and (3) only considers one operating point instead 
-of a range.  However, for historical reasons, many works have reported results 
-in terms of PCP, and here we do the same for compatibility.
+relaxed (2) is discontinuous (3) only considers one operating point instead of 
+a range and (4) there are different interpretations of the metric leading to 
+discrepancies in implementations (see the code release of \citet{eichner-tr}).  
+However, for historical reasons, many works have reported results in terms of 
+PCP, and here we do the same for compatibility.
 
 \section{Competitor Methods}\label{sec:competition}
 
@@ -155,7 +202,7 @@ results exactly.
 \begin{itemize}
 \item Mean pose baseline 
 
-One reasonable sanity check is to compare with a default mean pose prior.  As 
+One reasonable sanity check is to compare against guessing the average pose in every te.  As 
 can be seen in~\figref{dataset-scatterplots}, there is some centrality to the 
 data, such that guessing the mean joint position will get some fraction of joints 
 correct.  The mean pose is obtained by empirical averages of joint locations on 
@@ -190,7 +237,7 @@ during training.  \end{itemize}
 
 Here we give various additional details about the implementation of our models. 
 All the details of the various feature implementations are provided in 
-\secref{features}. Furhtermore, code is available online at \begin{center} 
+\secref{features}. Code is available online at \begin{center} 
 \url{http://vision.grasp.upenn.edu/video} \end{center}
 
 \subsection{CPS}
@@ -247,26 +294,6 @@ locations for each joint with high recall.
 
 
 \subsection{LLPS}
-The Buffy dataset contains 748 images, of which 235 are set aside for testing.  
-This means we have $2\times 513 = 1026$ half-image examples at which we center 
-our local neighborhoods, and estimate local models.  After mode selection 
-(Section~\ref{sec:calib}), we keep 291 local models to run at test time.  
-
-The Pascal dataset, on the other hand, has no training set associated with it, 
-and people typically report cross-domain results, training on Buffy and testing 
-on Pascal.  When using models with relatively few parameters to fit, 
-cross-domain evaluation makes little difference because training is not 
-sensitive to fitting idiosyncrasies of a particular dataset.  However, we found 
-our model trained on Buffy to perform poorly on Pascal---Buffy is largely 
-indoor, with a finite set of clothing styles and body types, whereas Pascal is 
-both indoor and outdoor, and contains babies, adults and a larger variety of 
-clothing.  We feel it is a testament to the modeling power of our algorithm 
-that such large appearance distribution changes across datasets are not handled 
-well.  As a remedy, we collected a new training set of unconstrained images 
-similar to Pascal Stickmen from the H3D dataset~\cite{bourdev09} and the VOC 
-Challenge~\cite{voc09} (ensuring no overlap between this and the Pascal 
-Stickmen test set).  We selected 496 images of sufficient resolution, fully 
-labeled and roughly upright, yielding 992 training half-images.  Of these, 387 
-were kept after mode selection.
-
+The MoviePose dataset contains $5003$ images, of which $1016$ are set aside for testing.  
+This means we have $2\times 3987 = 7974$ half-image examples to learn our mode centers.  Based on cross-validation, we found $32$ modes to be most accurate in an end-to-end system.
 

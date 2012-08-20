@@ -32,13 +32,13 @@ continue pruning and refining until we reach a somewhat fine $80 \times 80
 \times 24$ grid.  At the end of the cascade we are left with on average $492$ 
 states for each part, $99.67\%$ fewer states than the original $80 \times 80 
 \times 24$ state space. We see that after one level of the cascade, we have 
-already pruned a large fraction of the state space away---roughly half.  This 
+already pruned more than half of the full state space away.  This 
 is intuitive because there are many easy decisions of states to reject based on 
 even geometry alone, \eg the left elbow does not ever appear in the upper right 
 corner of the person's bounding box.
 
 As the cascade progresses, we do lose arm hypotheses close to the groundtruth 
-arms---last column of \tabref{c2f}.  However, the percent of hypotheses close 
+arms, seen in the last column of \tabref{c2f}.  However, the percent of hypotheses close 
 to groundtruth after the cascade process is still higher than any current 
 system's accuracy on lower arms (see \tabref{res-table}).  Thus this number 
 ($68.4 \%$) is an upper bound on how well we could do with our small, pruned 
@@ -86,30 +86,31 @@ Models affects performance.}
 \end{center}
 \end{figure}
 
-One of the main contributions of this thesis was technical innovations that 
+One of the main contributions of this thesis is technical innovations that 
 allow us to include ``everything and the kitchen sink'' (in the house of vision 
 features).  At this point we wish to verify that the work done implementing, 
 computing and learning parameters for features makes a difference in 
 performance.  This is actually quite difficult to do in general, because it is 
 computationally infeasible to explore the combinatorially many possibilities of 
-feature sets. Interactions between modalities are potentially significant.  We 
-analyze the importance of of features by grouping them by modality, and adding 
+feature sets. Non-additive interactions between feature types may occur. We 
+analyze the importance of features by grouping them by modality, and adding 
 or removing them from our full systems in turn, measuring the change in 
 performance.
 
 In \figref{ablative} we do a feature analysis for CPS (left) and ESM (right), 
 grouping features by coarse modalities.  The first important thing to note is 
-that, by and large, the rich features we include over standard edge template 
-and geometry information help.  For CPS, we see that including rich feature 
-types individually on top of geometry helps performance, in particular pairwise 
-cues such as color and contours that were intractable to compute without our 
-cascade approach.  In the bar marked ``baseline PS'' we evaluate a classical 
-unimodal PS, whereas the geometric parameters in our cascade models (``geom 
-only'') are learned bin weights that can achieve non-linearity.  All features 
-together do significantly better than any one feature modality in isolation.
+that the rich features we include over standard edge template and geometry 
+information lead to better performance.  For CPS, including rich feature types 
+individually in conjunction with geometry features helps performance, in 
+particular pairwise cues such as color and contours that were infeasible to 
+compute without our cascade approach.  In the bar marked ``baseline PS'' we 
+evaluate a classical unimodal PS, whereas the geometric parameters in our 
+cascade models (``geom only'') are learned bin weights that can achieve 
+non-linearity.  All features together do significantly better than any one 
+feature modality in isolation.
 
 On the right side of \figref{ablative}, we do an ablative analysis of our ESM 
-model.  The most important individual feature modality was optical flow, which 
+model.  The most important individual feature modality is optical flow, which 
 gives us a fairly good estimate of foreground/background separation in many 
 video frames.  Importantly, many of these feature modalities are not used in 
 pose estimation models because they require joint interactions which lead to 
@@ -117,7 +118,7 @@ loopy, cyclic models.
 
 
 \section{System results}\label{sec:system-results}
-In this section we analayze end-to-end system results, using the publicly 
+In this section we analyze end-to-end system results, using the publicly 
 available code for our systems and competitors, for reproducibility's sake.
 \begin{table}[tb]
 \begin{center}
@@ -125,7 +126,7 @@ available code for our systems and competitors, for reproducibility's sake.
 \caption[PCP evaluation.]{PCP Evaluation of single frame pose estimation. PCP 
 is a fairly loose measure of accuracy and only reveals one precision operating 
 point.  We include the measure for historical reasons; for a more detailed 
-picture see \figref{results-buffy-pascal}.}
+picture see \figref{results-mpose-buffy-pascal}.}
 \label{tab:res-table} 
 \end{center}
 \end{table}
@@ -134,31 +135,38 @@ picture see \figref{results-buffy-pascal}.}
 \subsection{Single frame pose estimation}
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=1.00\textwidth]{figs/results-buffy-pascal.pdf}
+\includegraphics[width=1.00\textwidth]{figs/results-mpose-buffy-pascal.pdf}
 \caption[Single frame pose estimation results.]{Single frame pose estimation 
 results.  Shown are our single frame models CPS and LPPS against 
 state-of-the-art competitor models (\secref{competition})}.
-\label{fig:results-buffy-pascal}
+\label{fig:results-mpose-buffy-pascal}
 \end{center}
 \end{figure}
-The performance of all single-frame models are shown on the Buffy and Pascal 
-datasets in \figref{results-buffy-pascal}.  We see that in general, CPS and 
-\citet{deva2011} outperform the rest, with CPS performing strictly better on 
-Pascal.  LPPS and \citet{eichner09} are also comparable, trading off better 
-performance in different regimes of precision.   However, absolute performance 
-localization accuracy is only one way to measure the quality of a model---see 
-\secref{discussion} for more discussion.
+The performance of all single-frame models are shown on the MoviePose, Buffy 
+and Pascal datasets in \figref{results-mpose-buffy-pascal}.  The LLPS model 
+outperforms the rest across the three datasets.  \citet{deva2011} is the 
+closest competitor overall, but CPS outperforms the others slightly on the most 
+difficult Pascal dataset. \citet{eichner-tr} (and \citet{andriluka09}, whose 
+code we were unable to run; see \tabref{res-table}) is uniformly worse than the 
+other models, most likely due to the lack of discriminative training and the 
+unimodal modeling.   Localization accuracy is not the only way to measure the 
+quality of a model (\eg speed)---see \secref{discussion} for more discussion.
 
-Surprisingly, the ``mean pose'' baseline outperforms some models' elbow 
-localization accuracy in some regimes, in particular on the Pascal dataset.  
-This is an indication of either the difficulty or boringness (lack of pose 
-variation) in these datasets, or a combination of both.  In fact, the 
-scatterplots in \figref{dataset-scatterplots} do show that most elbows are very 
-tightly grouped in these single frame datasets. 
+Surprisingly, the two simple prior pose baselines perform comparatively well.  
+The ``mean pose'' baseline is a lower bound on performance, but is competitive 
+with~\cite{eichner-tr} in some cases. The ``mean cluster prediction'' baseline 
+actually outperforms or is close to CPS and \citet{eichner-tr} on the three 
+datasets, at very low computational cost---$0.0145$ seconds per image.  This 
+surprising result indicates the importance of multimodal modeling in even the 
+simplest form.  The decent performance of these mean pose baseline is also an 
+indication of either the difficulty or lack of pose variation in these 
+datasets, or a combination of both.  In fact, the scatterplots in 
+\figref{dataset-scatterplots} do show that most elbows are very tightly grouped 
+in these single frame datasets. 
 
-We also report PCP scores in~\tabref{res-table}.  Comparing the induced ranking 
-of methods by \tabref{res-table} and \figref{results-buffy-pascal}, we see that 
-PCP does not give a complete story of performance.
+We also report PCP scores in~\tabref{res-table}.  Comparing the rankings of 
+methods by \tabref{res-table} and \figref{results-mpose-buffy-pascal}, we see 
+that PCP does not give a complete story of performance.
 
 \subsection{Video pose estimation}
 \begin{figure}[tb]
