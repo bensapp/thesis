@@ -1,10 +1,10 @@
 \chapter{Discussion}\label{sec:discussion}
 
 In this chapter, we discuss advantages and disadvantages of the different 
-models developed in this thesis and competitor models, justifying contributions 
-of this thesis.  In addition, we address possible criticisms and other 
-tradeoffs and design choices that are of importance beyond raw accuracy.  
-Performance of the different models in terms of part localization accuracy is 
+models developed  and compared to in this thesis, and justify our 
+contributions. In addition, we address possible criticisms and other tradeoffs 
+and design choices that are of importance beyond pure accuracy.  Performance of 
+the different models in terms of part localization accuracy is 
 in~\secref{system-results}.
 
 \section{The case for image-dependent interactions}
@@ -17,8 +17,7 @@ pre-processing to reduce the state space or improving unary potentials via
 foreground color estimation, and all performed inference relying ultimately on 
 edge-based unary potentials and simple geometric displacement pairwise cues as 
 in the classical PS model (\secref{ps}).
-
-
+\out{
 Recently, \citet{deva2011} introduced a multi-modal model of pose that competes 
 with CPS. However, empirical results indicate that CPS generalizes better than 
 \citet{deva2011}: when both models are trained on Buffy, CPS outperforms 
@@ -29,50 +28,54 @@ precision is the coarser nature of our features: whereas \citet{deva2011} can
 evaluate placements to the granularity of a HoG cell, many of our features are 
 more coarsely described and/or discretized---\eg, is the part guess near a 
 contour, is the part guess in the foreground color.
-
-In a more controlled setting, we see that a classical PS model coupled with 
-just one image-dependent interaction feature, such as contour continuity, 
-significantly improves performance (\figref{ablative}).  This makes a strong 
-case that image-dependent interactions improve performance.
+}
+In a controlled setting, we see that a classical PS model coupled with just one 
+image-dependent interaction feature, such as contour continuity, significantly 
+improves performance (\figref{ablative}).  This makes a strong case that 
+image-dependent interactions improve performance.
 
 The benefits of image-dependent interactions is further reinforced by the 
 performance by our video pose estimation model.  The Ensemble of Stretchable 
 Models exploits a variety of across-body and across-frame image interactions 
 and significantly outperfoms methods with fewer interactions.
 
-We believe our cascade approach holds more potential to improve the richness of 
-models in the future.  In general, our approach is a principled framework that 
-frees us from restricting our models to limited pairwise potentials of the form 
-$\phi_{ij}(y_i - y_j)$.  This allows much more flexibility in the future to 
-incorporate more pairwise and even higher-order features. 
+Finally, we see effective data-dependent switching of modes in our LLPS model.  
+The decision of which local model $s^z(x,y)$ to choose depends on large-context 
+interactions considering a whole half-body in scope. These holistic cues are 
+crucial in determining an effective mode to use, and serve as one of the main 
+reasons LLPS outperforms~\citet{deva2011}.
+
+We believe our cascade approach is a very useful tool that helps us design 
+models with larger image-dependent interactions.  It is a key component to all 
+models presented here to achieve a high degree of accuracy and/or efficiency.  
+The cascade framework also holds potential to improve the richness of models in 
+the future.  In general, our approach is a principled framework that frees us 
+from restricting our models to limited pairwise potentials of the form $||y_i - 
+y_j||$.  This allows much more flexibility in the future to incorporate more 
+pairwise and even higher-order features. 
 
 \section{More features or more modes?}
-As first mentioned in~\secref{llps}, there are two major approaches for 
-improving pose accuracy in recent years: adding more features, \eg CPS, ESM and 
+As discussed in~\secref{llps}, there are two major approaches for improving 
+pose accuracy in recent years: adding more features, \eg CPS, ESM and 
 \citet{ferrari08,eichner09,ddtran}, or adding more modes, \eg LLPS and 
 \citet{dpm,wang2011,deva2011,johnson11}.  
 
-Currently, LLPS slightly underperforms CPS and~\citet{deva2011}.  However, it 
-ambitiously uses an order of magnitude more modes than existing multi-modal 
-approaches.  It may be suffering due the computational difficulties preventing 
-joint training of different modes, and lack of a sufficiently sized dataset.  
-\figref{llps-learning-curve} suggest further improvements should be seen with 
-more training examples.
+LLPS and~\citet{deva2011} are both multimodal models that outperform the 
+feature- and computation-heavy CPS.  It is unclear given the current 
+state-of-the-art if the multimodal HoG model approach is yet saturated, or more 
+data and more nuanced mode definitions will continue to yield increased 
+performance in coming years.  \citet{zhuwe} has an excellent study of whether 
+these models are near saturation; see \figref{llps-learning-curve} for our own 
+trend analysis.  Both suggest that we are not near saturation yet, in terms of 
+number of parts, modes and training data. There are also no limit to the 
+performance gains to be had by adding more and better features, only 
+computational hurdles.
 
 \begin{figure}[htb!]
 \centering
 \includegraphics[width=0.59\linewidth]{figs/llps-learning-curve.pdf}
 \caption[Test accuracy versus number of local neighborhood modes in LLPS.]{
-\label{fig:llps-learning-curve} We show test set accuracy on Buffy for LLPS, 
-measured by area under the joint precision curve.  For this analysis, we added 
-modes to our model in the order they were chosen by our greedy mode selection 
-process / basis pursuit (\secref{calib}).  We stopped at the point 
-cross-validation determined there were no more beneficial modes to add. The 
-increasing performance as a function of number of modes implies that having a 
-larger training set with more local neighborhoods would further improve 
-accuracy of our system.  It is important to note that training and inference 
-scale linearly (and are parallelizable) with the number of modes in our method, 
-so we intend to investigate this for future work.}
+\label{fig:llps-learning-curve} \todo{DO THIS WITH LLPS}}
 \end{figure}
 
 
@@ -106,8 +109,7 @@ detection {\em and} pose estimation---in particular \citet{andriluka09} and
 \citet{deva2011}.  One system that does both is beneficial in its 
 simplicity---one function to both find a person and find their body parts.  Our 
 approach, on the other hand, requires first detecting a person with a dedicated 
-person detector, and then running our pose models on the detected person.  This 
-is a slightly more cumbersome procedure. 
+person detector, and then running our pose models on the detected person. 
 
 We believe that detection and localization are fundamentally different tasks 
 and should be decoupled.  In detection, we wish to generalize over all poses 
@@ -127,15 +129,16 @@ be used for both.  However, models should be trained evaluated specific to a
 single task.
 
 \section{Everything and the kitchen sink: a bug or a feature?}
-One of the selling points of our models is the ability to include a smorgasbord 
-of features.  The goal was to include as many feature modalities as possible in 
+One of the selling points of our models is the ability to include a multitude 
+of features.  The goal is to include as many feature modalities as possible in 
 our CPS and ESM models.  Having so many features makes it difficult to 
 determine exactly what is contributing to the success of our model.  
 
 From a machine learning standpoint, this is an attractive aspect of our system: 
 given training data, we can try everything and see what works.  From a computer 
-vision standpoint, this is a disadvantage---it is difficult to gain insight 
-into why the model is performing well exactly.
+visionist's (or perceptual scientist's) perspective, this is a 
+disadvantage---it is difficult to gain insight into why the model is performing 
+well.
 
 We take a functional, application-driven approach towards computer vision, and 
 consider our problem one of engineering rather than perceptual science.  The 
@@ -147,45 +150,46 @@ make no statement as to which features are the ``best'', in any sense other
 than their contribution to final system performance.
 
 \section{Accuracy, speed, simplicity}
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.95\linewidth]{figs/speed-vs-acc.pdf}
+\caption[Speed versus accuracy.]{
+\label{fig:speed-v-acc} Test time speed versus accuracy.  Accuracy is measured 
+as area under the pixel error threshold curve (AUC).  Speed is in seconds on an 
+AMD Opteron 4284 CPU @ 3.00 GHz with 16 cores.  On the left, we compare 
+different methods with a log time scale.  The upper left corner is the most 
+desirable operating point.  LLPS is strictly better than other methods in the 
+speed-accuracy space.  On the right, we zoom in to investigate our cascaded 
+LLPS approach.  By tuning the aggressiveness ($\alpha$) of the cascade, we can 
+get a curve of test time speed-accuracy points.  Also, we see that ``full 
+training''---considering all modes in every training example---rather than
+``cascaded training''---just the ones selected by the cascade step---leads to 
+roughly a $1.5\%$ performance increase (at the cost of $5\times$ slower 
+training).}
+\end{figure}
 
 When developing our CPS and ESM models, we focused our attention on obtaining 
 the best performing, computationally tractable system.  Besides raw 
 performance, practitioners care as much about {\em speed}---does the system run 
-quickly?---and {\em simplicity}---how long does it take for me to download, 
-compile, understand, run and/or re-implement?  One of the motivations of LLPS 
-and attractiveness of~\citet{deva2011}'s model is its speed and simplicity, in 
+quickly?---and {\em simplicity}---how long does it take to download, compile, 
+understand, run and/or re-implement?  One of the motivations of LLPS and 
+attractiveness of~\citet{deva2011}'s model is its speed and simplicity, in 
 terms of image features (only HoG) and lines of code.
 
-To wit, while performing only slight better than LPPS, CPS and ESM have a 
-significant feature overhead, involving Normalized Cuts segmentation and gPb 
-and in total, hundreds of different feature types.  These two approaches take 5 
-to 10 minutes per image.  Further, the work of~\citet{eichner09} involves 
-iterative re-estimation of part color models, iterative inference with 
-different trees, and graphcut.  Their public implementation takes 10.5 seconds 
-per image.
-
-LLPS, on the same machine, takes 11.0 seconds per image using 1 core.  However, 
-since LLPS inference is trivially parallelizable at the level of local models, 
-using 8 cores reduces this time in practice to 4.1 seconds on average, 1.5 
-seconds of which are spent running the un-optimized hand detector feature.  We 
-expect further linear speedup with more cores.
-
-
-\citet{deva2011}'s model takes 1.6 seconds to run on our machines, using 32 
-features of signed and unsigned edge and color histograms.  Their model uses 
-just a few modes per part, but their inference is quadratic in the number of 
-modes, making it unclear how they might scale to hundreds of modes like our 
-method uses, although they also assert that more modes leads to better 
-performance.
+LLPS is strictly better than other models in terms of speed and simplicity, 
+according to \figref{speed-v-acc}. \citet{deva2011} is strictly better than all 
+but LLPS.  Among the other models, there is no clear winner---CPS is more 
+accurate but slower.  Predicting cluster means is extremely fast but less 
+accurate.
 
 We believe that, moving forward, models with any combination of the three 
 contributions {\em accuracy, speed, simplicity} are all worthwhile, even 
-independent of the others.  Any current system's slowness today will likely be 
-a non-issue in 5-10 years with the advent of faster CPUs. Anecdotally, at time 
-of publication two years ago, the CPS system took 5 minutes and 15 seconds on 
-an Intel Xeon E5450 CPU @ 3.00GHz with 8 cores.  Today, at roughly the same 
-price and consumer availability, the system runs in 3 minutes on an AMD Opteron 
-4284 CPU @ 3.00 GHz with 16 cores.
+independent of the others. Any current system's slowness today will likely be a 
+non-issue in 5-10 years with the advent of faster CPUs and more cores.  
+Anecdotally, at time of publication two years ago, the CPS system took 5 
+minutes and 15 seconds.  Today, at roughly the same price and consumer 
+availability, the system runs in 3 minutes.
+
 
 \out{
 \chapter{Future directions}
