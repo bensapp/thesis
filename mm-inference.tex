@@ -1,5 +1,39 @@
 \chapter{Max-marginal computation}\label{sec:mm-inference}
 
-\todo{To be added in the final version of the paper.}
+The algorithm to compute max-marginals $\mmi$ for all nodes $i \in \cV$ and all 
+possibilities $y_i \in \cY_i$ is shown in \algref{mm-inference}.  The algorithm 
+works by passing forward messages $\fwdmsg_i$ in the first for-loop and 
+backward messages $\bwdmsg_i$ in the second for-loop.  The backward (similarly 
+forward) messages consist of the invariant ``best possible score achieved 
+considering only nodes topologically downstream (similarly upstream) plus the
+the current node''.  The summation of the best possible downstream scores and 
+best possible upstream scores yields the best possible score attainable for 
+each possibility at the current node: $m^\star_i = \bwdmsg_i + \fwdmsg_i - 
+\phi_i$, where we subtract $\phi_i$ to prevent overcounting it.  The quantity 
+$m^\star_i$ is a vector of max-marginal scores for all possibilities $y_i$ in 
+node $i$.  In the last step, we simply make explicit how $m^\star_i$ satisfies 
+our definition of max-marginal by indexing the vector of scores via the 
+$[\cdot]$ vector element indexing operator.
 
+The best scoring sequence $y^\star = \argmax_{y \in \cY} s(x,y)$ and the 
+corresponding score $s(x,y^\star)$ can be obtained via the max-marginals:  It 
+must be the case that $m_i^\star[y^\star_i]$ is the largest value in 
+$m_i^\star$, otherwise $y^\star$ would not be the highest scoring 
+sequence---the highest scoring sequence would use the alternate $(\argmax 
+m_i^\star) \neq y_i^\star$ for node $i$.
+
+One can also obtain witness statistics of the form $\#[\witnessi]$ denoting the 
+number of times $y_i$ is used as a participant (a witness) in all max-marginal 
+sequences in the network.  It is always used at least once, for its own 
+max-marginal sequence, but may be used in other sequences in which it is 
+unconstrained but still chosen.  These witness statistics can be computed in 
+the same way that messages $\fwdmsg_i$ and $\bwdmsg_i$ are propagated, but now 
+by accumulating histograms of argmax indices forward and backward through the 
+graph.
+
+
+For a real implementation in MATLAB, please refer to \\
+\footnotesize{
+\url{https://github.com/bensapp/Stretchable-Models-for-Motion-Parsing/blob/master/cps/ps_model_max_inference_2clique_sparse_edges.m}
+}
 \input{mm-inference-alg}

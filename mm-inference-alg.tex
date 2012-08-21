@@ -1,15 +1,47 @@
-\begin{algorithm} \caption[max-marginal inference]{Message passing to solve 
-$$\max_{y \in \cY \text{ s.t. } y_i = y_i'} s(x,y) \;\; \forall i, y_i \in \cY_i $$ } \label{alg:mm-inference} 
 
+
+\begin{algorithm} 
+\caption[max-sum inference]{Max-sum message passing to solve 
+\begin{align}
+&\mmi =  \max_{y'} s(x,y') = \max_{y'} \sum_{i \in \cV} \phi_i + \sum_{ij \in \cE} \phi_{ij}, \\
+&\text{subject to: } y_i' = y_i
+\end{align}
+} 
+\label{alg:mm-inference} 
 \begin{algorithmic} 
 
 \REQUIRE $ $ \\ 
 Factors $\{\phi_i\}, \{\phi_{ij}\}$\\
 Tree graph $G$ with (arbitrary) root node index $r$ and topological ordering $\pi$, where $\pi_n = r$.
 
-\todo{To be added in the final version of the paper.}
+\ENSURE $\mmi = \argmax_{y} s(x,y)$ 
+\FOR{$i = \pi_1, \pi_2, \ldots, \pi_n $ }
+\STATE
+$\fwdmsg_i = \phi_i + \sum_{j \in \text{kids}(i)} m_{j \rightarrow i}$
+\IF{$i == r$} \STATE \textbf{break} \ENDIF
+\STATE
+$p = \text{parent}_\pi(i) $
+\STATE
+$m_{i \rightarrow p} = \max_{y_i} \phi_{ip} + \fwdmsg_i$
+\ENDFOR
+
+\FOR{$i = \pi_{n},\pi_{n-1},\ldots,\pi_1$}
+
+\IF{$i == r$}
+\STATE $\bwdmsg_i = \phi_i$
+\ELSE
+\STATE $\bwdmsg_i = \phi_i + m_{\text{parent}_\pi(i) \rightarrow i}$
+\ENDIF
+
+\FOR{$j \in \text{kids}(i)$}
+\STATE $m_{i \rightarrow j} = \max_{y_i} \phi_{ij} + \bwdmsg_i$
+\ENDFOR
+\ENDFOR
+\STATE $m^\star_i = \bwdmsg_i + \fwdmsg_i - \phi_i$
+\STATE $\mmi \defn m^\star_i[y_i],\; \forall y_i \in \cY_i$
 
 \end{algorithmic} 
 \end{algorithm}
+
 
 
