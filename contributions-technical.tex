@@ -1,0 +1,73 @@
+This section is intended for readers who already have an understanding of 
+pairwise structured models and the parts-based pose estimation literature.  It 
+provides a quick overview of the model formulations discussed in depth in the 
+rest of this thesis.  It does not give a self-contained explanation, and the 
+unfamiliar reader is encouraged to skip this section.
+
+\begin{center}
+\line(1,0){250}
+\end{center}
+
+\noindent The basic pictorial structure model takes the form $$ s(x,y) =  
+\sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{\tree}} 
+\phi_{ij}(y_i - y_j) $$
+where the network of part pairwise interactions is described by a tree 
+structured graph $\tree = (\cV_\tree,\cE_\tree)$.  The first terms 
+$\phi_i(x,y_i)$ score how likely a part is to be placed at location $y_i$, 
+independent of other parts.  The pairwise terms $\phi_{ij}(y_i-y_j)$ score the 
+geometric compatibility between pairs of parts.  Importantly, this pairwise 
+term is {\em blind to the image content}. 
+
+Instead, we wish to actually {\em exploit } image content when modeling 
+pairwise interactions. To this effect, in \secref{CPS} we propose a more 
+general model of human pose, of the form \begin{equation}
+\boxed{s(x,y) =  \sum_{i \in \cV_{\tree}} \phi_i(x,y_i) + \sum_{i,j \in 
+\cE_{\tree}} \phi_{ij}(x,y_i,y_j)}
+\label{eq:contrib1}
+\end{equation}
+This turns out to be computationally infeasible using standard tools and 
+techniques.  We develop and analyze  structured prediction cascades as a tool 
+to deal with this.  The cascade works by progressively filtering the state 
+space of a sequence of models with coarse-to-fine resolution.  We pose a 
+learning objective so that the models prune both aggressively and accurately at 
+test time.
+
+
+The model we propose \equref{contrib1} works for any tree-structured model, but 
+cannot be applied to cyclic models.  We address this with a generalization 
+of~\equref{contrib1}:
+\begin{equation}
+\boxed{s(x,y) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i) + \sum_{i,j \in \cE_{G}} 
+\phi_{ij}(x,y_i,y_j)}
+\label{eq:contrib2}
+\end{equation}
+where $G = (\cV_G,\cE_G)$ is a general graph, not just a tree.  Determining the 
+best possible answer $\argmax_y s(x,y)$ over a general graph $G$ is known to be 
+$\#P$-hard~\citep{koller-book}---exponential in the number of frames of video.  
+To deal with this, we explore state-of-the-art approximation techniques, such 
+as dual decomposition, and propose a simpler approximation technique the 
+performs at least as well with orders of magnitude less computation.  See 
+\secref{stretchable}.
+
+The aforementioned models focus attention on increasing the quality of features 
+and increasing the number of modeled part interactions.  The hope is that these 
+more expressive models do a better job at capturing the inherently multimodal 
+appearance space of poses, by better separating the true pose configurations 
+from false alarms.  This somewhat addresses the issue of non-linearity in 
+lower-dimensional feature spaces, \eg, using only edge information.
+
+Complementary to the models described by~\equref{contrib1} 
+and~\equref{contrib2}, in \secref{llps} we propose to capture this nonlinearity 
+directly as follows:
+\begin{equation}
+\boxed{s(x,y,z) =  \sum_{i \in \cV_{G}} \phi_i(x,y_i,z) + \sum_{i,j \in 
+\cE_{G}} \phi_{ij}(x,y_i,y_j,z)}
+\label{eq:contrib3}
+\end{equation}
+where now the goal is to determine not only the best pose layout $y$, but also 
+which {\em mode} $z$ the pose belongs to: $y^\star,z^\star = \argmax_{y,z} 
+s(x,y,z)$.  Each mode need only model a portion of the pose space.  Instead of 
+fitting the parameters of one monolithic model to cover all possible modes, 
+here we learn separate parameters for each mode, allowing us to learn more 
+precise descriptions of appearance and geometry.
+
