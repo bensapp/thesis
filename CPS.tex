@@ -118,7 +118,15 @@ this paper is instead developing more complex models---previously infeasible
 due to the original intractable complexity---to improve state-of-the-art 
 performance.
 
-A different approach to reduce the intractable number of state hypotheses is to instead propose a small set of likely hypotheses based on bottom-up perceptual grouping principles~\cite{mori04,Srinivasan07}.  Mori et al.~\cite{mori04} use bottom-up saliency cues, for example strength of supporting contours, to generate limb hypotheses.  They then prune via hand-set rules based on part-pair geometry and color consistency. The shape, color and contour based features we use in our last cascade stage are inspired by such bottom-up processes.  However, our cascade is solely a sequence of discriminatively-trained top-down models.
+A different approach to reduce the intractable number of state hypotheses is to 
+instead propose a small set of likely hypotheses based on bottom-up perceptual 
+grouping principles~\cite{mori04,praveen07}.  Mori et al.~\cite{mori04} use 
+bottom-up saliency cues, for example strength of supporting contours, to 
+generate limb hypotheses.  They then prune via hand-set rules based on 
+part-pair geometry and color consistency. The shape, color and contour based 
+features we use in our last cascade stage are inspired by such bottom-up 
+processes.  However, our cascade is solely a sequence of 
+discriminatively-trained top-down models.
 
 
 

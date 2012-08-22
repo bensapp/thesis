@@ -11,7 +11,7 @@ considerable background clutter, camera movement, motion blur, poor contrast,
 body pose and shape variation, as well as illumination, clothing and appearance 
 diversity. There has been an explosion of recent work on articulated pose 
 estimation from single images of this type~\citep{ronfard02, 
-miko04,felz05,ramanan06,ferrari08,eichner09, andriluka09}, and the model 
+miko04,felz05,devaparse,ferrari08,eichner09, andriluka09}, and the model 
 proposed in~\secref{CPS}.  
 
 Despite steady advances, localization of the most interesting parts (lower arms 
@@ -291,7 +291,7 @@ sequence of frames using our original model in~\equref{loopy-model}.  However,
 solving the argmax decoding problem
 exactly is prohibitively expensive, due to the high treewidth of this
 cyclic graph. We use the method of Dual Decomposition (DD)
-\citep{bertsekas99,komodakis2007dualdecomp} to solve a linear
+\citep{bertsekas99,komodakis2007} to solve a linear
 programming relaxation of the decoding problem as follows. Observe
 that the argmax decoding problem of our full model can be decomposed
 into $P$ subproblems { if those problems are coupled through a global
@@ -318,7 +318,7 @@ dual variables $\nu^p$ and the primal variables $y^p$:
 \frac{1}{P}\sum_{p=1}^P \ind{y_i^p=k} \right),
 \end{align}
 where $\alpha$ is a rate parameter chosen according to the scheme given in 
-\citet{komodakis2007dualdecomp}.
+\citet{komodakis2007}.
  
 
 

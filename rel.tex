@@ -1,76 +1,275 @@
 \chapter{Related work}
 
-In this section we survey a variety of methods for 2D human pose estimation.  
-We focus here on methods that are meant to run in a general setting (\ie in the 
-wild).  In particular, we don't address models that make additional assumptions 
-about the environment, such as known background, known person or clothing, or 
-motion capture systems.
+In this section we survey a variety of methods for 2D human pose estimation in 
+both single frames and video.  The majority of this work is on {\em part-based} 
+models, which decompose and reason about basic units of pose.  A few 
+non-part-based approaches are mentioned in \secref{nonpart}.  We omit work 
+using other more powerful sensors such as motion capture environments or 
+multiple cameras, since many of the significant issues in 2D human pose 
+estimation are not present in these domains (\eg, clutter, viewpoint and 
+occlusion issues).
+
+\section{Single-frame parts-based models}\label{sec:partsbased}
+
+The idea that real-world objects captured in 2D images can be modeled as 
+collections of interrelated atomic parts goes back to the foundational work of 
+\citet{binford71}. The term ``pictorial structures'' was introduced by 
+\citet{fischler1973ps}.  In this work, the authors lay out the basic PS model 
+described in \secref{ps}, an aggregation of individual local part scores and 
+pairwise part-part scores which depend only on the displacement between 
+connected parts.  The standard dynamic programming solution is presented here 
+(see \secref{inference}), quadratic in the number of parts.  
+
+The pictorial structures model was made popular in recent literature by 
+\citet{felz05}, who contributed a linear time message passing algorithm using 
+distance transforms (explained in \secref{dt}) which made tree-structured 
+models tractable.  This led to an explosion of work using and refining this 
+basic PS model:
+
+\citet{devaparse} introduced discriminative training of edge template filters 
+to improve upon previously hand-crafted templates, and proposed an iterative 
+estimation procedure which uses the current guess at the foreground color 
+distributions in subsequent parses.  \citet{ferrari08} provide an end-to-end 
+multi-step pipeline to parse upper body pose in video and whittle down the 
+number of possibilities: first detect people, estimate their color, reject 
+background hypotheses using a conservative color-based graphcut, then track 
+remaining candidates through time.  \citet{eichner-tr} builds on 
+\citet{ferrari08} and \citet{devaparse} to make a competitive state-of-the-art 
+system.  \citet{andriluka09} improve upon the basic PS model by learning more 
+powerful part filters using Adaboost classifers on top of shape context to 
+represent each part.
+
+All of these models rely heavily on the facts that (1) the part interactions 
+form a tree and (2) these interactions must be simple functions of geometry 
+only.  If these are invalidated, obtaining the best solution from the model is 
+intractable (\secref{inference}).   From a certain viewpoint, the rest of the 
+literature discussed here is an innovation in response to at least one of these 
+limitations, which lead to the following shortcomings:
+
+\begin{itemize}
+\item[S-A:] {\em Lack of important part-pair relationships.} For example, to 
+mantain acyclicity, typically the left and right arms are left unconnected.  
+However, this omits useful cues for parsing---\eg, to express the fact that 
+arms are likely the same color, or do not often lie on top of each other.  
+
+\item[S-B:] {\em Lack of larger and richer relationships.}  Modelers would also 
+like to design cost functions that consider more than two parts at a time (and 
+informed by more than just geometry).  For example, one would like to embed in 
+the cost function answers to questions such as "is this a realistic half-body 
+with respect to countours in the image?"  Representing larger collections of 
+parts \naively leads to a combinatorial explosion of possibilities.
+
+\item[S-C:] {\em A ``one-size-fits-all' representation of appearance and pose.} 
+In a single tree with parameters describing part appearance and part geometry, 
+it is difficult to capture the wide variability in human pose found in nature.  
+For example, a single tree model must have a very general template for the 
+lower arm to capture all appearance changes due to clothing, lighting, body 
+size and articulation. It must also represent the wide range of lower arm-upper 
+arm geometries with a single (typically unimodal) angular distribution.
 
 
-% classic PS stuff
-\mypar{Tree models} The classical PS model described in \secref{ps} was first 
-introduced by \citet{fischler1973ps} and serves as a canonical example of a 
-parts-based model with pairwise interactions between parts.  Importantly, the 
-graph of interactions forms a tree, which allows for efficient inference in 
-time quadratic in the number of states.  A method for max-inference that is 
-linear in the number of states was introduced by \citet{felz05}, and since then 
-there has been an explosion of work focusing on improving this model by 
-training it discriminatively~\citep{devacrf,andriluka09} and improving upon 
-individual part localization capabilities via edge 
-descriptors~\citep{andriluka09} and color \citep{eichner09}.
+\end{itemize}
 
-%more interactions
-\mypar{Beyond tree structure}
-A few past works have looked at going beyond a tree model of pose in a single 
-image.  In a cyclic, or loopy, graph, inference is 
-$\#P$-complete~\citep{koller-book}, without a known polynomial-time algorithm.  
-\citet{ddtran} consider a fully connected graph of limb interactions, and use 
-local greedy search as an approximate inference technique.  
-\citet{wang2008multiple} consider multiple trees over parts, where different 
-edges can express different geometric and occlusion constraints, and the union 
-of all edges forms a cyclic graph.  They use a learned weighted sum of 
-individual tree beliefs at test time.  Quite recently \citet{min-bb} use a 
-fully-connected graph using the output of our cascade system (\secref{CPS}), 
-and improve  upon our results which use a tree model.  They use 
-branch-and-bound techniques and an order of magnitude more time for inference 
-to obtain exact solutions (roughly 20 minutes versus 10 seconds).
+\subsection{Dealing with cyclic models} In a desire to overcome shortcoming 
+S-A, some researchers consider cyclic, single frame graphs.  In a cyclic, or 
+loopy, graph, inference is $\#P$-complete~\citep{koller-book}, without a known 
+polynomial-time algorithm.  \citet{ddtran} consider a fully connected graph of 
+limb interactions, and use local greedy search as an approximate inference 
+technique.  Quite recently \citet{min-bb} use a fully-connected graph using the 
+output of our cascade system (\secref{CPS}), and improve  upon our results 
+which use a tree model.  They use branch-and-bound techniques and an order of 
+magnitude more time for inference to obtain exact solutions (roughly 20 minutes 
+versus 10 seconds).
 
-%time graphs, approximate inference
-\mypar{Temporal models}
-In temporal processing, pairwise models resort to approximate inference 
-techniques to deal with intractable inference.  \citet{ferrari08} use loopy 
-belief propagation, with temporal interactions expressing spatial continuity 
-between consecutive frames.  In 3D, \citet{sigal2004tracking} use 
-non-parametric belief propagation with learned motion distributions for 
-temporal edges.
+Many other approximate inference techniques have been applied to cyclic graphs 
+in video, see \secref{rel-video}.
 
-%hierarchical & multi-modla
-\mypar{Hierarchical and multi-modal models}
-Another extension to basic tree models are hierarchical models of pose, where 
-the hierarchy is over part granularity (\eg left lower arm, left upper and 
-lower arm, left half body, full body). \citet{wang2011,sun2011} both developed 
-such models, targeted towards activity recognition.  These models discretize 
-the coarser parts into a set of possible modes to better model variations of 
-larger deformable parts.  Learning different modes is also done 
-by~\citet{deva2011}, a non-hierarchical model over joints and limb midpoints, 
-as well as~\citet{everingham2011}, who clusters global pose into modes to learn 
-different tree models.
+\subsection{A family of trees}\label{sec:tree-fam}
+Describing pose with multiple trees can solve issues with shortcomings S-A and 
+S-C.   Using multiple trees, we can cover all part relationships desired in at 
+least some tree, and maintain acyclicity in all trees.  Or, multiple trees can 
+share the same graph structure, but each tree (or subcollection) can model a 
+subspace of the pose space (\eg, an arms-crossed model; a profile model). Tree 
+beliefs are typically accumulated or maxed over to determine a final pose.  In 
+either case, such models are sometimes called ``mixture-of-trees'' models.
+  
+\citet{wang2008multiple} use multiple tree models to capture previously unused 
+part relationships to reason about occlusion and ``double counting'' (left and 
+right symmetric parts both attaching to the most likely part image evidence).  
+Our ESM model~\secref{stretchable} uses these types of cues and more.  
+\citet{ioffe2001} also use multiple trees to reason about occlusion in 
+video---one tree for each common occlusion scenario.  \citet{everingham2011} 
+and \citet{ramanan-faces} use dozens of tree models for full body and face 
+parsing, respectively, to capture broad pose categories such as ``upside down'' 
+body or ``left 3/4 profile'' face.  In practice, mode definitions are data 
+driven and not necessarily semantically interpretable.
 
-\mypar{Non-discrete models}
-An alternative approach is to use a continuous state space instead of a 
-discrete one.  In order to make inference tractable, such methods require 
-restricted models with analytical normalization (such as a Gaussian 
-distributions), or approximate inference frameworks, such as non-parametric 
-belief propagation, a form of sampling~\citep{sigal-thesis}.  
+\subsection{Multimodal compositional tree models}
+To address shortcomings S-B, many works have begun to look at additional 
+``parts'' which are actually compositions of atomic parts (\eg lower arm plus 
+upper arm induce a full arm part).  The compositional parts connect to simpler 
+parts and model geometric consistency constraints 
+\citep{wang2011,sun2011,deva2011}.  By virtue of necessity, the appearance 
+terms of compositional parts must be multimodal----it would be impossible to 
+capture all appearances of an articulated half-body with a single part 
+template.  The typical approach is to pre-define a handful of discrete modes 
+based on training data and thus have a collection of mode possibilities for 
+each part. During inference, the correct mode is inferred as a state in the 
+model or maxed out.  This type of multimodal modeling extends and has shown to 
+be very valuable even for only atomic parts \citep{deva2011}.  In fact, even a 
+basic PS model which searches over rotations for each part can be thought of as 
+an atomic part multimodal model, where each part orientation is a model, and 
+all modes share the same appearance parameters (the rotated template).
 
-\mypar{Bottom-up and greedy methods}
-All of the above approaches deal with the combinatorially-many possible poses 
-by aggregating information or heuristic searching in a clever manner.  A 
-different approach is to instead propose a small set of likely hypotheses based 
-on bottom-up perceptual grouping principles \citep{mori04,praveen07}.  
-\citet{mori04} use bottom-up saliency cues, for example strength of supporting 
-contours, to generate limb hypotheses. They then prune via hand-set rules based 
-on part-pair geometry and color consistency.  \citet{ren07} track people 
-without a model of a person, using a region segmentation of each frame, and a 
-one-to-many segment assignment optimization problem between frames to make 
-greedy tracking decisions.
+One can think of a family of trees that captures different portions of pose 
+space per tree (\secref{tree-fam}) in this way: it is a multimodal model at the 
+most global level.  We take this view in \secref{llps-rel} and give a more 
+in-depth discussion of recent work in this area there, including our LLPS 
+model.
+
+
+\section{Bottom-up driven approaches}
+Decomposing the body into parts and only local interactions is one way of 
+dealing with the combinatorial number of possibilities of human layout. An 
+orthogonal approach is to keep the number of full pose possibilities manageable 
+by growing them incrementally from bottom-up information, and rejecting 
+unlikely pose proposals along the way.  This is attractive over parts-based 
+models in that, in intermediate stages, larger context can be leveraged to 
+evaluate the quality of a larger collection of parts. This is a remedy to 
+shortcomings S-A and S-B described in \secref{partsbased}.
+
+One of the earliest approaches in this vein was the idea of ``body plans'' 
+\citep{bodyplans}, models of object layout defining what parts of an object can 
+be grouped together, at what stage of grouping, and how.  This idea was 
+revisited in \citep{mori04}, which supports a heuristic set of rules to group 
+superpixels into limbs, then combine limbs into partial and finally full 
+configurations.  \citet{praveen07} furthered this line of work by evaluating 
+intermediate proposals by shape matching against a database of exemplar shapes 
+for each stage.
+
+The bottom-up approach holds potential for more powerful representations of 
+large collections of parts than local parts-based models.  On the other hand, 
+the inference procedure in all these works is greedy and hand-tuned or learned 
+at each grouping stage separately.  It's not clear what exact cost function is 
+being minimized, or whether they reach a global or local solution.
+
+
+\section{Temporal Models}\label{sec:rel-video}
+
+Estimating pose in a sequence of images allows us to exploit inter-frame cues 
+such as smoothness of motion and appearance.  This has the potential to improve 
+upon pose estimation independently in each frame.  However, it introduces an
+additional challenge: tracking multiple parts over time leads to 
+intractability.  In the graphical model literature, this is known as {\em 
+entanglement } \citep{koller-book}, a property which implies that inference 
+becomes exponential in the number of parts times the length of the image 
+sequence.  This is a major computational hurdle to overcome.  The works listed 
+here provided different approximate solutions to this exponential roadblock, in 
+order to exploit temporal continuity cues for better pose estimation.
+
+\subsection{Approximate inference in cyclic networks}
+Some rely on standard approximate inference techniques, which often result in 
+expensive inference and poorly understood behaviors.  \citet{ferrari08} use 
+loopy belief propagation to incorporate geometric continuity through time.  
+Loopy belief propagation involves iteratively propagating beliefs around the 
+metric until convergence is reached.  Convergence, however, is not guaranteed, 
+and the number of belief propagation steps required in practice is orders of 
+magnitude more than a tree model.  
+
+Loopy belief propagation is a {\em variational inference} method which can be 
+interpreted as attempting to maximize a simpler distribution than the true 
+Markov Random Field distribution of the model~\citep{jaakkola2000}.  Another 
+variational approach proposed by \citet{ioffe2001} is direct coordinate ascent 
+of the distribution.  In their case, their coordinate ascent is guided by the 
+problem: they alternate between maximizing assignments within frames, holding 
+inter-frame beliefs fixed, then maximizing between frames, holding intra-frame 
+beliefs fixed.  This can be viewed as a application-specific constrained loopy 
+belief propagation to achieve a local maxima.
+
+\citet{sigal2004tracking} use non-parametric belief propagation with learned 
+motion distributions for temporal edges. In \citet{sigal2004measure}, a 
+continuous state space model is employed.  Continuous-state models require 
+local scores with analytical normalization (such as Gaussian distributions), or 
+approximate inference frameworks, such as non-parametric belief propagation (a 
+form of sampling) used by \citet{sigal2004measure}.
+
+Particle filtering is another form of approximate inference.  Most particle 
+filtering methods only support {\em forward}, or {\em online} inference in 
+which the whole video sequence cannot be taken into account (and thus future 
+information cannot be used to help in earlier video frames).  The Condensation 
+algorithm by \citet{isard98} tracks multiple contours (parametrized by 
+B-splines) via particle filtering.  \citet{nevatia2011} consider a cyclic 
+intra-frame model in conjunction with pose and action-part modes propagated 
+through time, also approximately tracked with particles, using the same 
+algorithm as \citet{sigal2004measure}.
+
+In \secref{stretchable}, we study another form of approximate inference, dual 
+decomposition \citep{komodakis2007}, a principled approximation framework with 
+convergence guarantees.  Dual decomposition decomposes inference in a cyclic 
+network to inference in a set of tree ``slave'' networks, and iterates to make 
+the slaves agree on a solution.  We also provide a similar but much simpler 
+approximation method that is computationally cheaper with no reduction in 
+performance in \secref{stretchable-inference}.
+
+
+\section{Tracking-by-detection}  A second approach to approximate 
+inference---where we consider all frames or all frames preceeding the current 
+frame---is instead to make hard decisions in every frame as to a limited set of 
+hypotheses.  This keeps the number of pose hypotheses from growing 
+exponentially with time, and allows us to use much more powerful features 
+between a pair of frames.  However, it is impossible to recover from mistakes 
+made in early frames.
+
+\citet{ren07} is a good example of this paradigm, using powerful reasoning 
+(graph matching with color coherence) between frames to establish 
+correspondences between the assumed correct pose in the current frame and 
+segments in the next frame.  In this system, there is no top-down model the 
+tracked object, so drifting away from the correct pose eventually is 
+inevitable.  In earlier work in the same spirit, \citet{bregler98} propagate an 
+assumed correct pose in the current frame to the next by doing local gradient 
+descent to fit an exponential map representation of a kinematic chain of parts.
+
+In the ``strike a pose'' work by \citet{strikeapose}, a rigid anchor pose is 
+first detected with high confidence.  From it, more discriminative detectors 
+based on color are learned from it to better detect poses in neighboring 
+frames.  The detection in each frame is done independently, but informed by the 
+hard decision made by already detected poses. \citet{andriluka2008people} 
+propose a ``people-tracking-by-detection'' method which first detects people 
+independently in every frame, then reasons about people tracks and their latent 
+walking modes through a hierarchical Gaussian process latent variable model.
+
+
+
+\section{Holistic approaches}\label{sec:nonpart}
+
+Despite limitations, parts-based models allow for decomposing the problem from 
+exponentially many possibilities to a quadratic number for each pair of parts.  
+Atomic parts can employ appearance models with some degree of genericness, 
+enabling the models to generalize to unseen poses in the future.
+
+An entirely different approach is to tackle the problem holistically without 
+decomposing the problem into smaller, conditionally independent pieces.  These 
+methods attempt to map directly from image to part locations, typically through 
+the use of exemplars. Possibly the simplest is the work of \citet{mori02} which 
+finds a nearest neighbor based on shape context, and transfers joint locations.  
+\citet{toyama2002} consider modeling pose as a mixture of exemplar similarities 
+using chamfer distance to define a metric space.  \citet{shak2003} treat 
+exemplar distance as a locality sensing hashing problem.  More recently, 
+\citet{taylorpose} learn a non-linear embedding so that nearest-neighbor pose 
+classification is effective at predicting hand locations, using a nearest 
+neighbor database of $40,000$ images.
+
+Finally, \citet{ionescu2011} learns a non-linear regression from figure-ground 
+hypotheses directly to a vector of 3D joint locations.  The regression of 
+different joints is non-linearly decorrelated by embedding in a latent space 
+via Kernel Dependency Estimation, with a kernel based on similarity between 
+estimated figure-ground masks and groundtruth masks generated from a synthetic 
+3D model rendered in a variety of poses. 
+
+All of the works mentioned here have not been applied to recent ``in the wild'' 
+datasets that we consider in this thesis.  It remains an open question whether 
+such exemplar-based methods can capture all the variations present in such 
+challenging datasets.  Parts-based models can achieve a much higher degree of 
+generality due to their decomposable nature.
+
+
