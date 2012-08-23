@@ -53,7 +53,7 @@ $\phi_{ij}(y_{\text{luarm}} - y_{\text{llarm}})$ measures the squared Euclidean
 distance between the elbow locations according to the left upper arm and left 
 lower arm variables.  
 
-\mypar{Spring model interpretation} The reasons for restricting the pairwise 
+\mypar{Spring model interpretation:} The reasons for restricting the pairwise 
 potential to be only a function of spatial deformation are primarily 
 computational, as discussed in \secref{dt}.  In addition, this type of model is 
 simple and intuitive to interpret as a ``spring model'' of object layout: the 
@@ -140,10 +140,10 @@ While fast to compute and intuitive from a spring-model perspective, this model 
 As discussed in \secref{pairwise-mrf}, the computation required to obtain the 
 highest-scoring pose out of the exponentially-many possibilities according to 
 \equref{standard-ps} is $O(kn^2)$, using \algref{max-inference}.  In pose 
-estimation, the reason is intuitive: for each possible location of, say a left 
-upper arm, we need to exhaustively search to find the best location of a 
-corresponding lower arm, checking all such possibilities of left lower arms.  
-Doing this for all left upper arms yields an exact $n^2$ search.
+estimation, the reason is intuitive: for each possible location of an upper 
+arm, we need to exhaustively search to find the best location of a 
+corresponding lower arm, checking all such possibilities.  Doing this for all 
+left or right upper arms yields an exact $n^2$ local search.
 
 In practice, there is no need to check {\em all} possibilities of lower arms 
 for each upper arm location; it is sufficient to check only in a reasonable 

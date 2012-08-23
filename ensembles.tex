@@ -127,10 +127,10 @@ articulated poses from TV shows containing over 1,200 frames.  We show
 significant quantitative and qualitative improvements over state-of-the-art 
 single-frame pose estimation approaches (in particular, wrist and elbow 
 accuracy improves by greater than 15\%).  In summary, the novel contributions 
-of this work are: \textbf{(1)} an efficient ensemble of tree models for parsing 
-human motion which covers a complex set of pairwise relationships and includes 
-rich, image-dependent features; \textbf{(2)} stretchable 2D layout models, as 
-opposed to the rigid parts typically used in pose estimation;
+of this chapter are: \textbf{(1)} an efficient ensemble of tree models for 
+parsing human motion which covers a complex set of pairwise relationships and 
+includes rich, image-dependent features; \textbf{(2)} stretchable 2D layout 
+models, as opposed to the rigid parts typically used in pose estimation;
 \textbf{(3)} significant improvement over single frame parsing results 
 (arguably a first in this setting) \textbf{(4)} a challenging new video dataset, VideoPose2.0, 
 with a high degree of motion pose variability which shows limitations of 
@@ -358,7 +358,7 @@ all $P$ tree submodels (i.e., twice as slow overall).
 \includegraphics[width=0.99\textwidth]{figs/single-frame-agreement.pdf}
 \caption[Single Frame Agreement construction]{Single frame agreement 
 construction.  We first precompute messages coming into frame $t$ from all 
-other frames (left).  We then combine 3-cliques state spaces via cartesian 
+other frames (left).  We then combine 3-clique state spaces via Cartesian 
 product to merge cliques into nodes in a larger state space (middle) to obtain 
 a chain graph (right) over which we can perform exact inference.}
 \label{fig:single-frame-agreement}
@@ -405,4 +405,32 @@ $\lambda$ and the number of training epochs using a held-out
 development set to minimize error.
 
 
+\section{System summary}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/esm-overview2.pdf}
+\caption[Stretchable Models system overview.]{ Overview of the stretchable 
+ensembles system.  The desired complete graph is decomposed into tree 
+submodels, allowing us to design a variety of rich features, but requiring us 
+to coordinate agreement between submodels.  Middle-left: a few of the rich 
+features employed---color symmetry shown for a left wrist patch; color tracking 
+of a left wrist patch; hand detectors based on motion and color; optical flow 
+motion estimate to obtain a rough cue of figure/ground separation.  
+Middle-right: the six tree submodels' beliefs about the pose in one frame of 
+video.  While sometimes in agreement, in general they are not.  Bottom row: 
+sample frames of predicted pose once single-variable agreement is imposed.  Not 
+the tracking failure in the last frame of the left lower arm due to occlusion.  
+} \label{fig:esm-overview2}
+\end{center}
+\end{figure}
+
+\figref{esm-overview2} shows a summary depiction of the Stretchable Ensembles 
+process.  Because we decompose our cyclic graph, we are able to use a variety 
+of rich image-dependent features for tracking.  However, this also requires us 
+to reconcile different tree submodels' beliefs on the final predicted pose, 
+shown on a few sample frames of a video at the bottom of the figure.  For full 
+test set results, we refer the reader to \secref{results} and this video:
+\begin{center}
+\url{http://www.youtube.com/watch?v=vnOh8_D3RhQ}.
+\end{center}
 

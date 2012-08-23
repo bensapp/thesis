@@ -2,14 +2,13 @@
 
 
 \section{Introduction}
-Pictorial structure models, first proposed by ~\cite{fischler1973ps} and outlined in~\secref{ps}, are a popular method for human body pose estimation~\cite{felz05,fergus2005sparse,devacrf,ferrari08,andriluka09}.
-The model is a pairwise structured model over pose variables that characterizes 
-local appearance properties of parts and geometric part-part interactions.   
-The search over the full pose space is linear time in the number of parts when 
-the part-part dependencies form a tree.  However,  the individual part 
-state spaces are too large (typically hundreds of thousands of states) to allow 
-complex appearance models to be evaluated densely.   Most appearance models are 
-therefore simple linear filters on edges, color and 
+Pictorial structure models, first proposed by ~\cite{fischler1973ps} and 
+outlined in~\secref{ps}, are the standard method for human body pose 
+estimation. The search over the full pose space is linear time in the number of 
+parts when the part-part dependencies form a tree.  However,  the individual 
+part state spaces are too large (typically hundreds of thousands of states) to 
+allow complex appearance models to be evaluated densely.   Most appearance 
+models are therefore simple linear filters on edges, color and 
 location~\cite{felz05,devacrf,ferrari08,andriluka09}. 
 
 Similarly, because of quadratic state-space complexity, part-part relationships 
@@ -30,11 +29,11 @@ to the work on cascades for face detection~\cite{geman2001,viola02}, but the
 key difference is the use of structured models. Each level of the cascade works on a certain spatial and angular resolution.  A level refines the set of candidates from the 
 previous level and then runs inference to determine which poses to filter out.  
 For each part, the model selects poses with the largest {\em max-marginal}
-scores, subject to a computational budget.  Unlike conventional pruning 
-heuristics, where the possible part locations are identified using the output 
-of a detector, models in our cascade use inference in simpler structured models 
-to identify what to prune, taking into account global pose in filtering 
-decisions.
+scores (\secref{max-marginals}), subject to a computational budget.  Unlike 
+conventional pruning heuristics, where the possible part locations are 
+identified using the output of a detector, models in our cascade use inference 
+in simpler structured models to identify what to prune, taking into account 
+global pose in filtering decisions.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=1.0\textwidth]{figs/cps-overview.png}
@@ -64,7 +63,7 @@ Buffy and PASCAL Stickmen benchmark, improving the state-of-the-art on arm
 localization, as discussed in~\secref{experiments}. 
 
 \label{subsec:our_ps}
-We choose instead to model part configurations as a general linear MRF over 
+We choose to model part configurations as a general linear MRF over arbitrary 
 pairwise and unary terms:
 \begin{align}
 s(x,y)  = \w \cdot \f(x,y) = \sum_{i \in \cV_\tree} \w_i \cdot \f_i(x,y_i)  + 
@@ -118,22 +117,13 @@ this paper is instead developing more complex models---previously infeasible
 due to the original intractable complexity---to improve state-of-the-art 
 performance.
 
-A different approach to reduce the intractable number of state hypotheses is to 
-instead propose a small set of likely hypotheses based on bottom-up perceptual 
-grouping principles~\cite{mori04,praveen07}.  Mori et al.~\cite{mori04} use 
-bottom-up saliency cues, for example strength of supporting contours, to 
-generate limb hypotheses.  They then prune via hand-set rules based on 
-part-pair geometry and color consistency. The shape, color and contour based 
-features we use in our last cascade stage are inspired by such bottom-up 
-processes.  However, our cascade is solely a sequence of 
-discriminatively-trained top-down models.
-
 
 
 \section{Structured Prediction Cascades} \label{sec:SPC}
-The recently introduced Structured Prediction Cascade framework~\cite{cascades} 
-provides a principled way to prune the state space of a structured prediction 
-problem via a sequence of increasingly complex models.
+The recently introduced Structured Prediction Cascade 
+framework~\citep{cascades} provides a principled way to prune the state space 
+of a structured prediction problem via a sequence of increasingly complex 
+models.
 There are many possible ways of defining a sequence of increasingly complex 
 models.  In~\cite{cascades} the authors introduce higher-order cliques into 
 their models in successive stages (first unary, then pairwise, ternary, etc.).  
@@ -141,7 +131,8 @@ Another option is to start with simple but computationally efficient features,
 and add more complex features downstream as the number of states decreases.  
 Yet another option is to geometrically coarsen the original state space and 
 successively prune and refine.
- We use a coarse-to-fine state space approach with simple features until we are 
+
+We use a coarse-to-fine state space approach with simple features until we are 
 at a reasonably fine enough state space resolution and left with few enough 
 states that we can introduce more complex features.  We start with a severely 
 coarsened state space and use standard pictorial structures unary detector 
@@ -180,14 +171,15 @@ the next cascaded model.
 
 
 The key ingredient to the cascade framework is that states are pruned using 
-{\em max-marginal} scores, introduced in~\secref{max-marginals}, computed 
-efficiently using dynamic programming techniques.  The notion of a max-marginal 
-is intuitively explained in our model of pose estimation:  The max-marginal for 
-a part $i$ at location $y_i$ is the score of the highest scoring pose with part $i$ fixed or ``pinned'' to location $y_i$. Importantly, max-marginals are a {\em 
-global} quantity of a complete model of pose, rather than a local one: A part 
-could have weak individual image evidence of being at location $y_i$ but still 
-have a high max-marginal score if the rest of the model believes this is a 
-likely location for the part. 
+{\em max-marginal} scores $\mmi$, introduced in~\secref{max-marginals}, 
+computed efficiently using dynamic programming techniques.  The notion of a 
+max-marginal is intuitively explained in our model of pose estimation:  The 
+max-marginal for a part $i$ at location $y_i$ is the score of the highest 
+scoring pose with part $i$ fixed or ``pinned'' to location $y_i$. Importantly, 
+max-marginals are a {\em global} quantity of a complete model of pose, rather 
+than a local one: A part could have weak individual image evidence of being at 
+location $y_i$ but still have a high max-marginal score if the rest of the 
+model believes this is a likely location for the part. 
 
 \subsection{Filtering threshold}\label{sec:cps-thresh}
 
@@ -195,9 +187,10 @@ When applying a cascade, we have two competing objectives that we must trade
 off: accuracy and efficiency. We want to minimize the number of errors incurred 
 by each level of the cascade  and maximize the number of filtered 
 max-marginals.  A natural strategy is to prune away the lowest ranked states 
-based on max-marginal scores. Instead, we prune the states whose max-marginal 
-score is lower than a data-specific threshold $t_x$: $y_i$ is pruned if $\mmi < 
-t_x$.  This threshold is defined as a convex combination of the highest score
+based on max-marginal scores.   For reasons explained below, we approximate a 
+ranking threshold by pruning the states whose max-marginal score is lower than 
+a data-specific threshold $t_x$: $y_i$ is pruned if $\mmi < t_x$.  This 
+threshold is defined as a convex combination of the highest score
 $s^\star_x = \max_y s(x,y)$ and the {\em mean max-marginal score}, defined as:
 \begin{equation}
 \bar{s}^\star_x = \frac{1}{n} \sum_{i=1}^n \frac{1}{|\cY_i|} \sum_{y_i \in 
@@ -230,10 +223,10 @@ The goal of learning is to fit parameters to our models $\w$ such that they are
 optimized for the task of filtering states efficiently and accurately.  This is 
 notably different than standard supervised learning, which attempts to find 
 $\w$ to separate the right answer from wrong.  In some sense, the filtering 
-learning object is easier to learn---the correct answer does not have to be the 
-highest scoring, but only above the threshold value.  To wit, we pose the 
-following hard-constraint learning objective, assuming a training set of pairs 
-$\{(x^{(j)},y^{(j)})\}_{j=1}^M$:
+learning objective is easier to learn---the correct answer does not have to be 
+the highest scoring, but only above the threshold value.  To wit, we pose the 
+following hard-constraint learning objective, assuming a training set 
+$\{(x^{(j)},y^{(j)})\}_{j=1}^m$:
 \begin{align}
 \minimize_\w& \frac{1}{2} ||\w||_2^2 \\
 \subjectto& s(x^{(j)},y^{(j)}) \geq t_{x^{(j)}}(s,\alpha) + 1,\;\;\; \forall \; j
@@ -244,7 +237,7 @@ our image-adaptive threshold.  We convert the hard constraint objective into an
 unconstrained hinge-loss form typical of a max-margin structured learning 
 problem (see~\secref{learning}):
 \begin{align}
-\minimize_\w& \frac{\lambda}{2} ||\w||_2^2 + \frac{1}{M} \sum_{j=1}^M \left[ 
+\minimize_\w& \frac{\lambda}{2} ||\w||_2^2 + \frac{1}{m} \sum_{j=1}^m \left[ 
 t_{x^{(j)}}(s,\alpha) - s(x^{(j)},y^{(j)}) + 1 \right]_+
 \label{eq:cps-learn-hinge}
 \end{align}
@@ -257,7 +250,7 @@ if $s(x,y) > t_x(s,\alpha)$, then for all $i$, $\mmi >  t_x(s,\alpha)$, so no
 part state of $y$ is pruned.   Given an example $(x,y)$,
 this condition $s(x,y) > t_x(s,\alpha)$ is {\em sufficient} to ensure that no 
 correct part is pruned, which is our justification for using max-marginals as 
-the pruning quality.  Note that probabilistic marginals do {\em not} have this 
+the pruning measure.  Note that probabilistic marginals do {\em not} have this 
 property: $p(y|x)$ being above a threshold does not guarantee that $p(y_i|x)$ 
 are above a threshold for all $i$.
 
@@ -278,7 +271,8 @@ in~\secref{max-marginals}):
 \cY_i} \f(x,\witnessi).
 \end{equation}
 The key distinguishing feature of this update as compared to
-structured perceptron is the last term which subtracts features included in all
+structured perceptron (\secref{learning-algs}) is the last term which subtracts 
+features included in all
 max-marginal assignments $\witnessi$.
 
 \out{\footnote{Note that because \eqref{eq:convex_opt} is $\lambda$-strongly 
@@ -294,7 +288,7 @@ $\epsilon$-accurate solutions~\cite{shalev-shwartz07pegasos}.  In our experiment
 sequentially, from coarse to fine, and each has a different set of parameters 
 $\w$ and $\mathcal{Y}_i$ for each part, as well as $\alpha$.  The states of the 
 next level are simply refined versions of the states that have not been pruned.  
-We describe the refinement structure of the cascade in~\secref{experiments}.
+We describe the refinement structure of the cascade in~\secref{cascade-eval}.
 
 \out{
 In the end of a coarse-to-fine cascade we are left with a small, sparse set of 
@@ -316,7 +310,8 @@ strong evidence from other parts can keep a part which has weak individual
 evidence, and would be pruned using only detection scores.  The failure of 
 pre-filtering  part locations in human pose estimation is also noted 
 by~\citet{andriluka09}, and serves as the primary justification for their use 
-of the dense classical PS.  This is illustrated in~\figref{cascade-pruning}.
+of the dense classical PS.  This is illustrated in~\figref{cascade-pruning}.  
+In the results in \secref{cascade-eval} we confirm this empirically.
 
 \begin{figure}[tb]
 \begin{center}
@@ -331,5 +326,46 @@ better state pruning.}
 \end{figure}
 
 
+\section{System summary}
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/CPS-overview2.pdf}
+\caption[Cascade filtering in practice.]{Cascade filtering on a real example.  
+Each column shows a stage of the cascade. The states remaining for the torso, 
+left upper arm and left upper arm are shown in the three rows, represented as 
+small green unit vectors.  Before pruning (first column) all states are present 
+in a coarse state space.  As the cascade progresses, initially it is easier to 
+discard torso and upper arm hypotheses as these are more discriminative parts.  
+The cascade automatically determines to postpone decisions about lower arms 
+until near the end stage of the cascade.}
+\label{fig:cps-overview}
+\end{center}
+\end{figure}
+
+
+\figref{cps-overview} shows the cascade in action on a real world example.  In 
+the end we are left with approximately 500 states for each part, which allows 
+us to add in a variety of useful, data-dependent features in a tractable 
+manner.  \figreff{cps-results-teaser}{left} shows how two of the features help 
+in practice over simply using geometry alone.  Details of all the features are 
+in \secref{features}.  \figreff{cps-results-teaser}{right} shows some of the 
+good results achieved on test data; see \secref{results} for quantitative and 
+\secref{qual-res} for more qualitative results.
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=0.99\textwidth]{figs/cps-results-teaser.pdf}
+\caption[Beneficial CPS features.]{Left: some examples of where data-dependent 
+features are beneficial. At top-left, using only geometry as a pairwise term, 
+geometrically plausible false positives arise from hard edges in the 
+background.  However, these false positives are not supported by long contours 
+in the image, which help determine the true answer.  Similarly, at bottom-left 
+false positives arise due to the highly-textured sweater.  However, these are 
+not supported by realistic region shapes.  At right, a sampling of results from 
+the Buffy and Pascal datasets which leverage all our rich features.  See 
+\secref{results} and \secref{qual-res} for more.}
+\label{fig:cps-results-teaser}
+\end{center}
+\end{figure}
 
 

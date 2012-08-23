@@ -89,10 +89,16 @@ modes as larger datasets become available.
 {\small
 \input{rel-work-hps-table}
 }
+\end{center}
+\footnotesize{ * Part modes are not explicitly part of the state, but instead 
+are maxed over to form a single detection.\\  ** A variety of parameter sharing 
+across global models is explored, thus there is some multimodal information 
+used during training. }
 \caption[Family of multimodal pose models.]{In the past few years, there have 
-been many instantiations of the family of multimodal models. }
-\label{tab:rel-work-ps} \end{center}
-\end{table}
+been many instantiations of the family of multimodal models. The recent models 
+listed here and their attributes are described in the text. \\
+}
+\label{tab:rel-work-ps} \end{table}
 
 We discuss here in depth the differences in recent works concerning multimodal 
 models of pose.  We then briefly go into other related models in the computer 
@@ -100,8 +106,8 @@ vision and machine learning communities.
 
 \subsection{Multimodal modeling}
 As can be seen in \tabref{rel-work-ps}, compositional, hierarchical modeling of 
-pose has seen a lot of interest as of late.  In general, works either consider 
-only global modes, local modes, or several multimodal levels of parts.
+pose has enjoyed a lot of attention recently.  In general, works either 
+consider only global modes, local modes, or several multimodal levels of parts.
 
 \mypar{Global modes but local cues.} Some works consider models with a number 
 of distinct global modes \citep{everingham2011,ramanan-faces,wang2008multiple}, 
@@ -454,6 +460,6 @@ adding additional positivity constraints in our learning objective: $\w_{ij}^z
 \geq \epsilon$, for small $\epsilon$ strictly positive.  It may still be the 
 case that the constraints are not respected (due to slack variables), but this 
 is rare.  In the unlikely event that this occurs, we project the deformation 
-parameters onto the feasible set:$\w_{ij}^z \leftarrow 
+parameters onto the feasible set: $\w_{ij}^z \leftarrow 
 \max(\epsilon,\w_{ij}^z)$ 
 

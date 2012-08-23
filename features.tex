@@ -1,15 +1,13 @@
 \chapter{Feature Sources}\label{sec:features}
 
-\out{
-\myquotation{Do not call me a computer vision engineer \ldots  I am a 
-perceptual scientist!}{Yiannis Alimonous}
-}
-
 A major goal of this work was to introduce rich features into models of human 
 pose.  The standard approach is to represent limbs with an edge-based rigid 
 template invariant to color, lighting, and minor deformations. In addition to 
 this, we use color, shape and geometry. 
 
+In this chapter, we go over feature {\em sources} - the basic channels of input 
+and how they are obtained.  For implementation details of how these are used in 
+the various models, see \secref{features2}.
 
 \begin{figure}[tb]
 \begin{center}
@@ -175,7 +173,7 @@ from~\citet{liu-optflow}.  See~\figreff{feature-sources}{f}.
 
 
 
-\chapter{Features}
+\chapter{Features}\label{sec:features2}
 
 There are several possible ways to organize the list of features we use in our 
 systems---by model, by modality, by importance.  We choose to group them 
@@ -403,7 +401,7 @@ supplement the HoG channels with an extra ``out-of-image'' channel, to jointly
 learn if it's likely that a body part lies at least partially outside the image 
 coordinates.
 
-\mypar{Color and motion-based hand detectors [ESM, LLPS]:}  Detecting the hand 
+\mypar{Color and motion-based hand detectors [ESM]:}  Detecting the hand 
 location is an extremely useful cue in anchoring all joint locations.  
 Unfortunately, traditional template-based part detectors such as HoG detectors 
 fail at this task due to hands' high variability in appearance, pose, and 

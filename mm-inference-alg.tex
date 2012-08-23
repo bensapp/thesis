@@ -36,8 +36,8 @@ $m_{i \rightarrow p} = \max_{y_i} \phi_{ip} + \fwdmsg_i$
 \FOR{$j \in \text{kids}(i)$}
 \STATE $m_{i \rightarrow j} = \max_{y_i} \phi_{ij} + \bwdmsg_i$
 \ENDFOR
-\ENDFOR
 \STATE $m^\star_i = \bwdmsg_i + \fwdmsg_i - \phi_i$
+\ENDFOR
 \STATE $\mmi \defn m^\star_i[y_i],\; \forall y_i \in \cY_i$
 
 \end{algorithmic} 

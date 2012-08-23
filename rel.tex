@@ -2,12 +2,12 @@
 
 In this section we survey a variety of methods for 2D human pose estimation in 
 both single frames and video.  The majority of this work is on {\em part-based} 
-models, which decompose and reason about basic units of pose.  A few 
-non-part-based approaches are mentioned in \secref{nonpart}.  We omit work 
-using other more powerful sensors such as motion capture environments or 
-multiple cameras, since many of the significant issues in 2D human pose 
-estimation are not present in these domains (\eg, clutter, viewpoint and 
-occlusion issues).
+models, which decompose and reason about basic units of pose and their 
+relationships.  A few non-part-based approaches are mentioned in 
+\secref{nonpart}.  We omit work using other more powerful sensors such as 
+motion capture environments or multiple cameras, since many of the significant 
+issues in 2D human pose estimation are not present in these domains (\eg, 
+clutter, viewpoint and occlusion issues).
 
 \section{Single-frame parts-based models}\label{sec:partsbased}
 
@@ -118,8 +118,8 @@ each part. During inference, the correct mode is inferred as a state in the
 model or maxed out.  This type of multimodal modeling extends and has shown to 
 be very valuable even for only atomic parts \citep{deva2011}.  In fact, even a 
 basic PS model which searches over rotations for each part can be thought of as 
-an atomic part multimodal model, where each part orientation is a model, and 
-all modes share the same appearance parameters (the rotated template).
+an atomic part multimodal model, where each part orientation is a mode, and all 
+modes share the same appearance parameters (the rotated template).
 
 One can think of a family of trees that captures different portions of pose 
 space per tree (\secref{tree-fam}) in this way: it is a multimodal model at the 
@@ -129,8 +129,8 @@ model.
 
 
 \section{Bottom-up driven approaches}
-Decomposing the body into parts and only local interactions is one way of 
-dealing with the combinatorial number of possibilities of human layout. An 
+Decomposing the body into parts and modeling only local interactions is one way 
+of dealing with the combinatorial number of possibilities of human layout. An 
 orthogonal approach is to keep the number of full pose possibilities manageable 
 by growing them incrementally from bottom-up information, and rejecting 
 unlikely pose proposals along the way.  This is attractive over parts-based 
@@ -172,26 +172,26 @@ Some rely on standard approximate inference techniques, which often result in
 expensive inference and poorly understood behaviors.  \citet{ferrari08} use 
 loopy belief propagation to incorporate geometric continuity through time.  
 Loopy belief propagation involves iteratively propagating beliefs around the 
-metric until convergence is reached.  Convergence, however, is not guaranteed, 
+network until convergence is reached.  Convergence, however, is not guaranteed, 
 and the number of belief propagation steps required in practice is orders of 
-magnitude more than a tree model.  
+magnitude more than required for exact inference in a tree model.  
 
 Loopy belief propagation is a {\em variational inference} method which can be 
 interpreted as attempting to maximize a simpler distribution than the true 
-Markov Random Field distribution of the model~\citep{jaakkola2000}.  Another 
-variational approach proposed by \citet{ioffe2001} is direct coordinate ascent 
-of the distribution.  In their case, their coordinate ascent is guided by the 
-problem: they alternate between maximizing assignments within frames, holding 
+Markov Random Field distribution of the model~\citep{jaakkola2000}.  A related 
+approach proposed by \citet{ioffe2001} is direct coordinate ascent of the 
+distribution.  In their case, their coordinate ascent is guided by the problem: 
+they alternate between maximizing assignments within frames, holding 
 inter-frame beliefs fixed, then maximizing between frames, holding intra-frame 
 beliefs fixed.  This can be viewed as a application-specific constrained loopy 
 belief propagation to achieve a local maxima.
 
 \citet{sigal2004tracking} use non-parametric belief propagation with learned 
 motion distributions for temporal edges. In \citet{sigal2004measure}, a 
-continuous state space model is employed.  Continuous-state models require 
-local scores with analytical normalization (such as Gaussian distributions), or 
-approximate inference frameworks, such as non-parametric belief propagation (a 
-form of sampling) used by \citet{sigal2004measure}.
+continuous state space model is employed, and they also resort to sampling.  
+The other alternative with continuous state space modeling is to require 
+analytical representations with convenient manipulations for clique scores, 
+such as the Gaussian modeling of Kalman Filters \citep{roweis1999unifying}.
 
 Particle filtering is another form of approximate inference.  Most particle 
 filtering methods only support {\em forward}, or {\em online} inference in 
@@ -212,18 +212,17 @@ approximation method that is computationally cheaper with no reduction in
 performance in \secref{stretchable-inference}.
 
 
-\section{Tracking-by-detection}  A second approach to approximate 
-inference---where we consider all frames or all frames preceeding the current 
-frame---is instead to make hard decisions in every frame as to a limited set of 
-hypotheses.  This keeps the number of pose hypotheses from growing 
-exponentially with time, and allows us to use much more powerful features 
-between a pair of frames.  However, it is impossible to recover from mistakes 
-made in early frames.
+\section{Tracking-by-detection}  A second kind of approximate inference in 
+video is to make hard decisions in every frame to limit the set of pose 
+hypotheses.  This keeps the number of hypotheses from growing exponentially 
+with time, and allows us to use much more powerful features between a pair of 
+frames.  However, it is impossible to recover from mistakes made in early 
+frames.
 
 \citet{ren07} is a good example of this paradigm, using powerful reasoning 
 (graph matching with color coherence) between frames to establish 
 correspondences between the assumed correct pose in the current frame and 
-segments in the next frame.  In this system, there is no top-down model the 
+segments in the next frame.  In this system, there is no top-down model for the 
 tracked object, so drifting away from the correct pose eventually is 
 inevitable.  In earlier work in the same spirit, \citet{bregler98} propagate an 
 assumed correct pose in the current frame to the next by doing local gradient 
@@ -254,7 +253,7 @@ the use of exemplars. Possibly the simplest is the work of \citet{mori02} which
 finds a nearest neighbor based on shape context, and transfers joint locations.  
 \citet{toyama2002} consider modeling pose as a mixture of exemplar similarities 
 using chamfer distance to define a metric space.  \citet{shak2003} treat 
-exemplar distance as a locality sensing hashing problem.  More recently, 
+exemplar distance as a locality-sensitive hashing problem.  More recently, 
 \citet{taylorpose} learn a non-linear embedding so that nearest-neighbor pose 
 classification is effective at predicting hand locations, using a nearest 
 neighbor database of $40,000$ images.
