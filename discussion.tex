@@ -207,7 +207,7 @@ impossible, he is very probably wrong.
 little way past them into the impossible.
 \item Any sufficiently advanced technology is indistinguishable from magic.
   \setlength{\itemsep}{16pt}
-\item[---] \text{Clarke's Three Laws, Arthur C. Clark}
+\item[---] \text{Clarke's Three Laws, Arthur C. Clarke}
 \end{enumerate}
 }
 }
@@ -255,12 +255,15 @@ counts, populated by MoviePose. }
 
   How might we achieve higher accuracy on MoviePose?  The superficially 
 uninteresting but most promising way forward is using the same models, but with 
-significantly more data.  Currently, LLPS is comprised of 32 mode models, which 
-cover the range of human pose in video quite well.  The most common mode (arms 
-at rest) has 800 training examples at its disposable; the least common modes 
-(arms raised above head and hand held up to face) have less than 25 examples 
-each.  See \figref{llps-modes-counts}.  Immediately we see there is room to 
-flesh out some of the rarer categories and estimate them better.  
+significantly more data.  Our current research suggests that even fixing the 
+current set of modes, test set accuracy has still not saturated as we increase 
+the number of examples, as shown in \figref{llps-learning-curve}.  In its 
+current form, LLPS is comprised of 32 mode models, which cover the range of 
+human pose in video quite well.  The most common mode (arms at rest) has 800 
+training examples at its disposable; the least common modes (arms raised above 
+head and hand held up to face) have less than 25 examples each.  See 
+\figref{llps-modes-counts}.  Immediately we see there is room to flesh out some 
+of the rarer modes and estimate them better.  
 
 As a back-of-the-envelope calculation, to collect enough data to train the 
 least frequent mode with 500 examples, respecting the natural mode distribution 
@@ -275,11 +278,11 @@ the current levels, for the least frequent modes to be modeled with 3 submodes,
 each with 500 training examples.
 
 It is almost flippant to suggest simply using more data will solve our 
-problems.  First, obtaining and labeling this data is no small feat; difficult 
-but not impossible.  Second, careful methods to train on such large datasets 
-need to be designed.  \Naively using current training methods for 60 times more 
-data would result in 13 days to train and would require 1.4TB of memory; 
-slightly out of the realm of feasibility for current standard servers.  
+problems.  First, obtaining and labeling this data is no small feat.  Second, 
+clever methods to train on such large datasets need to be designed.  \Naively 
+using current training methods for 60 times more data would result in 13 days 
+to train and would require 1.4TB of memory; just slightly out of the realm of 
+feasibility for current standard servers.  
 
 A final problem is that scaling up to a larger number of classes always tends 
 towards more class confusion.  This is a much more studied issue in large 
@@ -298,11 +301,11 @@ at least an order of magnitude or more additional data, cleverer training
 algorithms (or patience), and a richer hierarchy of modes, some more specific, 
 some more general than our current collection, based on both pose and 
 appearance.  It is our belief that such improvements to our model could enjoy 
-incredible leaps in performance in the coming years.  Preliminary studies on 
+incredible leaps in performance in the coming years.   A preliminary study on 
 pushing the state-of-the-art of multimodal models with increasing data and 
-modes in other domains has similar conclusions \citep{zhuwe}.
+modes in other domains has reached similar conclusions \citep{zhuwe}.
 
-\subsection{Putting people in their places}
+\subsection{Putting people in their place}
 
 \begin{figure}[tb!]
 \centering
@@ -323,21 +326,21 @@ bring a high degree of accuracy to frontal upper body pose estimation.  Even
 so, these models leave much to be desired.  Importantly, they are unable to 
 reason about occlusions and multiple people. 
 
-Some methods in the past model occlusion probabilistically, however, the basic 
-reasoning essentially boils down to a threshold on the lack appearance evidence 
-for a part~\citep{wang2008multiple}.  As we have shown throughout this thesis, 
-the decision to make about an arm not being present versus just being difficult 
-to detect (in which case we should just make a best guess) is extremely 
-difficult with current models.  In reasoning about multiple people, 
+Some past work models occlusion probabilistically, however, the basic reasoning 
+essentially boils down to a threshold on the lack appearance evidence for a 
+part~\citep{wang2008multiple}.  As we have shown throughout this thesis, the 
+decision to declare an arm missing versus just being difficult to detect is 
+extremely difficult with current models.  In reasoning about multiple people, 
 \citet{eichner2010we} explore the combinatorially many possibilities of 
 detected people in a scene, \citet{kulesza11} provide a framework for sampling 
-a high-quality, diverse set of poses, and \citet{andriluka-multiple} model 
-interacting people by connecting them together in one tree-structured PS model.
+a high-quality, diverse set of poses in an image, and 
+\citet{andriluka-multiple} model interacting people by connecting them together 
+in one tree-structured PS model.
 
 In all the above models, we believe a key missing ingredient is the context 
 around the person.  Pose models to date only try to separate pose from 
-background, and there is attempt to understand or explain the background.  We 
-envision a model that attempts to put people in the scene around them, and 
+background, and there is no attempt to understand or explain the background.  
+We envision a model that attempts to put people in the scene around them, and 
 label every pixel in the scene along with it, similar to standard scene 
 parsing.  
 
@@ -345,7 +348,7 @@ We believe modeling the scene and pose jointly is crucial to determining
 whether a part is occluded: it can consider as evidence whether there is an 
 occluding foreground object, not simply declare occlusion whenever the part 
 detector signal is weak. Similarly, multiple people can be explained and 
-reasoned about as explicit objects. 
+reasoned about explicitly. 
 
 \citet{gupta11,delaitre12} have already provided empirical evidence that 
 current pose estimators can aid scene geometry and scene labeling inference.  
@@ -372,15 +375,15 @@ part-of-speech tagging \citep{cascades-jmlr} and natural language dependency
 parsing \citep{slav-naacl}.
 
 There are several structured problems in computer vision which contain similar 
-computational bottlenecks, and as result settle for models with restricted 
-forms of part interactions.  One is \textbf{scene parsing}, in which each 
-segment of an image must be labeled with one of a handful of labels.  Because 
-of the cyclic graph structure, only simple neighbor interactions are studied.  
-Recently, \citet{munoz10} showed that a non-structured hierarchy of models 
-which captured large part interactions proved to be very effective.  We expect 
-that applying a cascade to this problem would allow us to keep both the nice 
-properties of a structured model as well as the benefits of data-dependency in 
-large cliques of segments in an image.
+computational bottlenecks, and as a result, models have restricted interaction 
+terms.  One such problem is \textbf{scene parsing}, in which each segment of an 
+image must be labeled with one of a handful of labels.  Because of the cyclic 
+graph structure, only simple neighbor interactions are studied.  Recently, 
+\citet{munoz10} showed that a non-structured hierarchy of models which captured 
+large part interactions proved to be very effective.  We expect that applying a 
+cascade to this problem would allow us to keep both the nice properties of a 
+structured model as well as the benefits of data-dependency in large cliques of 
+segments in an image.
 
 Similar trends can be seen in the \textbf{optical flow} literature, which poses 
 the correspondence problem between a pair of images as a structured prediction 
@@ -536,3 +539,11 @@ Future improvements in pose accuracy seem promising and the dream of
 understanding human pose for a variety of applications is increasingly 
 compelling given the advancements in robotics and the pervasiveness of cameras 
 in our lives.  In conclusion, the future of pose estimation is bright.
+
+\clearpage
+\text{ } \vspace{3in}
+
+\begin{center}
+\includegraphics[width=0.350\linewidth]{figs/bot-tv.png}
+\end{center}
+

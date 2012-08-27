@@ -1,4 +1,4 @@
-\chapter{Qualitative results}
+\chapter{Qualitative results}\label{sec:qual-res}
 
 Here we include the output of our various systems on the datasets Buffy, Pascal 
 and VideoPose datasets discussed in \secref{experiments}.
@@ -33,14 +33,24 @@ Video pose estimation is best viewed in video:
 \section{LLPS results}
 
 A sampling of results of LLPS are shown in \figref{llps1}, \figref{llps2} and 
-\figref{llps3}.  Shown as ``left'' and ``right'' models are the training 
-examples defining the chosen local neighborhoods.  In red boxes we highlight 
-failure cases.
+\figref{llps3}. The $32$ modes are displayed as average image cluster center 
+thumbnails.  Red 'X's denote modes filtered by the cascade step in less than 
+$0.02$ seconds.  The remaining models are run, and the final predicted mode is 
+highlighted with the green rectangle.  The predicted pose is overlaid as limbs 
+for the upper and lower arm on the test image.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%                                                      %%%%%%%%
+%%%%%%%%%               buffy                                  %%%%%%%%
+%%%%%%%%%                                                      %%%%%%%%
+%%%%%%%%%                                                      %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/buffy_test_tiled_cps.jpg}
-\caption[CPS results on Buffy\#1]{CPS results on Buffy \#1}
+\caption[CPS results on Buffy \#1]{CPS results on Buffy \#1}
 \label{fig:buffy-cps1}
 \end{center}
 \end{figure}
@@ -48,20 +58,20 @@ failure cases.
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/buffy_test_tiled_cps-2.jpg}
-\caption[CPS results on Buffy\#2]{CPS results on Buffy \#2}
+\caption[CPS results on Buffy \#2]{CPS results on Buffy \#2}
 \label{fig:buffy-cps2}
 \end{center}
 \end{figure}
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/buffy_test_tiled_cps-4.jpg}
-\caption[CPS results on Buffy\#3]{CPS results on Buffy \#3}
+\caption[CPS results on Buffy \#3]{CPS results on Buffy \#3}
 \label{fig:buffy-cps3}
 \end{center}
 \end{figure}\begin{figure}[tb]
 \begin{center}
 \includegraphics[width=0.99\textwidth]{figs/buffy_test_tiled_cps-3.jpg}
-\caption[CPS results on Buffy\#4]{CPS results on Buffy \#4}
+\caption[CPS results on Buffy \#4]{CPS results on Buffy \#4}
 \label{fig:buffy-cps4}
 \end{center}
 \end{figure}
@@ -123,24 +133,27 @@ failure cases.
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.99\textwidth]{figs/llps-qual-buffy.pdf}
-\caption[LLPS results on Buffy]{LLPS results on Buffy}
+\includegraphics[width=0.99\textwidth]{figs/llps-qual-mpose1.jpg}
+\vspace{-0.25in}
+\caption[LLPS results on MoviePose \#1]{LLPS results on MoviePose \#1}
 \label{fig:llps1}
 \end{center}
 \end{figure}
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.99\textwidth]{figs/llps-qual-pascal.pdf}
-\caption[LLPS results on Pascal]{LLPS results on Pascal}
+\includegraphics[width=0.99\textwidth]{figs/llps-qual-mpose2.jpg}
+\vspace{-0.25in}
+\caption[LLPS results on MoviePose \#2]{LLPS results on MoviePose \#2}
 \label{fig:llps2}
 \end{center}
 \end{figure}
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=0.99\textwidth]{figs/llps-qual.pdf}
-\caption[More LLPS results.]{More LLPS results.}
+\includegraphics[width=0.99\textwidth]{figs/llps-qual-mpose3.jpg}
+\vspace{-0.25in}
+\caption[LLPS results on MoviePose \#3.]{LLPS results on MoviePose \#3}
 \label{fig:llps3}
 \end{center}
 \end{figure}

@@ -357,14 +357,15 @@ because it requires that the {\em pixel structure} of the patch be similar in
 consecutive frames.  
 
 \mypar{Figure from flow [ESM]:}
-We use several features based on dense optical flow from~\cite{optflow}, which we compute between 
-adjacent frames. We obtain a rough estimate of the foreground of each clip by 
-assuming there are only 2 planes of motion: foreground (figure) and background.  
-Given a detected person, we estimate the background motion by computing the 
-median flow vector $\mu_{bg}$ outside the detected person bounding box, and not 
-considering outlier flow with magnitude greater than the $75^{th}$ percentile.  
-We then subtract off $\mu_{bg}$ from the flow field and take the magnitude of 
-the flow as an estimate of foreground likelihood.  We incorporate this as a
+We use several features based on dense optical flow from~\citet{liu-optflow}, 
+which we compute between adjacent frames. We obtain a rough estimate of the 
+foreground of each clip by assuming there are only 2 planes of motion: 
+foreground (figure) and background.  Given a detected person, we estimate the 
+background motion by computing the median flow vector $\mu_{bg}$ outside the 
+detected person bounding box, and not considering outlier flow with magnitude 
+greater than the $75^{th}$ percentile.  We then subtract off $\mu_{bg}$ from 
+the flow field and take the magnitude of the flow as an estimate of foreground 
+likelihood.  We incorporate this as a
 limb feature by computing the average foreground likelihood sampled at 5 points 
 evenly spaced along the line segment between joint pairs.
 See~\figreff{misc-features}{e}.

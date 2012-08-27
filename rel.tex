@@ -101,7 +101,7 @@ Our ESM model~\secref{stretchable} uses these types of cues and more.
 video---one tree for each common occlusion scenario.  \citet{everingham2011} 
 and \citet{ramanan-faces} use dozens of tree models for full body and face 
 parsing, respectively, to capture broad pose categories such as ``upside down'' 
-body or ``left 3/4 profile'' face.  In practice, mode definitions are data 
+body or ``left 3/4 profile'' face.  In practice, mode definitions are data- 
 driven and not necessarily semantically interpretable.
 
 \subsection{Multimodal compositional tree models}
@@ -128,7 +128,7 @@ in-depth discussion of recent work in this area there, including our LLPS
 model.
 
 
-\section{Bottom-up driven approaches}
+\section{Bottom-up methods}
 Decomposing the body into parts and modeling only local interactions is one way 
 of dealing with the combinatorial number of possibilities of human layout. An 
 orthogonal approach is to keep the number of full pose possibilities manageable 
@@ -212,7 +212,7 @@ approximation method that is computationally cheaper with no reduction in
 performance in \secref{stretchable-inference}.
 
 
-\section{Tracking-by-detection}  A second kind of approximate inference in 
+\subsection{Tracking-by-detection}  A second kind of approximate inference in 
 video is to make hard decisions in every frame to limit the set of pose 
 hypotheses.  This keeps the number of hypotheses from growing exponentially 
 with time, and allows us to use much more powerful features between a pair of 

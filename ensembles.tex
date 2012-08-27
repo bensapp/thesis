@@ -17,8 +17,8 @@ proposed in~\secref{CPS}.
 Despite steady advances, localization of the most interesting parts (lower arms 
 and hands) remains very inaccurate.  Video provides additional motion cues, yet 
 most work on articulated tracking requires manual initialization from a few
-frames~\citep{cardboard02,bregler98,balan06,sminchisescu03,ren07,buehler08}.  
-Several recent papers~\citep{sigal04, lan05,ramanan05,ferrari08,weisssapp10}, 
+frames~\citep{cardboard,bregler98,balan06,sminchisescu03,ren07,buehler08}.  
+Several recent papers~\citep{sigal04, lan05,strikeapose,ferrari08,weisssapp10}, 
 however, combine tracking and estimation without any supervised initialization; 
 our work in this chapter follows this setting.
 
@@ -37,7 +37,7 @@ representations~\citep{ferrari08,sapp2010cascades,andriluka09}.}
 \end{figure}
 
 % Intractability, loopy, sampling, etc..
-In the ``strike-a-pose'' parsing method of~\citet{ramanan05}, an easily 
+In the ``strike-a-pose'' parsing method of~\citet{strikeapose}, an easily 
 detectable canonical pose (e.g., limbs spread out) is automatically found in a 
 long stretch of video and used as initialization for person-specific part 
 appearance models.  While this intuitive idea works well when every person 
@@ -68,7 +68,7 @@ bad choices in earlier frames.
 
 Computational considerations also usually lead to restrictive simplifying 
 assumptions on geometry: 2D limb lengths are fixed (given global 
-scale)~\citep{ramanan05,ferrari08,eichner09, andriluka09}.  In typical video 
+scale)~\citep{strikeapose,ferrari08,eichner09, andriluka09}.  In typical video 
 sequences this assumption is almost always violated because of foreshortening 
 and body type variation, especially for the lower arms. For this paper, we 
 collected a new challenging video dataset which extends the one 
@@ -148,7 +148,7 @@ relationships.  We address each of these issues in a principled framework.
 
 \subsection{Stretchable models of human pose}  One of the biggest limitations 
 of current models of human pose is the ``cardboard people'' 
-assumption~\citep{cardboard02}: that body parts are rigid patches of fixed size 
+assumption~\citep{cardboard}: that body parts are rigid patches of fixed size 
 (up to a global scale).  In the pictorial structures framework, the human is 
 represented as a collection of parts with fixed lengths, which along with the 
 position and angle of each joint, completely determines the pose of the 
