@@ -444,7 +444,7 @@ histogram of gradients (HoG) descriptors, using the implementation from
 \citet{dpm}.  For local cues $\f_i(x,y_i,z)$ we use a $5 \times 5$ grid of HoG 
 cells, with a cell size of $8 \times 8$ pixels. For global cues $\f(x,z)$ we 
 capture larger structure with a $9 \times 9$ grid and a cellsize of 
-$16 \times 16$ pixels.   The cascade mode predictor uses the same features ...
+$16 \times 16$ pixels.   The cascade mode predictor uses the same features in a $17 \times 15$ grid with a cell size of $8 \times 8$ pixels.
 
 \mypar{Geometry.} We use the same quadratic deformation cost features as \citet{felz05}, allowing us to use
 distance transforms for message passing (\secref{dt}):
