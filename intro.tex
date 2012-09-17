@@ -2,10 +2,12 @@
 \begin{quote}
 Because it's there.
 \end{quote}
-\hfill --- George Mallory, when asked why he wanted to climb Mount Everest.\\
+\hfill --- George Mallory, on why he wanted to climb Mount Everest.\\
 \vspace{0.5in}
 
-The idea of an intelligent robot performing a variety of tasks, extraordinary 
+{\em Why human pose estimation? }
+
+ The idea of an intelligent robot performing a variety of tasks, extraordinary 
 and mundane, up to and exceeding human performance, has captured the hearts and 
 minds of people since at least the European Renaissance.  A key feature of much 
 of this romantic vision is that robots can interact with {\em us}---working 
@@ -19,9 +21,9 @@ recognition~\citep{pose-action11}, human-object interaction~\citep{bangpeng12},
 and scene understanding~\citep{gupta11}, to name a few.   
 
 The problem of human pose understanding is also interesting in its own right.  
-It pushes the boundaries of what can and cannot be accomplished by artificially 
-intelligent systems.  Infants and even other species can understand human 
-pose---why can't a computer?  
+It defines part of the boundary of what can and cannot be accomplished by 
+artificially intelligent systems.  Infants and even other species can 
+understand human pose---why can't a computer?  
 
 Pose estimation subsumes one of the holy grails of computer vision: general 
 object recognition.  It serves as useful vehicle to demonstrate computer vision 
@@ -46,13 +48,14 @@ the number of parts.  It can be posed as a graph assignment or graphical model
 inference problem with an enormous set of possible labels (for each part, 
 determine which pixel it is associated with).  This makes it an interesting 
 testbed for advancements in graphical model and matching algorithms for and 
-beyond computer vision.
+beyond computer vision---in language understanding, computational biology, 
+statistics and physics.
 
 Finally, the problem of pose estimation is timely.  In the computer vision 
 community, statistical machine learning tools and supervised datasets give us 
 principled protocols to learn effective recognition models which didn't exist a 
 decade ago.  Robots, cameras, and automated systems are more and more pervasive 
-in everyday life.  The demand for reliable pose estimation is already felt in 
+in everyday life.  The demand for reliable pose estimation is already strong in 
 the entertainment and defense industries. 
 
 For all these reasons---practical applications, the dream of artificial 
@@ -63,21 +66,23 @@ excellent problem upon which to focus.
 
 \section{Problem Statement}
 
-Here we formalize our problem definition input, output and computational 
-requirements as follows:  
+Here we formalize our problem definition in terms of input, output and 
+computational requirements as follows:  
+
 
 \begin{problem}[2D human upper-body pose estimation]
 \label{prob:pose}
 \hspace*{\fill}
-\begin{itemize}
- \item[Input:] A single RGB image or RGB video sequence containing the rough 
-location and scale of a person in every frame, with no additional information.
-\item[Output:] Line segments describing the major anatomical parts \{left and 
-right upper arms, left and right lower arms, torso, head\} in pixel 
+\begin{description}
+\item[\textbf{Input:}] A single RGB image or RGB video sequence containing the 
+rough location and scale of a person in every frame, with no additional 
+information.
+\item[\textbf{Output:}] Line segments describing the major anatomical parts 
+\{left and right upper arms, left and right lower arms, torso, head\} in pixel 
 coordinates.
-\item[Requirements:] Computation time and space polynomial in the number of 
-input pixels and number of output parts.
-\end{itemize}
+\item[\textbf{Requirements:}] Computation time and space polynomial in the 
+number of input pixels and number of output parts.
+\end{description}
 \end{problem}
 
 \begin{figure}[tb]
@@ -89,14 +94,14 @@ problem, formalized in~\probref{pose}.}
 \end{center}
 \end{figure}
 
-Importantly, we concern ourselves only with 2D (two dimensional) input.  This 
-makes the task much more challenging than when using additional sensors, such 
-as in Microsoft's Kinect capture system~\citep{kinect} where depth information 
-and hence reliable knowledge of the background can be used.  However, our 
-limited-sensor problem also means it can be applied in more general settings: 
-we can apply such pose estimation methods outdoors and on the wealth of 
-archival images and footages already stored on personal computers, libraries, 
-and photo and video sharing web sites.  
+Importantly, we concern ourselves only with 2D (two dimensional) pixel array 
+input.  This makes the task much more challenging than when using additional 
+sensors, such as in Microsoft's Kinect capture system~\citep{kinect} where 
+depth information and hence reliable knowledge of the background can be used.  
+However, our limited-sensor problem also means it can be applied in more 
+general settings: we can apply such pose estimation methods outdoors and on the 
+wealth of archival images and footages already stored on personal computers, 
+libraries, and photo and video sharing web sites.  
 
 Furthermore, we do not assume any additional information, such as knowledge of 
 the foreground, background, clothing, lighting, indoor versus outdoor, 

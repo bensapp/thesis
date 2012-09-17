@@ -19,10 +19,9 @@
 
 \theoremstyle{plain} \newtheorem{problem}{Problem}
 
-\usepackage{algorithm}
+\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{algorithmic}
 
-% \includeonly{intro,rel,ml,ps}
 
 \begin{document}
 \input{commands}
@@ -31,7 +30,7 @@ Interactions}
 \newcommand{\MYTITLE}{EFFICIENT HUMAN POSE ESTIMATION WITH IMAGE-DEPENDENT 
 INTERACTIONS}
 
-\title{\mytitle}
+\title{\MYTITLE}
 \author{Benjamin John Sapp}
 
 \copyrightyear{2012}
@@ -45,57 +44,55 @@ INTERACTIONS}
  \beforepreface
 \newpage
 \copyrightpage
-\newpage
-\prefacesection{Acknowledgments}
+\clearpage
+\include{dedication}
+\clearpage
 \include{ack}
-\newpage
+\addcontentsline{toc}{chapter}{Acknowledgements}
 
 % abstract must be placed in abstract.tex for this to work:
 \abstractp
-
-% \prefacesection{Preface}
-% \include{preface}
 
 \tocstuff
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\newpage
-%\pagenumbering{arabic}
-%\pagestyle{plain}
+\newpage
+\pagenumbering{arabic}
+\pagestyle{plain}
 %
-%\include{intro}
-%\part{Preliminaries}
-%\include{ml}
-%\include{ps}
-%\include{rel}
+\include{intro}
+\part{Preliminaries}
+\include{ml}
+\include{ps}
+\include{rel}
 %
-%\clearpage
-%\part{Models and methods}
-%\include{CPS}
-%\include{ensembles}
-%\include{llps}
+\clearpage
+\part{Models and methods}
+\include{CPS}
+\include{ensembles}
+\include{llps}
 %
-%\clearpage
-%\part{Representations of 2D human pose}
-%\include{features}
+\clearpage
+\part{Representations of 2D human pose}
+\include{features}
 %
-%\clearpage
-%\part{Experiments}\label{sec:experiments}
-%\include{experiments}
-%\include{results}
+\clearpage
+\part{Experiments}\label{sec:experiments}
+\include{experiments}
+\include{results}
 %
-%\clearpage
-%\part{Discussion and Conclusions}
-%\include{discussion}
+\clearpage
+\part{Discussion and Conclusions}
+\include{discussion}
 %
-%\clearpage
-%\appendix
-%\input{qual-res}
-%\input{mm-inference}
+\clearpage
+\appendix
+\input{qual-res}
+\input{mm-inference}
 %
-%\clearpage
-%\bibliographystyle{plainnat}
-%\bibliography{refs}
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{refs}
 %
 \end{document}
