@@ -68,7 +68,8 @@
 \def\supervisor#1{\gdef\@supervisor{#1}}
 \def\supervis@r{supervisor}
 \def\supervisor#1{\gdef\@supervisor{#1}\gdef\supervis@r{Supervisor of Dissertation}}
-\def\groupchair#1{\gdef\@groupchair{#1}\gdef\groupcha@r{Graduate Group Chair}}
+\def\groupchair#1{\gdef\@groupchair{#1}\gdef\groupcha@r{Graduate Group 
+Chairperson}}
 \def\submitdate#1{\gdef\@submitdate{#1}}
 \def\copyrightyear#1{\gdef\@copyrightyear{#1}} % \author, \title in report
 \def\@title{}\def\@author{}\def\@dept{electrical and systems enigneering}
@@ -213,11 +214,12 @@ Partial Fulfillment of the Requirements for the Degree of Doctor of Philosophy\\
 \def\copyrightpage{%
 \thispagestyle{empty}%
 \null\vfill
-\begin{center}
-\Large \mytitle \\
-\Large \copyright~Copyright by \@author\\
-\@copyrightyear
-\end{center}
+{\Large
+\noindent \MYTITLE\\\\
+\copyright \\\\
+\@copyrightyear\\\\
+\@author
+}
 \vfill\newpage}
 
 \def\beforepreface{%
